@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { DUE_COLOR, dueState, withDue, type DueState } from './deadlines'
+import { DUE_COLOR, dueState, groupByDue, withDue, type DueState } from './deadlines'
 
 describe('deadlines', () => {
   it('期限状態', () => {
@@ -25,5 +25,19 @@ describe('deadlines', () => {
       { id: 'c', nextActionDue: '2030-01-01' },
     ]
     expect(withDue(items).map((i) => i.id)).toEqual(['c', 'a'])
+  })
+
+  it('groupByDue: 空配列は空配列', () => {
+    expect(groupByDue([])).toEqual([])
+  })
+
+  it('groupByDue: 日付ごとにまとめ、日付昇順・グループ内は入力順を保つ', () => {
+    const a = { id: 'a', nextActionDue: '2030-01-05' }
+    const b = { id: 'b', nextActionDue: '2030-01-01' }
+    const c = { id: 'c', nextActionDue: '2030-01-05' }
+    expect(groupByDue([a, b, c])).toEqual([
+      { date: '2030-01-01', items: [b] },
+      { date: '2030-01-05', items: [a, c] },
+    ])
   })
 })

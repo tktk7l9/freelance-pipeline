@@ -29,3 +29,18 @@ export function withDue<T extends { nextActionDue: string | null }>(
     .filter((i): i is T & { nextActionDue: string } => i.nextActionDue !== null)
     .sort((a, b) => a.nextActionDue.localeCompare(b.nextActionDue))
 }
+
+/** 同じ期日の案件を日付見出しの下にまとめる。日付昇順・グループ内は入力順を保つ */
+export function groupByDue<T extends { nextActionDue: string }>(
+  items: T[],
+): { date: string; items: T[] }[] {
+  const byDate = new Map<string, T[]>()
+  for (const item of items) {
+    const list = byDate.get(item.nextActionDue)
+    if (list) list.push(item)
+    else byDate.set(item.nextActionDue, [item])
+  }
+  return [...byDate.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, group]) => ({ date, items: group }))
+}
