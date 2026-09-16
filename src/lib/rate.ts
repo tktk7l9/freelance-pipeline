@@ -1,4 +1,4 @@
-import type { Route, TaxBasis } from './enums.ts'
+import { ROUTES, type Route, type TaxBasis } from './enums.ts'
 
 /** 消費税率。税込が正本で、税抜表示の案件票だけここを通して税込にする */
 export const TAX_RATE = 1.1
@@ -79,4 +79,21 @@ export function median(values: number[]): number | null {
   const sorted = [...values].sort((a, b) => a - b)
   const mid = Math.floor(sorted.length / 2)
   return sorted.length % 2 === 1 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+}
+
+export type RouteStat = { route: Route; activeCount: number; medianIncl: number | null }
+
+/** 進行中案件を経路ごとに集計。件数 0 の経路は含めない。並びは ROUTES の順 */
+export function statsByRoute(cases: { route: Route; monthlyMaxIncl: number }[]): RouteStat[] {
+  return ROUTES.flatMap((route) => {
+    const inRoute = cases.filter((c) => c.route === route)
+    if (inRoute.length === 0) return []
+    return [
+      {
+        route,
+        activeCount: inRoute.length,
+        medianIncl: median(inRoute.map((c) => c.monthlyMaxIncl)),
+      },
+    ]
+  })
 }

@@ -5,9 +5,10 @@ import { useServerFn } from '@tanstack/react-start'
 import { useMemo, useState } from 'react'
 
 import { Row } from '../DetailRow'
+import { RateLines } from '../cases/RateLines'
 import { CASE_JSON_EXAMPLE, parseCaseJson, toCaseRow } from '../../lib/caseInput'
 import { REMOTE_LABEL, ROUTE_LABEL } from '../../lib/enums'
-import { formatMan } from '../../lib/rate'
+import { formatRateLines } from '../../lib/rate'
 import { importCase } from '../../server/cases'
 
 export function ImportForm({ onSaved }: { onSaved: (id: string) => void }) {
@@ -19,6 +20,7 @@ export function ImportForm({ onSaved }: { onSaved: (id: string) => void }) {
   )
   const parsed = useMemo(() => (json.trim() ? parseCaseJson(json) : null), [json])
   const preview = parsed?.ok ? toCaseRow(parsed.input) : null
+  const rateLines = preview ? formatRateLines(preview.monthlyMaxIncl, preview.monthlyMinIncl) : null
 
   async function submit() {
     setSaving(true)
@@ -74,7 +76,15 @@ export function ImportForm({ onSaved }: { onSaved: (id: string) => void }) {
             <Row label="経路" value={ROUTE_LABEL[preview.route]} />
             <Row
               label="税込上限"
-              value={`${formatMan(preview.monthlyMaxIncl)}（案件票は${preview.sourceTaxBasis === 'excl' ? '税抜' : '税込'}表示）`}
+              value={
+                rateLines ? (
+                  <RateLines
+                    main={rateLines.main}
+                    sub={`${rateLines.sub}（案件票は${preview.sourceTaxBasis === 'excl' ? '税抜' : '税込'}表示）`}
+                    align="right"
+                  />
+                ) : null
+              }
             />
             <Row
               label="リモート"
