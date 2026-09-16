@@ -7,7 +7,7 @@ import { CaseTable } from '../components/cases/CaseTable'
 import { EmptyState } from '../components/EmptyState'
 import { Fab } from '../components/Fab'
 import { PageShell } from '../components/PageShell'
-import { formatMan, median } from '../lib/rate'
+import { formatRateLines, median } from '../lib/rate'
 import { STATUS_GROUPS, STATUS_GROUP_LABEL, type StatusGroup } from '../lib/status'
 import { listCasesFn } from '../server/cases'
 
@@ -28,13 +28,15 @@ function Page() {
     STATUS_GROUPS.map((g) => [g, cases.filter((c) => c.group === g).length]),
   )
   const med = median(items.map((c) => c.monthlyMaxIncl))
+  const medRate = med === null ? null : formatRateLines(med, null)
+  const medText = medRate === null ? null : `${medRate.main} ${medRate.sub}`
 
   return (
     <PageShell
       title="案件"
       description={
-        group === 'active' && items.length > 0
-          ? `進行中 ${items.length} 本・税込中央値 ${formatMan(med)}`
+        group === 'active' && items.length > 0 && medText !== null
+          ? `進行中 ${items.length} 本・中央値 ${medText}`
           : undefined
       }
       fab

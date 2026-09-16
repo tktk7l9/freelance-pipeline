@@ -10,10 +10,10 @@ import { homeData } from '../server/home'
 export const Route = createFileRoute('/')({ component: Home, loader: () => homeData() })
 
 function Home() {
-  const { due, activeCount, medianIncl, recent, today } = Route.useLoaderData()
+  const { due, activeCount, medianIncl, byRoute, recent, today } = Route.useLoaderData()
   return (
     <PageShell title="ホーム">
-      <PipelineStats activeCount={activeCount} medianIncl={medianIncl} />
+      <PipelineStats activeCount={activeCount} medianIncl={medianIncl} byRoute={byRoute} />
       <DueList items={due} today={today} />
       {recent.length === 0 ? (
         <EmptyState

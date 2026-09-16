@@ -7,6 +7,7 @@ import {
   formatRateLines,
   hourlyExcl,
   median,
+  statsByRoute,
   toExcl,
   toIncl,
 } from './rate'
@@ -82,5 +83,23 @@ describe('rate', () => {
       main: '7,500円/h',
       sub: '(÷160h)',
     })
+  })
+
+  it('経路別集計: 件数 0 の経路は含めない', () => {
+    expect(statsByRoute([])).toEqual([])
+  })
+
+  it('経路別集計: 件数・中央値を計算し、ROUTES の順で返す（入力順に依らない）', () => {
+    const cases = [
+      { route: 'other' as const, monthlyMaxIncl: 500_000 },
+      { route: 'levtech' as const, monthlyMaxIncl: 1_000_000 },
+      { route: 'levtech' as const, monthlyMaxIncl: 1_200_000 },
+      { route: 'levtech' as const, monthlyMaxIncl: 1_400_000 },
+      { route: 'other' as const, monthlyMaxIncl: 700_000 },
+    ]
+    expect(statsByRoute(cases)).toEqual([
+      { route: 'levtech', activeCount: 3, medianIncl: 1_200_000 },
+      { route: 'other', activeCount: 2, medianIncl: 600_000 },
+    ])
   })
 })

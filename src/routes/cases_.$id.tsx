@@ -17,7 +17,7 @@ import { StatusBadge } from '../components/cases/StatusBadge'
 import { StatusChanger } from '../components/cases/StatusChanger'
 import { REMOTE_LABEL, ROUTE_LABEL, TAX_BASIS_LABEL } from '../lib/enums'
 import { fitMark } from '../lib/compare'
-import { formatHourlyLines, formatMan, formatRateLines } from '../lib/rate'
+import { formatHourlyLines, formatRateLines } from '../lib/rate'
 import { deleteCaseFn, getCaseDetail } from '../server/cases'
 import { getSettingsData } from '../server/settings'
 
@@ -108,7 +108,10 @@ function Page() {
             value={item.paymentSiteDays === null ? '—' : `${item.paymentSiteDays}日`}
           />
           {item.actualMonthlyIncl ? (
-            <Row label="実単価（税込）" value={formatMan(item.actualMonthlyIncl)} />
+            <Row
+              label="実単価"
+              value={<RateLines {...formatRateLines(item.actualMonthlyIncl, null)} align="right" />}
+            />
           ) : null}
           {item.sourceUrl ? (
             <Row

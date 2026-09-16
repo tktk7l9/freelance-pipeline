@@ -3,7 +3,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { getDb } from '../db/client'
 import { withDue } from '../lib/deadlines'
 import { formatJst } from '../lib/jst'
-import { median } from '../lib/rate'
+import { median, statsByRoute } from '../lib/rate'
 import { statusGroup } from '../lib/status'
 import { listCases, recentLog } from './repository'
 
@@ -21,6 +21,7 @@ export const homeData = createServerFn().handler(async () => {
     })),
     activeCount: active.length,
     medianIncl: median(active.map((c) => c.monthlyMaxIncl)),
+    byRoute: statsByRoute(active),
     recent,
     today: formatJst(new Date().toISOString(), { withTime: false }),
   }
