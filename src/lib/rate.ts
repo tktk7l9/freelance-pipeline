@@ -49,6 +49,31 @@ export function formatMan(yen: number | null | undefined): string {
   return `${man.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}万`
 }
 
+/** 単価の 2 行表示。上段=税込（min があれば min〜max）、下段=(税抜 …) */
+export function formatRateLines(
+  maxIncl: number,
+  minIncl: number | null,
+): { main: string; sub: string } {
+  if (minIncl === null) {
+    return { main: formatMan(maxIncl), sub: `(税抜 ${formatMan(toExcl(maxIncl))})` }
+  }
+  return {
+    main: `${formatMan(minIncl)}〜${formatMan(maxIncl)}`,
+    sub: `(税抜 ${formatMan(toExcl(minIncl))}〜${formatMan(toExcl(maxIncl))})`,
+  }
+}
+
+/** 時給の 2 行表示。上段=円/h（税抜）、下段=(÷基準時間h) */
+export function formatHourlyLines(
+  monthlyIncl: number,
+  hours: number,
+): { main: string; sub: string } {
+  return {
+    main: `${hourlyExcl(monthlyIncl, hours).toLocaleString('ja-JP')}円/h`,
+    sub: `(÷${hours}h)`,
+  }
+}
+
 export function median(values: number[]): number | null {
   if (values.length === 0) return null
   const sorted = [...values].sort((a, b) => a - b)

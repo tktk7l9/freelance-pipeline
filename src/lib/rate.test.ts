@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
-import { baseHours, formatMan, hourlyExcl, median, toExcl, toIncl } from './rate'
+import {
+  baseHours,
+  formatHourlyLines,
+  formatMan,
+  formatRateLines,
+  hourlyExcl,
+  median,
+  toExcl,
+  toIncl,
+} from './rate'
 
 describe('rate', () => {
   it('税抜表示は ×1.1 して丸める。税込表示はそのまま', () => {
@@ -55,5 +64,23 @@ describe('rate', () => {
     expect(median([])).toBeNull()
     expect(median([3, 1, 2])).toBe(2)
     expect(median([4, 1, 2, 3])).toBe(2.5)
+  })
+
+  it('単価の 2 行表示: min が無ければ上限のみ、あれば min〜max', () => {
+    expect(formatRateLines(1_320_000, null)).toEqual({
+      main: '132万',
+      sub: '(税抜 120万)',
+    })
+    expect(formatRateLines(1_232_000, 1_100_000)).toEqual({
+      main: '110万〜123.2万',
+      sub: '(税抜 100万〜112万)',
+    })
+  })
+
+  it('時給の 2 行表示: 上段=円/h、下段=基準時間', () => {
+    expect(formatHourlyLines(1_320_000, 160)).toEqual({
+      main: '7,500円/h',
+      sub: '(÷160h)',
+    })
   })
 })

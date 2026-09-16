@@ -97,15 +97,15 @@ describe('compare', () => {
       ['軸1', '軸2', '軸3'],
     )
     const row = (key: string) => rows.find((r) => r.key === key)!
-    expect(row('monthlyIncl').cells.map((c) => c.bad)).toEqual([false, true])
-    expect(row('hourly').cells[0].text).toBe('7,500円 (÷160h)')
+    expect(row('rate').cells.map((c) => c.bad)).toEqual([false, true])
+    expect(row('hourly').cells[0].text).toBe('7,500円/h')
+    expect(row('hourly').cells[0].sub).toBe('(÷160h)')
     expect(row('hourly').cells[1].bad).toBe(true)
     expect(row('start').cells.map((c) => c.bad)).toEqual([false, true])
     expect(row('onsite').cells.map((c) => c.bad)).toEqual([false, true])
     expect(row('axis:0').cells.map((c) => c.text)).toEqual(['○', '—'])
     expect(rows.map((r) => r.key)).toEqual([
-      'monthlyIncl',
-      'monthlyExcl',
+      'rate',
       'hourly',
       'settlement',
       'remote',
@@ -137,7 +137,7 @@ describe('compare', () => {
     }
     const rows = buildCompareRows([c], DEFAULT_THRESHOLDS, [])
     const row = (key: string) => rows.find((r) => r.key === key)!
-    expect(row('monthlyIncl').cells[0].text).toBe('120万〜132万')
+    expect(row('rate').cells[0].text).toBe('120万〜132万')
     expect(row('paymentSite').cells[0].text).toBe('30日')
     expect(row('must').cells[0].text).toBe('—')
     expect(row('nice').cells[0].text).toBe('React')

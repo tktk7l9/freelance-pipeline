@@ -3,8 +3,9 @@ import { Link } from '@tanstack/react-router'
 
 import { DUE_COLOR, dueState } from '../../lib/deadlines'
 import { REMOTE_LABEL, ROUTE_LABEL } from '../../lib/enums'
-import { formatMan } from '../../lib/rate'
+import { formatHourlyLines, formatRateLines } from '../../lib/rate'
 import type { CaseListItem } from '../../server/cases'
+import { RateLines } from './RateLines'
 import { StatusBadge } from './StatusBadge'
 
 export function CaseCard({ item, today }: { item: CaseListItem; today: string }) {
@@ -23,12 +24,9 @@ export function CaseCard({ item, today }: { item: CaseListItem; today: string })
             </Stack>
             <StatusBadge status={item.status} />
           </Group>
-          <Group gap="xs">
-            <Text fw={700}>{formatMan(item.monthlyMaxIncl)}</Text>
-            <Text size="sm" c="dimmed">
-              税込 / 税抜 {formatMan(item.monthlyExcl)} / {item.hourly.toLocaleString('ja-JP')}円 (÷
-              {item.hours}h)
-            </Text>
+          <Group gap="lg">
+            <RateLines {...formatRateLines(item.monthlyMaxIncl, item.monthlyMinIncl)} />
+            <RateLines {...formatHourlyLines(item.monthlyMaxIncl, item.hours)} />
           </Group>
           <Group gap="xs">
             <Badge variant="default">{REMOTE_LABEL[item.remoteType]}</Badge>

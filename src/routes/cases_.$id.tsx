@@ -11,12 +11,13 @@ import { PageShell } from '../components/PageShell'
 import { CaseForm } from '../components/cases/CaseForm'
 import { CaseLogList } from '../components/cases/CaseLogList'
 import { NextActionEditor } from '../components/cases/NextActionEditor'
+import { RateLines } from '../components/cases/RateLines'
 import { RawTextPanel } from '../components/cases/RawTextPanel'
 import { StatusBadge } from '../components/cases/StatusBadge'
 import { StatusChanger } from '../components/cases/StatusChanger'
 import { REMOTE_LABEL, ROUTE_LABEL, TAX_BASIS_LABEL } from '../lib/enums'
 import { fitMark } from '../lib/compare'
-import { formatMan } from '../lib/rate'
+import { formatHourlyLines, formatMan, formatRateLines } from '../lib/rate'
 import { deleteCaseFn, getCaseDetail } from '../server/cases'
 import { getSettingsData } from '../server/settings'
 
@@ -36,6 +37,7 @@ function Page() {
   const navigate = useNavigate()
   const remove = useServerFn(deleteCaseFn)
   const [editing, setEditing] = useState(false)
+  const rateLines = formatRateLines(item.monthlyMaxIncl, item.monthlyMinIncl)
 
   async function handleDelete() {
     if (!window.confirm('この案件と経緯をすべて削除します。')) return
@@ -67,13 +69,20 @@ function Page() {
       <Card withBorder padding="md">
         <Stack gap="xs">
           <Row
-            label="単価（税込）"
-            value={`${item.monthlyMinIncl ? `${formatMan(item.monthlyMinIncl)}〜` : ''}${formatMan(item.monthlyMaxIncl)}（案件票は${TAX_BASIS_LABEL[item.sourceTaxBasis]}）`}
+            label="単価"
+            value={
+              <RateLines
+                main={rateLines.main}
+                sub={`${rateLines.sub}（案件票は${TAX_BASIS_LABEL[item.sourceTaxBasis]}）`}
+                align="right"
+              />
+            }
           />
-          <Row label="税抜" value={formatMan(item.monthlyExcl)} />
           <Row
-            label="時給（税抜）"
-            value={`${item.hourly.toLocaleString('ja-JP')}円 ÷${item.hours}h`}
+            label="時給"
+            value={
+              <RateLines {...formatHourlyLines(item.monthlyMaxIncl, item.hours)} align="right" />
+            }
           />
           <Row
             label="精算幅"

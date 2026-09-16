@@ -1,5 +1,5 @@
 import { REMOTE_LABEL, type RemoteType, type Route } from './enums'
-import { baseHours, formatMan, hourlyExcl, toExcl } from './rate'
+import { baseHours, formatHourlyLines, formatRateLines, hourlyExcl } from './rate'
 
 /** 判断基準。値は D1 の settings にだけ入る。ここは形と既定（全部 null=判定しない）だけ */
 export type Thresholds = {
@@ -70,7 +70,7 @@ export type CompareCase = {
   fitScores: number[] | null
 }
 
-export type CompareCell = { caseId: string; text: string; bad: boolean }
+export type CompareCell = { caseId: string; text: string; sub?: string; bad: boolean }
 export type CompareRow = { key: string; label: string; cells: CompareCell[] }
 
 /** full=0、onsite=∞、partial は「月N回」を読めた時だけ N。読めなければ null（判定しない） */
@@ -102,24 +102,23 @@ export function buildCompareRows(
     cells: cases.map(cell),
   })
   const rows: CompareRow[] = [
-    row('monthlyIncl', '税込（上限）', (c) => ({
-      caseId: c.id,
-      text: c.monthlyMinIncl
-        ? `${formatMan(c.monthlyMinIncl)}〜${formatMan(c.monthlyMaxIncl)}`
-        : formatMan(c.monthlyMaxIncl),
-      bad: t.minMonthlyIncl !== null && c.monthlyMaxIncl < t.minMonthlyIncl,
-    })),
-    row('monthlyExcl', '税抜（上限）', (c) => ({
-      caseId: c.id,
-      text: formatMan(toExcl(c.monthlyMaxIncl)),
-      bad: false,
-    })),
-    row('hourly', '時給（税抜）', (c) => {
-      const { hours } = baseHours(c)
-      const h = hourlyExcl(c.monthlyMaxIncl, hours)
+    row('rate', '単価', (c) => {
+      const lines = formatRateLines(c.monthlyMaxIncl, c.monthlyMinIncl)
       return {
         caseId: c.id,
-        text: `${h.toLocaleString('ja-JP')}円 (÷${hours}h)`,
+        text: lines.main,
+        sub: lines.sub,
+        bad: t.minMonthlyIncl !== null && c.monthlyMaxIncl < t.minMonthlyIncl,
+      }
+    }),
+    row('hourly', '時給', (c) => {
+      const { hours } = baseHours(c)
+      const h = hourlyExcl(c.monthlyMaxIncl, hours)
+      const lines = formatHourlyLines(c.monthlyMaxIncl, hours)
+      return {
+        caseId: c.id,
+        text: lines.main,
+        sub: lines.sub,
         bad: t.minHourlyExcl !== null && h < t.minHourlyExcl,
       }
     }),
