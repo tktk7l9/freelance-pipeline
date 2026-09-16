@@ -1,13 +1,11 @@
 import { Badge, Table, Text } from '@mantine/core'
 import { Link } from '@tanstack/react-router'
 
-import { dueState } from '../../lib/deadlines'
+import { DUE_COLOR, dueState } from '../../lib/deadlines'
 import { REMOTE_LABEL, ROUTE_LABEL } from '../../lib/enums'
 import { formatMan } from '../../lib/rate'
 import type { CaseListItem } from '../../server/cases'
 import { StatusBadge } from './StatusBadge'
-
-const DUE_COLOR = { overdue: 'red', today: 'orange', soon: 'yellow', later: 'gray' } as const
 
 export function CaseTable({ items, today }: { items: CaseListItem[]; today: string }) {
   return (
