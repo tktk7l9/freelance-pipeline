@@ -60,20 +60,80 @@ if (vars.DEV_IDENTITY_EMAIL && !vars.DEV_IDENTITY_EMAIL.endsWith('@example.com')
 }
 
 /**
+ * 架空値の除外リスト。実データ（cases.local.json / history.local.json）に、
+ * ドキュメント・サンプル・テストで使う架空値と同じ文字列がたまたま入っていても
+ * 誤検知にしない。手書きの一覧に加えて、コミット対象の history.local.example.json
+ * （サンプル・gitignore 対象外）に出てくる文字列も再帰的に拾う。
+ */
+const FICTIONAL_LITERALS = [
+  '甲社',
+  '乙社',
+  'テスト案件',
+  'テスト案件（サンプル）',
+  'サンプル過去案件',
+  '過去案件A',
+  '担当した内容を箇条書きで',
+]
+function collectStrings(node, out) {
+  if (typeof node === 'string') {
+    out.add(node)
+    return
+  }
+  if (Array.isArray(node)) {
+    for (const v of node) collectStrings(v, out)
+    return
+  }
+  if (node && typeof node === 'object') {
+    for (const v of Object.values(node)) collectStrings(v, out)
+  }
+}
+const fictional = new Set(FICTIONAL_LITERALS)
+const examplePath = resolve(root, 'history.local.example.json')
+if (existsSync(examplePath)) {
+  try {
+    collectStrings(JSON.parse(readFileSync(examplePath, 'utf8')), fictional)
+  } catch {
+    // 読めなければ手書きの一覧だけで続行
+  }
+}
+
+/**
  * 実データの台帳（gitignore 済み）からも語を拾う。
  *   cases.local.json   … add-case が書く { company, title, agentName }[]
- *   history.local.json … 過去案件 { cases: [{ company, title, agentName, ... }] }
- * 企業名は「株式会社」等を外した中核（3 文字以上）でも照合する（略称に効かせる）。
+ *   history.local.json … 過去案件 { cases: [{ company, title, agentName, rawText, ... }] }
+ * 企業名は「株式会社」等を外した中核でも照合する（略称に効かせる）。中核が ASCII だけ
+ * だと短い（3 文字など）語が無関係なコード（例: `POSITIVE_INFINITY` 中の `INF`）に
+ * 誤爆しやすいので、ASCII のみの中核は 4 文字以上・単語境界一致にする。非 ASCII の
+ * 中核はこれまで通り 3 文字以上・部分一致。
  */
 const CORP_WORDS =
   /(株式会社|有限会社|合同会社|合資会社|一般社団法人|\(株\)|\(有\)|（株）|（有）|Inc\.?|Corp\.?|Co\.,? ?Ltd\.?|LLC)/g
+const ASCII_ONLY = /^[\x20-\x7E]*$/
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+/** ASCII の中核だけ単語境界一致（`\b<core>\b`）で照合する */
+const boundarySecrets = new Set()
 function addName(value) {
   if (typeof value !== 'string') return
-  if (['甲社', '乙社', 'テスト案件'].includes(value)) return
   const v = value.trim()
+  if (fictional.has(v)) return
   if (v.length >= 3) secrets.add(v)
   const core = v.replace(CORP_WORDS, '').trim()
-  if (core.length >= 3 && core !== v) secrets.add(core)
+  if (core === v || fictional.has(core)) return
+  if (ASCII_ONLY.test(core)) {
+    if (core.length >= 4) boundarySecrets.add(core)
+  } else if (core.length >= 3) {
+    secrets.add(core)
+  }
+}
+/** rawText は要約せず原文まるごと入るので、行単位（20 文字以上）でだけ照合する（塊は入れない） */
+function addRawTextLines(value) {
+  if (typeof value !== 'string') return
+  for (const rawLine of value.split('\n')) {
+    const line = rawLine.trim()
+    if (line.length >= 20 && !fictional.has(line)) secrets.add(line)
+  }
 }
 for (const name of ['cases.local.json', 'history.local.json']) {
   const p = resolve(root, name)
@@ -89,6 +149,7 @@ for (const name of ['cases.local.json', 'history.local.json']) {
     addName(r?.company)
     addName(r?.title)
     addName(r?.agentName)
+    addRawTextLines(r?.rawText)
   }
 }
 
@@ -131,11 +192,19 @@ for (const file of files) {
     const line = content.split('\n').findIndex((text) => text.includes(secret)) + 1
     hits.push({ file, line, secret })
   }
+  for (const core of boundarySecrets) {
+    const re = new RegExp(`\\b${escapeRegExp(core)}\\b`)
+    const lines = content.split('\n')
+    const lineIndex = lines.findIndex((text) => re.test(text))
+    if (lineIndex === -1) continue
+    hits.push({ file, line: lineIndex + 1, secret: core })
+  }
 }
 
 if (hits.length === 0) {
   const scope = staged ? 'コミット対象' : '追跡ファイル'
-  console.log(`実データの混入なし（${secretList.length} 語を ${scope} ${files.length} 件と照合）。`)
+  const termCount = secretList.length + boundarySecrets.size
+  console.log(`実データの混入なし（${termCount} 語を ${scope} ${files.length} 件と照合）。`)
   process.exit(0)
 }
 
