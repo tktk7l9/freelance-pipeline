@@ -8,6 +8,7 @@ import {
   slugToId,
   sqlLiteral,
   updateCaseStatement,
+  updateLogStatement,
 } from './caseSql.ts'
 import type { CaseRowValues } from '../../src/lib/caseInput.ts'
 
@@ -90,6 +91,31 @@ describe('updateCaseStatement / duplicateQuery / slugToId', () => {
     assert.match(s, /^UPDATE cases SET /)
     assert.match(s, /updated_at = \(datetime\('now'\)\)/)
     assert.match(s, /WHERE id = 'id-1';$/)
+  })
+  it('UPDATE は案件票の列だけ。進行状態（status 等）は触らない', () => {
+    const s = updateCaseStatement('id-1', row)
+    assert.doesNotMatch(s, /\bstatus = /)
+    assert.doesNotMatch(s, /\bnext_action = /)
+    assert.doesNotMatch(s, /\bnext_action_due = /)
+    assert.doesNotMatch(s, /\bfit_scores = /)
+    assert.doesNotMatch(s, /\bnote = /)
+    assert.doesNotMatch(s, /\bactual_monthly_incl = /)
+    assert.match(s, /\bcompany = /)
+    assert.match(s, /\braw_text = /)
+    assert.match(s, /updated_at = \(datetime\('now'\)\)/)
+  })
+  it('updateLogStatement は case_log に kind=import の行を作る', () => {
+    const s = updateLogStatement({
+      id: 'log-1',
+      caseId: 'id-1',
+      at: '2030-01-01T00:00:00Z',
+      body: 'add-case --update',
+    })
+    assert.match(s, /^INSERT INTO case_log \(/)
+    assert.match(s, /'log-1'/)
+    assert.match(s, /'id-1'/)
+    assert.match(s, /'import'/)
+    assert.match(s, /'add-case --update'/)
   })
   it('重複照会は sourceUrl があれば OR、無ければ AND だけ', () => {
     assert.match(

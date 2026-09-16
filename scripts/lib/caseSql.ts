@@ -20,6 +20,35 @@ function snake(key: string): string {
 
 const JSON_COLUMNS = new Set(['mustSkills', 'niceSkills', 'fitScores'])
 
+/**
+ * 案件票（Claude Code が書く JSON）に含まれる列だけ。`--update` はこれ以外の列
+ * （status・nextAction・nextActionDue・fitScores・actualMonthlyIncl・note）を
+ * 触らない。案件票の再構成でパイプラインの進行状態を巻き戻さないため。
+ */
+export const SHEET_COLUMNS = [
+  'company',
+  'title',
+  'route',
+  'agentName',
+  'monthlyMaxIncl',
+  'monthlyMinIncl',
+  'sourceTaxBasis',
+  'settlementMinH',
+  'settlementMaxH',
+  'remoteType',
+  'onsiteNote',
+  'startDate',
+  'endDate',
+  'daysPerWeek',
+  'workLocation',
+  'supplyChain',
+  'paymentSiteDays',
+  'sourceUrl',
+  'mustSkills',
+  'niceSkills',
+  'rawText',
+] as const satisfies readonly (keyof CaseRowValues)[]
+
 export function caseColumns(row: CaseRowValues): Record<string, unknown> {
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(row)) {
@@ -53,11 +82,26 @@ export function insertCaseStatements(p: {
   ]
 }
 
+/** 案件票の列だけを上書きする（SHEET_COLUMNS）。status 等の進行状態は保つ */
 export function updateCaseStatement(id: string, row: CaseRowValues): string {
   const cols = caseColumns(row)
-  const sets = Object.keys(cols).map((n) => `${n} = ${sqlLiteral(cols[n])}`)
+  const sets = SHEET_COLUMNS.map((k) => `${snake(k)} = ${sqlLiteral(cols[snake(k)])}`)
   sets.push("updated_at = (datetime('now'))")
   return `UPDATE cases SET ${sets.join(', ')} WHERE id = ${sqlLiteral(id)};`
+}
+
+/** `--update` が案件票を取り込んだ経緯を case_log に残す（status 変更と紛れないよう kind: 'import'） */
+export function updateLogStatement(p: {
+  id: string
+  caseId: string
+  at: string
+  body: string
+}): string {
+  return insertInto(
+    'case_log',
+    { id: p.id, case_id: p.caseId, at: p.at, kind: 'import', body: p.body },
+    false,
+  )
 }
 
 export function duplicateQuery(q: {

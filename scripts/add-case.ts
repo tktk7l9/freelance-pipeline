@@ -19,7 +19,13 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { parseCaseJson, toCaseRow } from '../src/lib/caseInput.ts'
-import { duplicateQuery, insertCaseStatements, updateCaseStatement } from './lib/caseSql.ts'
+import {
+  duplicateQuery,
+  insertCaseStatements,
+  sqlLiteral,
+  updateCaseStatement,
+  updateLogStatement,
+} from './lib/caseSql.ts'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const DATABASE = 'freelance-pipeline'
@@ -80,11 +86,25 @@ if (!updateId) {
     for (const d of dup) console.error(`  id=${d.id} status=${d.status}`)
     process.exit(1)
   }
+} else {
+  const existing = query(`SELECT id FROM cases WHERE id = ${sqlLiteral(updateId)} LIMIT 1;`)
+  if (existing.length === 0) {
+    console.error('id が見つかりません')
+    process.exit(1)
+  }
 }
 
 const id = updateId ?? crypto.randomUUID()
 const statements = updateId
-  ? [updateCaseStatement(updateId, row)]
+  ? [
+      updateCaseStatement(updateId, row),
+      updateLogStatement({
+        id: crypto.randomUUID(),
+        caseId: updateId,
+        at,
+        body: 'add-case --update',
+      }),
+    ]
   : insertCaseStatements({ id, row, at, importNote: 'add-case', logId: crypto.randomUUID() })
 
 if (dryRun) {
