@@ -1,0 +1,19 @@
+{
+  "cases": [
+    {
+      "slug": "sample-2020",
+      "company": "甲社",
+      "title": "サンプル過去案件",
+      "route": "other",
+      "monthlyMax": 700000,
+      "taxBasis": "incl",
+      "remoteType": "onsite",
+      "startDate": "2020-04",
+      "endDate": "2021-03",
+      "rawText": "担当した内容を箇条書きで",
+      "mustSkills": ["Java"],
+      "status": "ended",
+      "actualMonthlyIncl": 700000
+    }
+  ]
+}

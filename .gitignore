@@ -19,6 +19,7 @@ coverage
 
 # 実データ（案件票・過去案件）はコミットしない。check-pii の照合元でもある
 *.local.json
+!history.local.example.json
 
 # サブエージェント駆動の作業ファイル
 .superpowers/
