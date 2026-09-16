@@ -1,0 +1,66 @@
+:root {
+  color-scheme: light dark;
+}
+
+:root[data-mantine-color-scheme='light'],
+:host([data-mantine-color-scheme='light']) {
+  --mantine-color-body: #f6f7f9;
+  --fp-lift: 0 6px 18px -6px rgba(30, 41, 59, 0.35);
+}
+:root[data-mantine-color-scheme='dark'],
+:host([data-mantine-color-scheme='dark']) {
+  --fp-lift: 0 6px 18px -6px rgba(0, 0, 0, 0.7);
+}
+
+a {
+  color: inherit;
+}
+a:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+/* 長い URL・原文が枠を突き破らないように */
+.breakable {
+  overflow-wrap: anywhere;
+}
+
+/* ヘッダ・下タブは面の色に */
+.appbar,
+.tabbar {
+  background: var(--mantine-color-default);
+}
+/* 下タブはホームインジケータの分だけ下に余白を足す */
+.tabbar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.app-main {
+  padding-bottom: calc(var(--mantine-spacing-md) + env(safe-area-inset-bottom, 0px));
+}
+/* FAB のあるページは最後のカードが隠れないよう下に余白 */
+.fab-clearance {
+  padding-bottom: 96px;
+}
+.lifted {
+  box-shadow: var(--fp-lift);
+}
+/* 原文はモノスペースで折り返す */
+.rawtext {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--mantine-font-size-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* 比較表: 先頭列を固定 */
+.compare-table th:first-child,
+.compare-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--mantine-color-default);
+  z-index: 1;
+}
+.cell-bad {
+  background: var(--mantine-color-red-light);
+  color: var(--mantine-color-red-light-color);
+}

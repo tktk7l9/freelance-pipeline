@@ -1,0 +1,35 @@
+/**
+ * freelance-pipeline — Cloudflare Workers 設定
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "freelance-pipeline",
+  // @cloudflare/vitest-pool-workers@0.22 が対応する上限（sumai-log で実測）
+  "compatibility_date": "2026-08-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "observability": { "enabled": true },
+  "upload_source_maps": true,
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "freelance-pipeline",
+      // Task 13 で `wrangler d1 create freelance-pipeline` の値に置き換える
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "drizzle/migrations",
+    },
+  ],
+
+  /**
+   * 既定を production にして、設定漏れは必ず「拒否」側に倒す。
+   * ACCESS_TEAM_DOMAIN / ACCESS_POLICY_AUD は非秘密（Task 13 で置き換える）。
+   * ACCESS_ALLOWED_EMAILS は secret（`wrangler secret put`）。ここに書かない。
+   */
+  "vars": {
+    "ENVIRONMENT": "production",
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_POLICY_AUD": "",
+  },
+}
