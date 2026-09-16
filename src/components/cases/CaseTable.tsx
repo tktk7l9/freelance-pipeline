@@ -3,8 +3,9 @@ import { Link } from '@tanstack/react-router'
 
 import { DUE_COLOR, dueState } from '../../lib/deadlines'
 import { REMOTE_LABEL, ROUTE_LABEL } from '../../lib/enums'
-import { formatMan } from '../../lib/rate'
+import { formatHourlyLines, formatRateLines } from '../../lib/rate'
 import type { CaseListItem } from '../../server/cases'
+import { RateLines } from './RateLines'
 import { StatusBadge } from './StatusBadge'
 
 export function CaseTable({ items, today }: { items: CaseListItem[]; today: string }) {
@@ -15,8 +16,7 @@ export function CaseTable({ items, today }: { items: CaseListItem[]; today: stri
           <Table.Tr>
             <Table.Th>案件</Table.Th>
             <Table.Th>経路</Table.Th>
-            <Table.Th ta="right">税抜</Table.Th>
-            <Table.Th ta="right">税込</Table.Th>
+            <Table.Th ta="right">単価</Table.Th>
             <Table.Th ta="right">時給</Table.Th>
             <Table.Th>リモート</Table.Th>
             <Table.Th>開始</Table.Th>
@@ -38,16 +38,11 @@ export function CaseTable({ items, today }: { items: CaseListItem[]; today: stri
                 </Text>
               </Table.Td>
               <Table.Td>{ROUTE_LABEL[c.route]}</Table.Td>
-              <Table.Td ta="right">{formatMan(c.monthlyExcl)}</Table.Td>
               <Table.Td ta="right">
-                <Text fw={700}>{formatMan(c.monthlyMaxIncl)}</Text>
+                <RateLines {...formatRateLines(c.monthlyMaxIncl, c.monthlyMinIncl)} align="right" />
               </Table.Td>
               <Table.Td ta="right">
-                {c.hourly.toLocaleString('ja-JP')}円
-                <Text size="xs" c="dimmed" span>
-                  {' '}
-                  ÷{c.hours}h
-                </Text>
+                <RateLines {...formatHourlyLines(c.monthlyMaxIncl, c.hours)} align="right" />
               </Table.Td>
               <Table.Td>
                 {REMOTE_LABEL[c.remoteType]}

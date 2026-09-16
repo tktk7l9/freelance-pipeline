@@ -2,6 +2,7 @@ import { Table, Text } from '@mantine/core'
 import { Link } from '@tanstack/react-router'
 
 import { buildCompareRows, type CompareCase, type Thresholds } from '../../lib/compare'
+import { RateLines } from '../cases/RateLines'
 
 export function CompareTable({
   cases,
@@ -39,9 +40,13 @@ export function CompareTable({
               <Table.Th scope="row">{r.label}</Table.Th>
               {r.cells.map((cell) => (
                 <Table.Td key={cell.caseId} className={cell.bad ? 'cell-bad' : undefined}>
-                  <Text size="sm" className="breakable">
-                    {cell.text}
-                  </Text>
+                  {cell.sub ? (
+                    <RateLines main={cell.text} sub={cell.sub} />
+                  ) : (
+                    <Text size="sm" className="breakable">
+                      {cell.text}
+                    </Text>
+                  )}
                 </Table.Td>
               ))}
             </Table.Tr>
