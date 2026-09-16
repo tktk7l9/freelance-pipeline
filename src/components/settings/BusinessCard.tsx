@@ -8,6 +8,7 @@ import { Pencil } from 'lucide-react'
 import { useState } from 'react'
 
 import { Row } from '../DetailRow'
+import { t } from './formValues'
 import { FILING_TYPE_LABEL, type BusinessInfo } from '../../lib/business'
 import { extractErrorMessage } from '../../lib/formError'
 import { saveBusiness } from '../../server/settings'
@@ -37,8 +38,6 @@ const toBusinessValues = (b: BusinessInfo): BusinessValues => ({
   etaxUserId: b.etaxUserId ?? '',
   businessNumber: b.businessNumber ?? '',
 })
-
-const t = (v: string) => (v.trim() === '' ? null : v.trim())
 
 export function BusinessCard({
   value,

@@ -3,7 +3,7 @@ import { notifications } from '@mantine/notifications'
 import { useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 import { Pencil } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { extractErrorMessage } from '../../lib/formError'
 import { saveAxes } from '../../server/settings'
@@ -22,11 +22,7 @@ export function AxesCard({
   const router = useRouter()
   const save = useServerFn(saveAxes)
   const [axisValues, setAxisValues] = useState<string[]>(value)
-
-  // 読み取り表示中に他画面からの更新で value が変わったら追従する
-  useEffect(() => {
-    if (!editing) setAxisValues(value)
-  }, [value, editing])
+  const [saving, setSaving] = useState(false)
 
   function startEdit() {
     setAxisValues(value)
@@ -39,6 +35,7 @@ export function AxesCard({
   }
 
   async function submit() {
+    setSaving(true)
     try {
       await save({ data: { axes: axisValues } })
       await router.invalidate()
@@ -46,6 +43,8 @@ export function AxesCard({
       onClose()
     } catch (e) {
       notifications.show({ message: extractErrorMessage(e), color: 'red' })
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -92,10 +91,12 @@ export function AxesCard({
               maxTags={10}
             />
             <Group justify="flex-end">
-              <Button variant="default" onClick={cancel}>
+              <Button variant="default" onClick={cancel} disabled={saving}>
                 キャンセル
               </Button>
-              <Button onClick={submit}>保存</Button>
+              <Button onClick={submit} loading={saving}>
+                保存
+              </Button>
             </Group>
           </Stack>
         )}

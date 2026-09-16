@@ -8,13 +8,13 @@ import { useState } from 'react'
 
 import { Row } from '../DetailRow'
 import { RateLines } from '../cases/RateLines'
+import { n } from './formValues'
 import { extractErrorMessage } from '../../lib/formError'
 import { formatRateLines } from '../../lib/rate'
 import type { Thresholds } from '../../lib/compare'
 import { saveThresholds } from '../../server/settings'
 
 type Num = number | ''
-const n = (v: Num) => (v === '' ? null : v)
 
 type ThresholdsValues = {
   minMonthlyIncl: Num

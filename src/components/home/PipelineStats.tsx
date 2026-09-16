@@ -40,7 +40,7 @@ export function PipelineStats({
                   —
                 </Text>
               ) : (
-                <RateLines {...formatRateLines(medianIncl, null)} />
+                <RateLines {...formatRateLines(medianIncl, null)} size="xl" />
               )}
             </Stack>
           </Group>
