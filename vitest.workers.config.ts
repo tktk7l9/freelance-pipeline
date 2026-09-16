@@ -27,8 +27,5 @@ export default defineConfig({
   test: {
     include: ['src/server/**/*.worker-test.ts'],
     setupFiles: ['./test/apply-migrations.ts'],
-    // Task 1 の時点では src/server/**/*.worker-test.ts が 0 件。
-    // Task 2 でテストが入ったら外す。
-    passWithNoTests: true,
   },
 })
