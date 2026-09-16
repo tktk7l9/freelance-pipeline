@@ -22,7 +22,9 @@ export function dueState(due: string, today: string): DueState {
   return 'later'
 }
 
-export function withDue<T extends { nextActionDue: string | null }>(items: T[]): T[] {
+export function withDue<T extends { nextActionDue: string | null }>(
+  items: T[],
+): (T & { nextActionDue: string })[] {
   return items
     .filter((i): i is T & { nextActionDue: string } => i.nextActionDue !== null)
     .sort((a, b) => a.nextActionDue.localeCompare(b.nextActionDue))
