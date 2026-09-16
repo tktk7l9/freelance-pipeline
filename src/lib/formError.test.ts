@@ -73,6 +73,16 @@ describe('extractFormError', () => {
     ).toBeNull()
   })
 
+  it('先頭が values/data なら読み飛ばして次のセグメントを path にする', () => {
+    const error = issueError([
+      { code: 'too_small', path: ['values', 'company'], message: 'Too small' },
+    ])
+    expect(extractFormError(error)).toEqual({
+      message: '企業名は必須です',
+      path: 'company',
+    })
+  })
+
   it('issue の message が文字列でなくても既定のメッセージにフォールバックする', () => {
     expect(extractFormError(issueError([{ code: 'too_small', path: ['company'] }])).message).toBe(
       '企業名は必須です',

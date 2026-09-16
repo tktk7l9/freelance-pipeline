@@ -47,9 +47,12 @@ function firstIssue(error: unknown): RawIssue | null {
   return null
 }
 
+/** `values`/`data` の先頭セグメントは createServerFn のラップで足されるので読み飛ばす */
+const WRAPPER_SEGMENTS = new Set(['values', 'data'])
+
 function pathHead(path: unknown): string | null {
   if (!Array.isArray(path) || path.length === 0) return null
-  const head = path[0]
+  const head = WRAPPER_SEGMENTS.has(path[0]) ? path[1] : path[0]
   return typeof head === 'string' ? head : null
 }
 
