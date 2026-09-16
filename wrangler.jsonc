@@ -23,12 +23,12 @@
 
   /**
    * 既定を production にして、設定漏れは必ず「拒否」側に倒す。
-   * ACCESS_TEAM_DOMAIN / ACCESS_POLICY_AUD は非秘密（Task 13 で置き換える）。
+   * ACCESS_TEAM_DOMAIN / ACCESS_POLICY_AUD は本番の Access アプリの値（非秘密。AUD は公開識別子）。
    * ACCESS_ALLOWED_EMAILS は secret（`wrangler secret put`）。ここに書かない。
    */
   "vars": {
     "ENVIRONMENT": "production",
-    // Task 13 で作成した Access アプリ（Zero Trust API 経由）の値。AUD は公開識別子。
+    // 本番の Access アプリ（Zero Trust API 経由で作成済み）の値。AUD は公開識別子。
     "ACCESS_TEAM_DOMAIN": "https://odd-bush-1f0d.cloudflareaccess.com",
     "ACCESS_POLICY_AUD": "5dbf9e8d4d6d8a05a59a5b563a5881f0eff33dcb3fb19944d92e0599fa9cde69", // gitleaks:allow（秘密でない公開識別子。Access アプリの AUD tag）
   },
