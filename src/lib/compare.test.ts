@@ -89,10 +89,10 @@ describe('compare', () => {
     const rows = buildCompareRows(
       [a, b],
       {
-        minMonthlyIncl: 900_000,
-        minHourlyExcl: 5_200,
+        minMonthlyIncl: 1_000_000,
+        minHourlyExcl: 6_000,
         targetStart: '2030-02',
-        maxOnsitePerMonth: 2,
+        maxOnsitePerMonth: 1,
       },
       ['軸1', '軸2', '軸3'],
     )
