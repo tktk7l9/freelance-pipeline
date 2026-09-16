@@ -30,7 +30,12 @@ export function sortLogNewestFirst<T extends LogLike>(entries: T[]): T[] {
   return [...entries].sort((a, b) => b.at.localeCompare(a.at) || b.id.localeCompare(a.id))
 }
 
-/** 日付だけのメモを JST の正午に置く（UTC に直しても日付が変わらない） */
+/**
+ * 日付だけのメモを JST の正午に置く（UTC に直しても日付が変わらない）。
+ * status/import 行の at は `new Date().toISOString()`（'…Z' 表記）なので、
+ * sortLogNewestFirst の文字列比較が正しく並ぶよう同じ '…Z' 表記で返す
+ * （JST 正午 = UTC 03:00、同じ時刻を 1 つの書式で表す）。
+ */
 export function memoAt(date: string): string {
-  return `${date}T12:00:00+09:00`
+  return `${date}T03:00:00.000Z`
 }

@@ -40,8 +40,25 @@ describe('caseLog', () => {
     ]
     expect(sortLogNewestFirst(rows).map((r) => r.id)).toEqual(['b', 'c', 'a'])
   })
-  it('メモの at は JST 正午', () => {
-    expect(memoAt('2030-01-01')).toBe('2030-01-01T12:00:00+09:00')
+  it('メモの at は JST 正午を UTC 表記（status/import の …Z と同じ書式）で返す', () => {
+    expect(memoAt('2030-01-01')).toBe('2030-01-01T03:00:00.000Z')
+  })
+  it('memoAt と status/import の at が同じ書式なので日付順に正しく並ぶ', () => {
+    const day = '2030-01-01'
+    const nextDay = '2030-01-02'
+    const rows = [
+      { ...base, id: 'memo-day', at: memoAt(day), kind: 'memo' as const },
+      { ...base, id: 'status-day', at: `${day}T05:00:00.000Z`, kind: 'status' as const },
+      { ...base, id: 'memo-next-day', at: memoAt(nextDay), kind: 'memo' as const },
+    ]
+    expect(sortLogNewestFirst(rows).map((r) => r.id)).toEqual([
+      'memo-next-day',
+      'status-day',
+      'memo-day',
+    ])
+  })
+  it('formatLogAt はメモの at（…Z 表記）でも JST の日付をそのまま表示する', () => {
+    expect(formatLogAt({ ...base, at: memoAt('2030-01-05'), kind: 'memo' })).toBe('2030-01-05')
   })
   it('不正なステータスは「—」に表示', () => {
     expect(
