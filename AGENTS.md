@@ -28,6 +28,20 @@
 - 日付は TEXT の ISO-8601、金額は円の整数、id は text（`crypto.randomUUID()`）
 - スマホ優先。下タブ＋FAB＋全画面 Drawer。デスクトップは左ナビ
 
+## 案件票の登録（Claude Code から）
+
+「この案件票を登録して」＋ペースト、で次を行う。
+
+1. 案件票を読み、`src/lib/caseInput.ts` の `caseInputSchema` に合う JSON を **scratchpad**（リポジトリ外）に書く。
+   例は `CASE_JSON_EXAMPLE`（同ファイル）。金額は **案件票の表示のまま** 入れ、`taxBasis` で
+   `incl`（税込表示）/ `excl`（税抜表示）を宣言する。×1.1 は自分で計算しない
+2. `rawText` には案件票の原文をそのまま入れる（要約しない）
+3. `npm run add-case -- --file=<json> --remote --dry-run` → 検証が通ったら `--dry-run` を外して実行
+4. 「同じ案件が既にあります」と出たら、表示された id を確認し、上書きなら `--update=<id>`
+5. 結果の URL を伝える。JSON と原文は会話に貼り直さない
+
+税抜/税込の取り違えが実害になったことがある。`taxBasis` を必ず案件票の表記から決める。
+
 ## スキーマを変えたら
 
 ```bash

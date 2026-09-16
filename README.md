@@ -29,3 +29,14 @@ npm run dev                       # http://localhost:3000
 | `npm run add-case -- --file=<json> --remote` | 案件票（JSON）を D1 へ                   |
 | `npm run import:history -- --remote`         | 過去案件（`history.local.json`）を D1 へ |
 | `npm run db:export`                          | 本番 D1 のバックアップ                   |
+
+## 案件票の登録
+
+構造化は Claude Code 側で行う（AGENTS.md「案件票の登録」）。手で入れる場合は同じ JSON を
+アプリの「取込」画面に貼る。JSON の形は `src/lib/caseInput.ts` の `CASE_JSON_EXAMPLE`。
+
+```bash
+npm run add-case -- --file=/path/to/case.json --remote --dry-run   # 検証だけ
+npm run add-case -- --file=/path/to/case.json --remote             # 登録
+npm run add-case -- --file=/path/to/case.json --remote --update=<id>
+```
