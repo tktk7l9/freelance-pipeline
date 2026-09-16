@@ -40,3 +40,26 @@ npm run add-case -- --file=/path/to/case.json --remote --dry-run   # 検証だ�
 npm run add-case -- --file=/path/to/case.json --remote             # 登録
 npm run add-case -- --file=/path/to/case.json --remote --update=<id>
 ```
+
+## 過去案件の取込
+
+これまでの参画実績は `history.local.json`（gitignore・実データ）にまとめて置き、
+`import:history` で D1 に入れる。形は `history.local.example.json` を写して使う。
+案件票との違いは `slug` が 1 本増えることだけで、中身は同じ `caseInputSchema`。
+
+```bash
+cp history.local.example.json history.local.json
+npm run import:history -- --local --dry-run   # 検証と件数だけ
+npm run import:history -- --remote            # 取込
+```
+
+`slug` から決まった id を作って `INSERT OR REPLACE` するので、**何度流しても行は増えない**。
+ファイルを直して流し直せばその内容に揃う。`status` はファイルの値がそのまま入る（`ended` など）。
+
+## デザインの決めごと
+
+- 地は寒色のスレート、アクセントは藍（`indigo`）の 1 色だけ。色は状態を表すために使い、飾りには使わない
+- 期限の赤・橙やステータスの色は `src/lib/deadlines.ts` / `status.ts` のデータ表現で、2 本目のアクセントではない
+- 影を落とすのは唯一浮いている FAB だけ。それ以外は面の段と罫線で組む
+- 本文 4.5:1・UI 3:1 をライト/ダーク両方で満たす値を選んである（根拠は `src/theme.ts` の冒頭）
+- アイコン（`public/favicon.svg` と `public/icons/*.png`）は藍の地に白い 3 本の帯＝絞り込まれていくパイプライン

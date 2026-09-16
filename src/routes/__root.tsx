@@ -6,7 +6,7 @@ import 'dayjs/locale/ja'
 
 import { AppLayout } from '../components/AppLayout'
 import { RouteErrorState, RouteNotFoundState } from '../components/ErrorStates'
-import { theme } from '../theme'
+import { cssVariablesResolver, theme } from '../theme'
 
 import mantineCoreCss from '@mantine/core/styles.css?url'
 import mantineDatesCss from '@mantine/dates/styles.css?url'
@@ -45,13 +45,17 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html lang="ja" {...mantineHtmlProps}>
       <head>
         <ColorSchemeScript defaultColorScheme="auto" />
-        {/* 地色は src/styles.css の --mantine-color-body と src/theme.ts の dark[7] に合わせる */}
-        <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#1a1b1e" media="(prefers-color-scheme: dark)" />
+        {/* 地色は src/theme.ts の gray[0]（ライト）と dark[7]（ダーク）に合わせる */}
+        <meta name="theme-color" content="#f4f6f9" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#171d27" media="(prefers-color-scheme: dark)" />
         <HeadContent />
       </head>
       <body>
-        <MantineProvider theme={theme} defaultColorScheme="auto">
+        <MantineProvider
+          theme={theme}
+          defaultColorScheme="auto"
+          cssVariablesResolver={cssVariablesResolver}
+        >
           <DatesProvider settings={{ locale: 'ja', firstDayOfWeek: 0 }}>
             <Notifications position="top-center" />
             <AppLayout>{children}</AppLayout>

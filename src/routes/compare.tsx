@@ -40,6 +40,7 @@ function Page() {
           ? '赤いセルは設定の閾値を下回る条件'
           : '設定で閾値を入れると条件を下回るセルが赤くなります'
       }
+      wide
     >
       <Stack gap="md">
         <Checkbox.Group

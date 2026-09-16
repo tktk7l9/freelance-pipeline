@@ -22,9 +22,13 @@ export function EmptyState({
           {emoji}
         </Text>
         <Text fw={600}>{title}</Text>
-        {/* 沈めた面の上では dimmed（gray-6 / dark-2）が 3.9:1 / 3.5:1 までしか出ないので、
-            添えの一文も本文色のまま置く。主従は大きさ（14 と 16）と太さで付ける */}
-        {description ? <Text size="sm">{description}</Text> : null}
+        {/* 沈めた面（.sunken）の上でも dimmed は 4.71:1（ライト）/ 7.23:1（ダーク）出る。
+            主従は色に加えて大きさ（14 と 16）と太さで付ける */}
+        {description ? (
+          <Text size="sm" c="dimmed">
+            {description}
+          </Text>
+        ) : null}
         {action ? <Stack pt={4}>{action}</Stack> : null}
       </Stack>
     </Card>

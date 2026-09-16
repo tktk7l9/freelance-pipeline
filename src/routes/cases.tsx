@@ -38,6 +38,7 @@ function Page() {
           : undefined
       }
       fab
+      wide
     >
       <Stack gap="md">
         <Chip.Group

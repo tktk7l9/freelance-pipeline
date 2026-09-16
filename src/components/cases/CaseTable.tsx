@@ -10,7 +10,7 @@ import { StatusBadge } from './StatusBadge'
 export function CaseTable({ items, today }: { items: CaseListItem[]; today: string }) {
   return (
     <Table.ScrollContainer minWidth={900}>
-      <Table striped highlightOnHover stickyHeader>
+      <Table striped highlightOnHover stickyHeader className="case-table">
         <Table.Thead>
           <Table.Tr>
             <Table.Th>案件</Table.Th>

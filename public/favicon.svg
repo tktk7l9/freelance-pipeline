@@ -1,14 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="案件パイプライン">
   <title>案件パイプライン</title>
-  <rect width="64" height="64" rx="14" fill="#4c6ef5" />
-  <text
-    x="32"
-    y="32"
-    text-anchor="middle"
-    dominant-baseline="central"
-    font-family="-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', Meiryo, 'Segoe UI', sans-serif"
-    font-size="38"
-    font-weight="700"
-    fill="#ffffff"
-  >P</text>
+  <rect width="64" height="64" rx="14" fill="#3f58d9" />
+  <g fill="#ffffff">
+    <rect x="15" y="17" width="34" height="7" rx="3.5" />
+    <rect x="20" y="28.5" width="24" height="7" rx="3.5" />
+    <rect x="25" y="40" width="14" height="7" rx="3.5" />
+  </g>
 </svg>
