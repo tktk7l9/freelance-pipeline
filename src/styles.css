@@ -1,0 +1,109 @@
+:root {
+  color-scheme: light dark;
+}
+
+/*
+ * 面の段: 地 → カード → 沈めた面（.sunken）。影ではなく段と罫線で組み立てる。
+ * 影を落とすのはこのアプリで唯一「浮いている」FAB だけ（.lifted）。
+ */
+/* Mantine の色変数そのものの差し替えは src/theme.ts の cssVariablesResolver 側。
+   ここに置くと MantineProvider が後から書き出す <style> に負ける */
+:root[data-mantine-color-scheme='light'],
+:host([data-mantine-color-scheme='light']) {
+  --fp-sunken: var(--mantine-color-gray-1);
+  --fp-sunken-edge: rgba(34, 43, 56, 0.09);
+  --fp-focus: var(--mantine-color-indigo-6);
+  --fp-lift: 0 6px 18px -6px rgba(34, 43, 56, 0.35);
+}
+:root[data-mantine-color-scheme='dark'],
+:host([data-mantine-color-scheme='dark']) {
+  --fp-sunken: var(--mantine-color-dark-8);
+  --fp-sunken-edge: rgba(0, 0, 0, 0.5);
+  /* 夜は filled（indigo-5）だと地と 3.55:1。リングは indigo-3 で 6.68:1 まで上げる */
+  --fp-focus: var(--mantine-color-indigo-3);
+  --fp-lift: 0 6px 18px -6px rgba(0, 0, 0, 0.7);
+}
+
+/* 台帳なので数字は桁を揃える。1,232,000 と 920,000 が列で揃って初めて比べられる */
+body {
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  color: inherit;
+}
+
+/* 焦点リングは面によらず見えること。Mantine の既定は primary の filled 色で、
+   夜だと地との差が足りない（3.55:1）ので --fp-focus に差し替える */
+.mantine-focus-auto:focus-visible,
+.mantine-focus-always:focus,
+a:focus-visible {
+  outline: 2px solid var(--fp-focus);
+  outline-offset: 2px;
+}
+a:focus-visible {
+  border-radius: inherit;
+}
+
+/* 長い URL・原文が枠を突き破らないように */
+.breakable {
+  overflow-wrap: anywhere;
+}
+
+/* ヘッダ・下タブは面の色に */
+.appbar,
+.tabbar {
+  background: var(--mantine-color-default);
+}
+/* 下タブはホームインジケータの分だけ下に余白を足す */
+.tabbar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.app-main {
+  padding-bottom: calc(var(--mantine-spacing-md) + env(safe-area-inset-bottom, 0px));
+}
+/* FAB のあるページは最後のカードが隠れないよう下に余白 */
+.fab-clearance {
+  padding-bottom: 96px;
+}
+.lifted {
+  box-shadow: var(--fp-lift);
+}
+
+/* 何も無いときの枠（EmptyState）。カードが「持ち上がる」のに対して、これは一段沈める。
+   地との明度差は小さいので、内側の罫線で縁を立てて輪郭が分かるようにする */
+.sunken {
+  background-color: var(--fp-sunken);
+  box-shadow: inset 0 1px 2px var(--fp-sunken-edge);
+}
+
+/* 原文はモノスペースで折り返す */
+.rawtext {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--mantine-font-size-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* 一覧の表: 単価・開始・状態は途中で折り返さない（「2030-01」が 2 行になったり、
+   チップが「商..」と省略されたりするのを防ぐ）。案件名と次の一手だけ折り返す。
+   はみ出す分は Table.ScrollContainer が横スクロールで受ける */
+.case-table :where(th, td) {
+  white-space: nowrap;
+}
+.case-table :where(th, td):first-child,
+.case-table :where(th, td):last-child {
+  white-space: normal;
+}
+
+/* 比較表: 先頭列を固定 */
+.compare-table th:first-child,
+.compare-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--mantine-color-default);
+  z-index: 1;
+}
+.cell-bad {
+  background: var(--mantine-color-red-light);
+  color: var(--mantine-color-red-light-color);
+}

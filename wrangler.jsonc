@@ -1,0 +1,35 @@
+/**
+ * freelance-pipeline — Cloudflare Workers 設定
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "freelance-pipeline",
+  // @cloudflare/vitest-pool-workers@0.22 が対応する上限（sumai-log で実測）
+  "compatibility_date": "2026-08-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "observability": { "enabled": true },
+  "upload_source_maps": true,
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "freelance-pipeline",
+      "database_id": "69b86da8-e4d0-42e0-8dad-912dbfd497b5",
+      "migrations_dir": "drizzle/migrations",
+    },
+  ],
+
+  /**
+   * 既定を production にして、設定漏れは必ず「拒否」側に倒す。
+   * ACCESS_TEAM_DOMAIN / ACCESS_POLICY_AUD は本番の Access アプリの値（非秘密。AUD は公開識別子）。
+   * ACCESS_ALLOWED_EMAILS は secret（`wrangler secret put`）。ここに書かない。
+   */
+  "vars": {
+    "ENVIRONMENT": "production",
+    // 本番の Access アプリ（Zero Trust API 経由で作成済み）の値。AUD は公開識別子。
+    "ACCESS_TEAM_DOMAIN": "https://odd-bush-1f0d.cloudflareaccess.com",
+    "ACCESS_POLICY_AUD": "5dbf9e8d4d6d8a05a59a5b563a5881f0eff33dcb3fb19944d92e0599fa9cde69", // gitleaks:allow（秘密でない公開識別子。Access アプリの AUD tag）
+  },
+}
