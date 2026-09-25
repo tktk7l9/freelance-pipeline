@@ -1,6 +1,6 @@
 import { AppShell, Group, NavLink, Stack, Text, UnstyledButton } from '@mantine/core'
 import { Link, useLocation } from '@tanstack/react-router'
-import { Briefcase, CalendarDays, Columns3, House, Settings } from 'lucide-react'
+import { Briefcase, CalendarDays, Columns3, House, JapaneseYen, Settings } from 'lucide-react'
 
 import { NAV_ITEMS, isNavItemActive, type NavIcon } from '../lib/nav'
 import { ColorSchemeToggle } from './ColorSchemeToggle'
@@ -11,6 +11,7 @@ const ICONS: Record<NavIcon, typeof House> = {
   briefcase: Briefcase,
   columns: Columns3,
   calendar: CalendarDays,
+  yen: JapaneseYen,
   settings: Settings,
 }
 

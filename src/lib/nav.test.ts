@@ -22,12 +22,13 @@ describe('isNavItemActive', () => {
 })
 
 describe('NAV_ITEMS', () => {
-  it('タブは 5 つ', () => {
+  it('タブは 6 つ', () => {
     expect(NAV_ITEMS.map((i) => i.to)).toEqual([
       '/',
       '/cases',
       '/compare',
       '/calendar',
+      '/income',
       '/settings',
     ])
   })

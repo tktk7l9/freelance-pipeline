@@ -230,3 +230,39 @@ body {
     width: calc(1.375rem * var(--mantine-scale));
   }
 }
+
+/*
+ * 収入タブの月別の棒。ライブラリを足さず CSS だけで描く。色に加えて数字を必ず添える
+ * （SHIG 96 色に依存させない）。幅はその年の最大月を 100% にした割合を inline style で渡す。
+ */
+.income-bar {
+  display: flex;
+  height: 14px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--fp-sunken);
+}
+.income-bar > span {
+  display: block;
+  height: 100%;
+}
+.income-bar .seg-freelance {
+  background: var(--mantine-color-indigo-6);
+}
+.income-bar .seg-officer {
+  background: var(--mantine-color-teal-6);
+}
+.income-bar .seg-other {
+  background: var(--mantine-color-gray-5);
+}
+.income-bar .seg-outgo {
+  background: var(--mantine-color-red-4);
+}
+.ledger-row {
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+.ledger-row:hover {
+  background: var(--mantine-color-default-hover);
+}

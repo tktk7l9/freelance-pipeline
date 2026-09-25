@@ -14,6 +14,7 @@ import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as CasesRouteImport } from './routes/cases'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ImportRouteImport } from './routes/import'
+import { Route as IncomeRouteImport } from './routes/income'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as CasesIdRouteImport } from './routes/cases_.$id'
 
@@ -42,6 +43,11 @@ const ImportRoute = ImportRouteImport.update({
   path: '/import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IncomeRoute = IncomeRouteImport.update({
+  id: '/income',
+  path: '/income',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/cases': typeof CasesRoute
   '/compare': typeof CompareRoute
   '/import': typeof ImportRoute
+  '/income': typeof IncomeRoute
   '/settings': typeof SettingsRoute
   '/cases/$id': typeof CasesIdRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/cases': typeof CasesRoute
   '/compare': typeof CompareRoute
   '/import': typeof ImportRoute
+  '/income': typeof IncomeRoute
   '/settings': typeof SettingsRoute
   '/cases/$id': typeof CasesIdRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/cases': typeof CasesRoute
   '/compare': typeof CompareRoute
   '/import': typeof ImportRoute
+  '/income': typeof IncomeRoute
   '/settings': typeof SettingsRoute
   '/cases_/$id': typeof CasesIdRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/cases'
     | '/compare'
     | '/import'
+    | '/income'
     | '/settings'
     | '/cases/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/cases'
     | '/compare'
     | '/import'
+    | '/income'
     | '/settings'
     | '/cases/$id'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/cases'
     | '/compare'
     | '/import'
+    | '/income'
     | '/settings'
     | '/cases_/$id'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   CasesRoute: typeof CasesRoute
   CompareRoute: typeof CompareRoute
   ImportRoute: typeof ImportRoute
+  IncomeRoute: typeof IncomeRoute
   SettingsRoute: typeof SettingsRoute
   CasesIdRoute: typeof CasesIdRoute
 }
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/income': {
+      id: '/income'
+      path: '/income'
+      fullPath: '/income'
+      preLoaderRoute: typeof IncomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   CasesRoute: CasesRoute,
   CompareRoute: CompareRoute,
   ImportRoute: ImportRoute,
+  IncomeRoute: IncomeRoute,
   SettingsRoute: SettingsRoute,
   CasesIdRoute: CasesIdRoute,
 }

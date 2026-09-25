@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest'
 import {
   EVENT_KINDS,
   EVENT_KIND_LABEL,
+  LEDGER_DIRECTION,
+  LEDGER_KINDS,
+  LEDGER_KIND_LABEL,
   LOG_KINDS,
   REMOTE_LABEL,
   REMOTE_TYPES,
@@ -13,6 +16,13 @@ import {
 } from './enums'
 
 describe('enums', () => {
+  it('LEDGER_KINDS の各値にラベルと向きがある', () => {
+    for (const kind of LEDGER_KINDS) {
+      expect(LEDGER_KIND_LABEL[kind]).toEqual(expect.any(String))
+      expect(['income', 'outgo']).toContain(LEDGER_DIRECTION[kind])
+    }
+  })
+
   it('EVENT_KINDS の各値にラベルがある', () => {
     for (const kind of EVENT_KINDS) {
       expect(EVENT_KIND_LABEL[kind]).toEqual(expect.any(String))

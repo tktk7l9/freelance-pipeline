@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
-import { EVENT_KINDS, LOG_KINDS, REMOTE_TYPES, ROUTES, TAX_BASES } from '../lib/enums'
+import { EVENT_KINDS, LEDGER_KINDS, LOG_KINDS, REMOTE_TYPES, ROUTES, TAX_BASES } from '../lib/enums'
 import { CASE_STATUSES } from '../lib/status'
 
 /**
@@ -129,6 +129,28 @@ export const events = sqliteTable(
   (t) => [index('events_starts_idx').on(t.startsAt)],
 )
 
+/**
+ * 収支台帳。1 行 = 1 件の請求・入金・納付（年月単位）。収入も支出も同じ表で、種別で分ける。
+ * 金額は円の整数。売上は税込のまま入れる（税抜は表示側で ÷1.1）。経費は MF クラウドの
+ * 月計・年計をまとめて 1 行で入れる想定（レシート単位の記帳はしない）。
+ */
+export const ledger = sqliteTable(
+  'ledger',
+  {
+    id: id(),
+    /** 'YYYY-MM' */
+    yearMonth: text('year_month').notNull(),
+    kind: text('kind', { enum: LEDGER_KINDS }).notNull(),
+    /** 支払元／支払先（レバテック・斉藤興産・税務署 など） */
+    party: text('party'),
+    caseId: text('case_id').references(() => cases.id, { onDelete: 'set null' }),
+    amount: integer('amount').notNull(),
+    note: text('note'),
+    ...timestamps,
+  },
+  (t) => [index('ledger_ym_idx').on(t.yearMonth)],
+)
+
 export type Case = typeof cases.$inferSelect
 export type NewCase = typeof cases.$inferInsert
 export type CaseLogRow = typeof caseLog.$inferSelect
@@ -136,3 +158,4 @@ export type NewCaseLog = typeof caseLog.$inferInsert
 export type Setting = typeof settings.$inferSelect
 export type EventRow = typeof events.$inferSelect
 export type CompanyRow = typeof companies.$inferSelect
+export type LedgerRow = typeof ledger.$inferSelect
