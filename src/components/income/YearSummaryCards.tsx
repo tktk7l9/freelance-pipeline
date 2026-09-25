@@ -35,7 +35,7 @@ export function YearSummaryCards({
         <Stat
           label="税・社保・経費"
           value={formatMan(summary.outgoTotal)}
-          sub={`税 ${formatMan(summary.tax)}・社保 ${formatMan(summary.insurance)}・経費 ${formatMan(summary.expense)}`}
+          sub={`税 ${formatMan(summary.tax)}・社保 ${formatMan(summary.insurance)}・経費 ${formatMan(summary.expense)}${summary.otherOutgo ? `・その他 ${formatMan(summary.otherOutgo)}` : ''}`}
         />
         <Stat
           label={isThisYear ? '手取り（暫定）' : '手取り'}
