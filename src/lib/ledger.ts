@@ -94,10 +94,17 @@ export type MonthRow = {
   otherIncome: number
   income: number
   outgo: number
+  /** 見込み（forecastMonths）。実績のある種別は 0 */
+  forecastFreelance: number
+  forecastOfficer: number
 }
 
-/** 12 か月ぶんの内訳。データの無い月も 0 で並べる（表と棒グラフの行を揃える） */
-export function monthlyBreakdown(rows: readonly LedgerLike[], year: number): MonthRow[] {
+/** 12 か月ぶんの内訳。データの無い月も 0 で並べる（表と棒グラフの行を揃える）。forecast を渡すと見込み列が埋まる */
+export function monthlyBreakdown(
+  rows: readonly LedgerLike[],
+  year: number,
+  forecast?: ReadonlyMap<string, MonthForecast>,
+): MonthRow[] {
   return MONTHS.map((month) => {
     const key = ym(year, month)
     const inMonth = rows.filter((r) => r.yearMonth === key)
@@ -113,6 +120,8 @@ export function monthlyBreakdown(rows: readonly LedgerLike[], year: number): Mon
       otherIncome,
       income: freelance + officer + otherIncome,
       outgo,
+      forecastFreelance: forecast?.get(key)?.freelance ?? 0,
+      forecastOfficer: forecast?.get(key)?.officer ?? 0,
     }
   })
 }
@@ -123,43 +132,93 @@ export function yoyPercent(current: number, previous: number): number | null {
   return Math.round(((current - previous) / previous) * 1000) / 10
 }
 
+/** 参画中の案件（見込みの材料）。startDate/endDate は 'YYYY-MM-DD' か 'YYYY-MM' */
+export type JoinedCase = { monthly: number; startDate: string; endDate: string | null }
+
+function daysIn(yearMonth: string): number {
+  const [y, m] = yearMonth.split('-').map(Number)
+  return new Date(Date.UTC(y, m, 0)).getUTCDate()
+}
+
+/** 'YYYY-MM-DD' の日。'YYYY-MM' なら null（月初/月末として扱う） */
+function dayOf(date: string): number | null {
+  return date.length >= 10 ? Number(date.slice(8, 10)) : null
+}
+
 /**
- * 今年の着地見込み。実績に「まだ記録の無い月」の見込みを足す。
- * - フリーランス: 参画中案件の月額（joinedMonthly）を、todayYm 以降で freelance 行の無い月に
- * - 役員報酬: 直近の officer 行の額（officerMonthly）を、todayYm 以降で officer 行の無い月に
- * 過去の月に記録が無くても埋めない（記録漏れを見込みで隠さない）。
+ * その月に参画中の案件の月額合計。開始月・終了月は日割り（DMM の 10/16 開始なら 10 月は 16/31）。
+ * 月の外（開始前・終了後）は 0。
  */
-export function forecastYear(
+export function joinedMonthlyFor(cases: readonly JoinedCase[], yearMonth: string): number {
+  let total = 0
+  for (const c of cases) {
+    const startYm = c.startDate.slice(0, 7)
+    const endYm = c.endDate ? c.endDate.slice(0, 7) : null
+    if (yearMonth < startYm) continue
+    if (endYm && yearMonth > endYm) continue
+    let factor = 1
+    const days = daysIn(yearMonth)
+    if (yearMonth === startYm) {
+      const d = dayOf(c.startDate)
+      if (d) factor *= (days - d + 1) / days
+    }
+    if (endYm && yearMonth === endYm) {
+      const d = dayOf(c.endDate as string)
+      if (d) factor *= d / days
+    }
+    total += Math.round(c.monthly * factor)
+  }
+  return total
+}
+
+export type MonthForecast = { freelance: number; officer: number }
+
+/**
+ * 月ごとの見込み。todayYm 以降で、その種別の記録が無い月にだけ入れる
+ * （過去の空白は見込みで埋めない＝記録漏れを隠さない）。
+ * - freelance: 参画中案件の月額（期間内・開始/終了月は日割り）
+ * - officer: 直近の役員報酬（officerMonthly）
+ */
+export function forecastMonths(
   rows: readonly LedgerLike[],
   year: number,
   todayYm: string,
-  joinedMonthly: number,
+  cases: readonly JoinedCase[],
   officerMonthly: number,
-): { salesIncl: number; officer: number; incomeTotal: number; filledMonths: number } {
-  const actual = summarizeYear(rows, year)
-  let sales = actual.salesIncl
-  let officer = actual.officer
-  let filled = 0
+): Map<string, MonthForecast> {
+  const out = new Map<string, MonthForecast>()
   for (const month of MONTHS) {
     const key = ym(year, month)
     if (key < todayYm) continue
     const inMonth = rows.filter((r) => r.yearMonth === key)
-    let touched = false
-    if (joinedMonthly > 0 && !inMonth.some((r) => r.kind === 'freelance')) {
-      sales += joinedMonthly
-      touched = true
-    }
-    if (officerMonthly > 0 && !inMonth.some((r) => r.kind === 'officer')) {
-      officer += officerMonthly
-      touched = true
-    }
-    if (touched) filled += 1
+    const freelance = inMonth.some((r) => r.kind === 'freelance') ? 0 : joinedMonthlyFor(cases, key)
+    const officer = inMonth.some((r) => r.kind === 'officer') ? 0 : officerMonthly
+    if (freelance > 0 || officer > 0) out.set(key, { freelance, officer })
+  }
+  return out
+}
+
+/** 今年の着地見込み＝実績＋forecastMonths の合計 */
+export function forecastYear(
+  rows: readonly LedgerLike[],
+  year: number,
+  todayYm: string,
+  cases: readonly JoinedCase[],
+  officerMonthly: number,
+): { salesIncl: number; officer: number; incomeTotal: number; filledMonths: number } {
+  const actual = summarizeYear(rows, year)
+  const months = forecastMonths(rows, year, todayYm, cases, officerMonthly)
+  let sales = actual.salesIncl
+  let officer = actual.officer
+  for (const f of months.values()) {
+    sales += f.freelance
+    officer += f.officer
   }
   return {
     salesIncl: sales,
     officer,
     incomeTotal: sales + officer + actual.otherIncome,
-    filledMonths: filled,
+    filledMonths: months.size,
   }
 }
 

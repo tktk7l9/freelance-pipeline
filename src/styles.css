@@ -266,3 +266,12 @@ body {
 .ledger-row:hover {
   background: var(--mantine-color-default-hover);
 }
+
+/* 見込み（まだ記録の無い月を参画中案件と役員報酬で埋めた値）は斜線で、実績と見分ける */
+.income-bar .seg-forecast {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--mantine-color-indigo-3) 0 4px,
+    var(--mantine-color-gray-1) 4px 8px
+  );
+}

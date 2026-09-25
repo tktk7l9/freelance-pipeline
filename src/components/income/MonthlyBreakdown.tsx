@@ -8,7 +8,10 @@ import type { MonthRow } from '../../lib/ledger'
  * 棒の幅は年内の最大月を 100% にした割合。
  */
 export function MonthlyBreakdown({ months }: { months: MonthRow[] }) {
-  const max = Math.max(1, ...months.map((m) => Math.max(m.income, m.outgo)))
+  const max = Math.max(
+    1,
+    ...months.map((m) => Math.max(m.income + m.forecastFreelance + m.forecastOfficer, m.outgo)),
+  )
   const pct = (v: number) => `${Math.round((v / max) * 100)}%`
   return (
     <Stack gap="xs">
@@ -18,13 +21,17 @@ export function MonthlyBreakdown({ months }: { months: MonthRow[] }) {
         <Legend className="seg-officer" label="役員報酬" />
         <Legend className="seg-other" label="その他" />
         <Legend className="seg-outgo" label="税・社保・経費" />
+        <Legend className="seg-forecast" label="見込み（参画中案件・役員報酬）" />
       </Group>
       <Table verticalSpacing={4} withRowBorders={false}>
         <Table.Tbody>
           {months.map((m) => (
             <Table.Tr key={m.month}>
               <Table.Td w={48} pl={0} style={{ whiteSpace: 'nowrap' }}>
-                <Text size="sm" c={m.income === 0 && m.outgo === 0 ? 'dimmed' : undefined}>
+                <Text
+                  size="sm"
+                  c={m.income === 0 && m.outgo === 0 && !forecastOf(m) ? 'dimmed' : undefined}
+                >
                   {m.month}月
                 </Text>
               </Table.Td>
@@ -33,12 +40,13 @@ export function MonthlyBreakdown({ months }: { months: MonthRow[] }) {
                   <div
                     className="income-bar"
                     role="img"
-                    aria-label={`収入 ${formatMan(m.income)}`}
-                    style={{ width: pct(m.income) }}
+                    aria-label={`収入 ${formatMan(m.income)}${forecastOf(m) ? `・見込み ${formatMan(forecastOf(m))}` : ''}`}
+                    style={{ width: pct(m.income + forecastOf(m)) }}
                   >
                     <span className="seg-freelance" style={{ width: pct(m.freelance) }} />
                     <span className="seg-officer" style={{ width: pct(m.officer) }} />
                     <span className="seg-other" style={{ width: pct(m.otherIncome) }} />
+                    <span className="seg-forecast" style={{ width: pct(forecastOf(m)) }} />
                   </div>
                   {m.outgo > 0 ? (
                     <div
@@ -54,8 +62,13 @@ export function MonthlyBreakdown({ months }: { months: MonthRow[] }) {
               </Table.Td>
               <Table.Td w={120} pr={0} ta="right">
                 <Text size="sm" fw={600}>
-                  {m.income > 0 ? formatMan(m.income) : '—'}
+                  {m.income > 0 ? formatMan(m.income) : forecastOf(m) ? '' : '—'}
                 </Text>
+                {forecastOf(m) ? (
+                  <Text size="xs" c="dimmed">
+                    見込み {formatMan(m.income + forecastOf(m))}
+                  </Text>
+                ) : null}
                 {m.outgo > 0 ? (
                   <Text size="xs" c="dimmed">
                     −{formatMan(m.outgo)}
@@ -68,6 +81,11 @@ export function MonthlyBreakdown({ months }: { months: MonthRow[] }) {
       </Table>
     </Stack>
   )
+}
+
+/** その月の見込み（売上＋役員報酬）。実績のある種別は 0 になっている */
+function forecastOf(m: MonthRow): number {
+  return m.forecastFreelance + m.forecastOfficer
 }
 
 function Legend({ className, label }: { className: string; label: string }) {
