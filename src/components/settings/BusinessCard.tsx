@@ -15,6 +15,7 @@ import { formatDateSlash } from '../../lib/format'
 import { saveBusiness } from '../../server/settings'
 
 type BusinessValues = {
+  birthDate: string
   openedOn: string
   occupation: string
   description: string
@@ -28,6 +29,7 @@ type BusinessValues = {
 }
 
 const toBusinessValues = (b: BusinessInfo): BusinessValues => ({
+  birthDate: b.birthDate ?? '',
   openedOn: b.openedOn ?? '',
   occupation: b.occupation ?? '',
   description: b.description ?? '',
@@ -71,6 +73,7 @@ export function BusinessCard({
     try {
       await save({
         data: {
+          birthDate: t(v.birthDate),
           openedOn: t(v.openedOn),
           occupation: t(v.occupation),
           description: t(v.description),
@@ -118,6 +121,7 @@ export function BusinessCard({
           </Text>
         ) : !editing ? (
           <Stack gap="xs">
+            <Row label="生年月日" value={formatDateSlash(value.birthDate)} />
             <Row label="開業日" value={formatDateSlash(value.openedOn)} />
             <Row label="職業" value={value.occupation} />
             <Row label="事業概要" value={value.description} />
@@ -135,6 +139,14 @@ export function BusinessCard({
         ) : (
           <form onSubmit={form.onSubmit(submit)}>
             <Stack gap="sm">
+              <DateInput
+                label="生年月日（市場データで自分の年齢帯を出すのに使う）"
+                valueFormat="YYYY/MM/DD"
+                clearable
+                {...form.getInputProps('birthDate')}
+                value={form.values.birthDate || null}
+                onChange={(v) => form.setFieldValue('birthDate', v ?? '')}
+              />
               <Group grow>
                 <DateInput
                   label="開業日"

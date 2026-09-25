@@ -151,6 +151,25 @@ export const ledger = sqliteTable(
   (t) => [index('ledger_ym_idx').on(t.yearMonth)],
 )
 
+/**
+ * 市場データのスナップショット（レバテックプラットフォームの案件データ・人材データ）。
+ * スキル × 取得日で 1 行。中身は JSON（形は src/lib/market.ts の marketDataSchema）。
+ * スクショからの書き起こしなので、同じ日に同じスキルを入れ直せば上書き。
+ */
+export const marketSnapshots = sqliteTable(
+  'market_snapshots',
+  {
+    id: id(),
+    /** 'YYYY-MM-DD' */
+    takenOn: text('taken_on').notNull(),
+    skill: text('skill').notNull(),
+    source: text('source').notNull().default('levtech'),
+    data: text('data').notNull(),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex('market_snapshots_unique').on(t.takenOn, t.skill)],
+)
+
 export type Case = typeof cases.$inferSelect
 export type NewCase = typeof cases.$inferInsert
 export type CaseLogRow = typeof caseLog.$inferSelect
@@ -159,3 +178,4 @@ export type Setting = typeof settings.$inferSelect
 export type EventRow = typeof events.$inferSelect
 export type CompanyRow = typeof companies.$inferSelect
 export type LedgerRow = typeof ledger.$inferSelect
+export type MarketSnapshotRow = typeof marketSnapshots.$inferSelect

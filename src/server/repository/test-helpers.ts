@@ -7,7 +7,15 @@ export const db = drizzle(env.DB, { schema })
 
 /** 全テーブルを空にする。db/schema.ts の全テーブルを網羅すること */
 export async function reset() {
-  for (const t of ['ledger', 'events', 'case_log', 'cases', 'companies', 'settings']) {
+  for (const t of [
+    'market_snapshots',
+    'ledger',
+    'events',
+    'case_log',
+    'cases',
+    'companies',
+    'settings',
+  ]) {
     await env.DB.exec(`DELETE FROM ${t}`)
   }
 }

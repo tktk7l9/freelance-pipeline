@@ -9,6 +9,7 @@ import {
 } from './business'
 
 const full: BusinessInfo = {
+  birthDate: '1990-01-01',
   openedOn: '2020-04-01',
   occupation: 'ソフトウェア開発',
   description: '受託開発の事業概要（サンプル）',
@@ -24,6 +25,7 @@ const full: BusinessInfo = {
 describe('business', () => {
   it('空の既定値は全項目 null', () => {
     expect(EMPTY_BUSINESS).toEqual({
+      birthDate: null,
       openedOn: null,
       occupation: null,
       description: null,

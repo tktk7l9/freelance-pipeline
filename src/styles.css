@@ -275,3 +275,30 @@ body {
     var(--mantine-color-gray-1) 4px 8px
   );
 }
+
+/*
+ * 比較 › 市場の「年齢別の単価割合」。帯ごとの色に加え、数字（8% 以上）と自分の帯の枠線で読む。
+ */
+.market-bar {
+  display: flex;
+  height: 22px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--fp-sunken);
+}
+.market-bar > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+}
+.market-bar > span.is-mine {
+  outline: 3px solid var(--mantine-color-yellow-4);
+  outline-offset: -3px;
+}

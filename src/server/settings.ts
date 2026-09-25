@@ -43,6 +43,7 @@ export const saveAxes = createServerFn({ method: 'POST' })
   })
 
 export const businessInput = z.object({
+  birthDate: dateField.nullable(),
   openedOn: dateField.nullable(),
   occupation: nullableText(200),
   description: nullableText(200),
