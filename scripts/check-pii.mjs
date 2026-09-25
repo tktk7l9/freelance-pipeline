@@ -104,7 +104,9 @@ if (existsSync(examplePath)) {
  * 企業名は「株式会社」等を外した中核でも照合する（略称に効かせる）。中核が ASCII だけ
  * だと短い（3 文字など）語が無関係なコード（例: `POSITIVE_INFINITY` 中の `INF`）に
  * 誤爆しやすいので、ASCII のみの中核は 4 文字以上・単語境界一致にする。非 ASCII の
- * 中核はこれまで通り 3 文字以上・部分一致。
+ * 中核も 4 文字以上・部分一致（日本語に単語境界は無く、3 文字のカタカナは長い一般語の
+ * 断片に必ず現れる。実例: 3 文字の中核が「インボイス」に一致してテストを止めた、2026-09-25）。
+ * 中核が 3 文字以下の企業は「株式会社」付きの正式名（3 文字以上）でだけ照合する。
  */
 const CORP_WORDS =
   /(株式会社|有限会社|合同会社|合資会社|一般社団法人|\(株\)|\(有\)|（株）|（有）|Inc\.?|Corp\.?|Co\.,? ?Ltd\.?|LLC)/g
@@ -123,7 +125,7 @@ function addName(value) {
   if (core === v || fictional.has(core)) return
   if (ASCII_ONLY.test(core)) {
     if (core.length >= 4) boundarySecrets.add(core)
-  } else if (core.length >= 3) {
+  } else if (core.length >= 4) {
     secrets.add(core)
   }
 }
