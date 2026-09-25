@@ -7,19 +7,11 @@
  * 影を落とすのはこのアプリで唯一「浮いている」FAB だけ（.lifted）。
  */
 /* Mantine の色変数そのものの差し替えは src/theme.ts の cssVariablesResolver 側。
-   ここに置くと MantineProvider が後から書き出す <style> に負ける */
-:root[data-mantine-color-scheme='light'],
-:host([data-mantine-color-scheme='light']) {
-  --fp-sunken: var(--mantine-color-gray-1);
-  --fp-sunken-edge: rgba(34, 43, 56, 0.09);
-  --fp-focus: var(--mantine-color-indigo-6);
-  --fp-lift: 0 6px 18px -6px rgba(34, 43, 56, 0.35);
-}
-:root[data-mantine-color-scheme='dark'],
-:host([data-mantine-color-scheme='dark']) {
+   ここに置くと MantineProvider が後から書き出す <style> に負ける。配色はダークのみ */
+:root {
   --fp-sunken: var(--mantine-color-dark-8);
   --fp-sunken-edge: rgba(0, 0, 0, 0.5);
-  /* 夜は filled（indigo-5）だと地と 3.55:1。リングは indigo-3 で 6.68:1 まで上げる */
+  /* filled（indigo-5）だと地と 3.55:1。リングは indigo-3 で 6.68:1 まで上げる */
   --fp-focus: var(--mantine-color-indigo-3);
   --fp-lift: 0 6px 18px -6px rgba(0, 0, 0, 0.7);
 }

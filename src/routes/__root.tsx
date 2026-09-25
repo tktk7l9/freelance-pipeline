@@ -48,7 +48,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         {/* ダークのみ（所有者の要望 2026-09-25）。切り替え UI は無く、OS 設定にも追従しない */}
         <ColorSchemeScript forceColorScheme="dark" />
-        {/* 地色は src/theme.ts の gray[0]（ライト）と dark[7]（ダーク）に合わせる */}
+        {/* 地色は src/theme.ts の dark[7] に合わせる */}
         <meta name="theme-color" content="#171d27" />
         <HeadContent />
       </head>

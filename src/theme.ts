@@ -63,7 +63,7 @@ const night = [
 export const theme = createTheme({
   primaryColor: 'indigo',
   // 既定の dark:8 は地との差が 1.7:1 しか出ず、ボタンの輪郭が夜に消える。5 なら 3.55:1
-  primaryShade: { light: 6, dark: 5 },
+  primaryShade: 5,
   defaultRadius: 'md',
   respectReducedMotion: true,
   colors: {
@@ -111,17 +111,8 @@ export const theme = createTheme({
  */
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
   variables: {},
-  light: {
-    // 地は白ではなく寒色の紙。白いカードが影なしで浮き上がる
-    '--mantine-color-body': slate[0],
-    // 既定の gray-4 は白カードとの差が 2.2:1。gray-5 なら 3.27:1
-    '--mantine-color-default-border': slate[5],
-    // light 変種のチップの文字色。既定の {色}-9 は {色}-1 の地に対して
-    // 橙 3.62:1・黄 2.69:1・青緑 4.33:1 しか出ない。色味は保ったまま暗い側へ寄せる
-    '--mantine-color-orange-light-color': '#b3380a',
-    '--mantine-color-yellow-light-color': '#9a5000',
-    '--mantine-color-teal-light-color': '#0a6b4d',
-  },
+  // 配色はダークのみ（forceColorScheme）。light は使われないが型の都合で空を置く
+  light: {},
   dark: {
     // 既定のリンク色（indigo-4）はカードの上で 4.04:1。indigo-3 なら 5.71:1
     '--mantine-color-anchor': ink[3],
