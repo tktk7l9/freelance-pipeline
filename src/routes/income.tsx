@@ -11,6 +11,7 @@ import { FormDrawer } from '../components/FormDrawer'
 import { EntryList } from '../components/income/EntryList'
 import { LedgerForm } from '../components/income/LedgerForm'
 import { MonthlyBreakdown } from '../components/income/MonthlyBreakdown'
+import { RateHistory } from '../components/income/RateHistory'
 import { YearSummaryCards } from '../components/income/YearSummaryCards'
 import { PageShell } from '../components/PageShell'
 import { showUndo } from '../components/undoNotification'
@@ -20,6 +21,8 @@ import {
   forecastYear,
   latestOfficerMonthly,
   monthlyBreakdown,
+  rateChanges,
+  rateHistory,
   summarizeYear,
   yearOf,
   yearsOf,
@@ -64,6 +67,9 @@ function Page() {
   const forecast =
     year === thisYear ? forecastYear(rows, year, todayYm, joined, officerMonthly) : null
   const inYear = rows.filter((r) => yearOf(r.yearMonth) === year)
+  // 単価の推移は年をまたいで見るので、選んだ年に関係なく全行から
+  const history = useMemo(() => rateHistory(rows), [rows])
+  const changes = useMemo(() => rateChanges(history), [history])
   // 新規の既定は直近の行に合わせる（同じ源泉・同じ額が続くことが多い）
   const latest = rows[0]
   const defaults = latest
@@ -125,6 +131,7 @@ function Page() {
               forecast={forecast}
               isThisYear={year === thisYear}
             />
+            <RateHistory history={history} changes={changes} />
             <MonthlyBreakdown months={months} />
             <EntryList rows={inYear} onSelect={setEditing} />
           </>
