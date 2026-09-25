@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="案件パイプライン">
-  <title>案件パイプライン</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="案件管理">
+  <title>案件管理</title>
   <rect width="64" height="64" rx="14" fill="#3f58d9" />
   <g fill="#ffffff">
     <rect x="15" y="17" width="34" height="7" rx="3.5" />

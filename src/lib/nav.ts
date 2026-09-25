@@ -13,6 +13,7 @@ export const NAV_ITEMS = [
   { to: '/', label: 'ホーム', icon: 'home' },
   { to: '/cases', label: '案件', icon: 'briefcase' },
   { to: '/compare', label: '比較', icon: 'columns' },
+  { to: '/calendar', label: '予定', icon: 'calendar' },
   { to: '/settings', label: '設定', icon: 'settings' },
 ] as const
 export type NavIcon = (typeof NAV_ITEMS)[number]['icon']

@@ -11,6 +11,7 @@ import { cssVariablesResolver, theme } from '../theme'
 import mantineCoreCss from '@mantine/core/styles.css?url'
 import mantineDatesCss from '@mantine/dates/styles.css?url'
 import mantineNotificationsCss from '@mantine/notifications/styles.css?url'
+import mantineScheduleCss from '@mantine/schedule/styles.css?url'
 import appCss from '../styles.css?url'
 
 export const Route = createRootRoute({
@@ -23,12 +24,13 @@ export const Route = createRootRoute({
       // （head() の meta 配列は name が同じタグを 1 本にまとめてしまうため）
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
-      { title: '案件パイプライン' },
+      { title: '案件管理' },
     ],
     links: [
       { rel: 'stylesheet', href: mantineCoreCss },
       { rel: 'stylesheet', href: mantineDatesCss },
       { rel: 'stylesheet', href: mantineNotificationsCss },
+      { rel: 'stylesheet', href: mantineScheduleCss },
       { rel: 'stylesheet', href: appCss },
       { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
       { rel: 'apple-touch-icon', href: '/icons/icon-192.png' },

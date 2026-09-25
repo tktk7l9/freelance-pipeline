@@ -1,4 +1,5 @@
 import type { LogKind } from './enums'
+import { formatDateSlash } from './format'
 import { formatJst } from './jst'
 import { STATUS_LABEL, type CaseStatus } from './status'
 
@@ -23,7 +24,7 @@ export function describeLog(entry: LogLike): string {
 
 /** メモは日付だけを見せる（時刻は正午に固定しているので意味が無い） */
 export function formatLogAt(entry: LogLike): string {
-  return formatJst(entry.at, { withTime: entry.kind !== 'memo' })
+  return formatDateSlash(formatJst(entry.at, { withTime: entry.kind !== 'memo' }))
 }
 
 export function sortLogNewestFirst<T extends LogLike>(entries: T[]): T[] {

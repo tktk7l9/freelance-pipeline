@@ -22,8 +22,14 @@ describe('isNavItemActive', () => {
 })
 
 describe('NAV_ITEMS', () => {
-  it('タブは 4 つ', () => {
-    expect(NAV_ITEMS.map((i) => i.to)).toEqual(['/', '/cases', '/compare', '/settings'])
+  it('タブは 5 つ', () => {
+    expect(NAV_ITEMS.map((i) => i.to)).toEqual([
+      '/',
+      '/cases',
+      '/compare',
+      '/calendar',
+      '/settings',
+    ])
   })
 
   it('案件の詳細ページでも「案件」タブが選択される', () => {

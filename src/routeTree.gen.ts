@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as CasesRouteImport } from './routes/cases'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ImportRouteImport } from './routes/import'
@@ -19,6 +20,11 @@ import { Route as CasesIdRouteImport } from './routes/cases_.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CasesRoute = CasesRouteImport.update({
@@ -49,6 +55,7 @@ const CasesIdRoute = CasesIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/calendar': typeof CalendarRoute
   '/cases': typeof CasesRoute
   '/compare': typeof CompareRoute
   '/import': typeof ImportRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/calendar': typeof CalendarRoute
   '/cases': typeof CasesRoute
   '/compare': typeof CompareRoute
   '/import': typeof ImportRoute
@@ -66,6 +74,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/calendar': typeof CalendarRoute
   '/cases': typeof CasesRoute
   '/compare': typeof CompareRoute
   '/import': typeof ImportRoute
@@ -75,12 +84,26 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/cases' | '/compare' | '/import' | '/settings' | '/cases/$id'
+    | '/'
+    | '/calendar'
+    | '/cases'
+    | '/compare'
+    | '/import'
+    | '/settings'
+    | '/cases/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cases' | '/compare' | '/import' | '/settings' | '/cases/$id'
+  to:
+    | '/'
+    | '/calendar'
+    | '/cases'
+    | '/compare'
+    | '/import'
+    | '/settings'
+    | '/cases/$id'
   id:
     | '__root__'
     | '/'
+    | '/calendar'
     | '/cases'
     | '/compare'
     | '/import'
@@ -90,6 +113,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CalendarRoute: typeof CalendarRoute
   CasesRoute: typeof CasesRoute
   CompareRoute: typeof CompareRoute
   ImportRoute: typeof ImportRoute
@@ -104,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cases': {
@@ -146,6 +177,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CalendarRoute: CalendarRoute,
   CasesRoute: CasesRoute,
   CompareRoute: CompareRoute,
   ImportRoute: ImportRoute,

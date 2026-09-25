@@ -8,10 +8,7 @@ export const Route = createFileRoute('/import')({ component: Page })
 function Page() {
   const navigate = useNavigate()
   return (
-    <PageShell
-      title="取込"
-      description="Claude Code が構造化した JSON を貼って登録する。通常は npm run add-case で入れる（スマホ用の逃げ道）"
-    >
+    <PageShell title="取込">
       <ImportForm onSaved={(id) => navigate({ to: '/cases/$id', params: { id } })} />
     </PageShell>
   )

@@ -26,10 +26,10 @@ describe('caseLog', () => {
   })
   it('メモは日付だけ、それ以外は日時', () => {
     expect(formatLogAt({ ...base, at: '2030-01-01T12:00:00+09:00', kind: 'memo' })).toBe(
-      '2030-01-01',
+      '2030/01/01',
     )
     expect(formatLogAt({ ...base, at: '2030-01-01 03:00:00', kind: 'status' })).toBe(
-      '2030-01-01 12:00',
+      '2030/01/01 12:00',
     )
   })
   it('新しい順（同時刻は id で安定）', () => {
@@ -58,7 +58,7 @@ describe('caseLog', () => {
     ])
   })
   it('formatLogAt はメモの at（…Z 表記）でも JST の日付をそのまま表示する', () => {
-    expect(formatLogAt({ ...base, at: memoAt('2030-01-05'), kind: 'memo' })).toBe('2030-01-05')
+    expect(formatLogAt({ ...base, at: memoAt('2030-01-05'), kind: 'memo' })).toBe('2030/01/05')
   })
   it('不正なステータスは「—」に表示', () => {
     expect(

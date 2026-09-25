@@ -19,7 +19,7 @@ function Page() {
   const [editing, setEditing] = useState<EditingCard>(null)
 
   return (
-    <PageShell title="設定" description="判断基準はここ（DB）にだけ置く。リポジトリには入らない">
+    <PageShell title="設定">
       <BusinessCard
         value={business}
         editing={editing === 'business'}
