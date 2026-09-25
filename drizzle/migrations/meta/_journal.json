@@ -36,6 +36,13 @@
       "when": 1790301967381,
       "tag": "0004_add_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1790329470783,
+      "tag": "0005_add_market_snapshots",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,8 @@
 export type FilingType = 'blue' | 'white'
 
 export type BusinessInfo = {
+  /** 生年月日 YYYY-MM-DD。市場データで自分の年齢帯を出すのに使う */
+  birthDate: string | null
   openedOn: string | null // 開業日 YYYY-MM-DD
   occupation: string | null // 職業
   description: string | null // 事業概要
@@ -14,6 +16,7 @@ export type BusinessInfo = {
 }
 
 export const EMPTY_BUSINESS: BusinessInfo = {
+  birthDate: null,
   openedOn: null,
   occupation: null,
   description: null,
@@ -51,6 +54,7 @@ export function parseBusiness(raw: string | null): BusinessInfo {
     if (typeof o !== 'object' || o === null) return EMPTY_BUSINESS
     const r = o as Record<string, unknown>
     return {
+      birthDate: textOrNull(r.birthDate),
       openedOn: textOrNull(r.openedOn),
       occupation: textOrNull(r.occupation),
       description: textOrNull(r.description),
