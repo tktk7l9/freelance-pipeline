@@ -9,6 +9,7 @@ import type { CaseListItem } from '../../server/cases'
 import type { CompanySites } from '../../server/repository'
 import { RateLines } from '../cases/RateLines'
 import { CompanyName } from '../CompanyName'
+import { PlaceLink } from '../PlaceLink'
 
 /** ホームの先頭。参画中（status = joined）の案件を出す。無ければ何も出さない */
 export function CurrentCase({
@@ -60,7 +61,9 @@ export function CurrentCase({
                   {REMOTE_LABEL[c.remoteType]}
                   {c.onsiteNote ? `（${c.onsiteNote}）` : ''}
                 </Item>
-                <Item label="作業場所">{c.workLocation ?? '—'}</Item>
+                <Item label="作業場所">
+                  <PlaceLink address={c.workLocation} nested />
+                </Item>
                 <Item label="支払サイト">
                   {c.paymentSiteDays !== null ? `${c.paymentSiteDays} 日` : '—'}
                 </Item>
