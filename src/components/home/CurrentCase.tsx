@@ -65,8 +65,8 @@ export function CurrentCase({
                   {c.paymentSiteDays !== null ? `${c.paymentSiteDays} 日` : '—'}
                 </Item>
               </SimpleGrid>
+              {/* 判断メモは単価の推移など「いま見たいこと」が書かれるので、切らずに全部出す */}
               {c.note ? (
-                {/* 判断メモは単価の推移など「いま見たいこと」が書かれるので、切らずに全部出す */}
                 <Text size="sm" style={{ whiteSpace: 'pre-wrap' }} className="breakable">
                   {c.note}
                 </Text>
