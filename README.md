@@ -2,7 +2,7 @@
 
 [![Keyway Secrets](https://www.keyway.sh/badge.svg?repo=tktk7l9/freelance-pipeline)](https://www.keyway.sh/vaults/tktk7l9/freelance-pipeline)
 
-フリーランスの案件パイプライン管理。選考中の案件を 応募 → 書類 → 商談 → 内定 → 参画 で追い、案件票の原文ごと自分の DB（Cloudflare D1）に残す個人用アプリ。
+フリーランスの案件管理。選考中の案件を 応募 → 書類 → 商談 → 内定 → 参画 で追い、案件票の原文ごと自分の DB（Cloudflare D1）に残す個人用アプリ。
 
 - 利用者は 1 人（Cloudflare Access で保護）。データはリポジトリに含まれない
 - 案件票の構造化は Claude Code 側で行い、`npm run add-case` が zod で検証してから D1 に入れる（アプリは LLM の API キーを持たない）

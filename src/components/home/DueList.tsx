@@ -2,6 +2,7 @@ import { Badge, Card, Group, Stack, Text, Title } from '@mantine/core'
 import { Link } from '@tanstack/react-router'
 
 import { DUE_COLOR, dueState, groupByDue } from '../../lib/deadlines'
+import { formatDateSlash } from '../../lib/format'
 
 type Item = {
   id: string
@@ -23,7 +24,7 @@ export function DueList({ items, today }: { items: Item[]; today: string }) {
           <Stack key={g.date} gap={4}>
             <Group gap="xs">
               <Text size="sm" fw={700} c={DUE_COLOR[state]}>
-                {g.date}
+                {formatDateSlash(g.date)}
               </Text>
               {state === 'overdue' ? (
                 <Badge color={DUE_COLOR[state]} variant="light" size="sm">

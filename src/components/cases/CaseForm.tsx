@@ -205,7 +205,7 @@ export function CaseForm({
         </Group>
         <Group grow>
           <TextInput
-            label="開始（YYYY-MM-DD / YYYY-MM）"
+            label="開始（YYYY/MM/DD または YYYY/MM）"
             required
             {...form.getInputProps('startDate')}
           />

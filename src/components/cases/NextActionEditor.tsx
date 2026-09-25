@@ -50,7 +50,7 @@ export function NextActionEditor({
         <Group align="flex-end" gap="xs" wrap="nowrap">
           <DateInput
             label="期日"
-            valueFormat="YYYY-MM-DD"
+            valueFormat="YYYY/MM/DD"
             clearable
             style={{ flex: 1 }}
             {...form.getInputProps('nextActionDue')}

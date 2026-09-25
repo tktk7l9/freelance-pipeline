@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  EVENT_KINDS,
+  EVENT_KIND_LABEL,
   LOG_KINDS,
   REMOTE_LABEL,
   REMOTE_TYPES,
@@ -11,6 +13,12 @@ import {
 } from './enums'
 
 describe('enums', () => {
+  it('EVENT_KINDS の各値にラベルがある', () => {
+    for (const kind of EVENT_KINDS) {
+      expect(EVENT_KIND_LABEL[kind]).toEqual(expect.any(String))
+    }
+  })
+
   it('ROUTES の各値にラベルがある', () => {
     for (const route of ROUTES) {
       expect(ROUTE_LABEL[route]).toEqual(expect.any(String))

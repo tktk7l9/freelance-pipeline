@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 
 import { DUE_COLOR, dueState } from '../../lib/deadlines'
 import { REMOTE_LABEL, ROUTE_LABEL } from '../../lib/enums'
+import { formatDateSlash } from '../../lib/format'
 import { formatHourlyLines, formatRateLines } from '../../lib/rate'
 import type { CaseListItem } from '../../server/cases'
 import { RateLines } from './RateLines'
@@ -52,14 +53,14 @@ export function CaseTable({ items, today }: { items: CaseListItem[]; today: stri
                   </Text>
                 ) : null}
               </Table.Td>
-              <Table.Td>{c.startDate}</Table.Td>
+              <Table.Td>{formatDateSlash(c.startDate)}</Table.Td>
               <Table.Td>
                 <StatusBadge status={c.status} />
               </Table.Td>
               <Table.Td>
                 {c.nextActionDue ? (
                   <Badge color={DUE_COLOR[dueState(c.nextActionDue, today)]} variant="light" mr={4}>
-                    {c.nextActionDue}
+                    {formatDateSlash(c.nextActionDue)}
                   </Badge>
                 ) : null}
                 <Text size="sm" span>

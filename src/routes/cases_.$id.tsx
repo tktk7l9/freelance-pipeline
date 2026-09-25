@@ -17,6 +17,7 @@ import { StatusBadge } from '../components/cases/StatusBadge'
 import { StatusChanger } from '../components/cases/StatusChanger'
 import { REMOTE_LABEL, ROUTE_LABEL, TAX_BASIS_LABEL } from '../lib/enums'
 import { fitMark } from '../lib/compare'
+import { formatDateSlash } from '../lib/format'
 import { formatHourlyLines, formatRateLines } from '../lib/rate'
 import { deleteCaseFn, getCaseDetail } from '../server/cases'
 import { getSettingsData } from '../server/settings'
@@ -53,6 +54,7 @@ function Page() {
   return (
     <PageShell
       title={item.title}
+      heading
       description={`${item.company}・${ROUTE_LABEL[item.route]}${item.agentName ? `（${item.agentName}）` : ''}`}
       actions={
         <Group gap="xs">
@@ -98,7 +100,11 @@ function Page() {
           />
           <Row
             label="開始"
-            value={item.endDate ? `${item.startDate} 〜 ${item.endDate}` : item.startDate}
+            value={
+              item.endDate
+                ? `${formatDateSlash(item.startDate)} 〜 ${formatDateSlash(item.endDate)}`
+                : formatDateSlash(item.startDate)
+            }
           />
           <Row label="稼働" value={item.daysPerWeek} />
           <Row label="作業場所" value={item.workLocation} />

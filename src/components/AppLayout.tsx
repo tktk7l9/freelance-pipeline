@@ -1,14 +1,16 @@
 import { AppShell, Group, NavLink, Stack, Text, UnstyledButton } from '@mantine/core'
 import { Link, useLocation } from '@tanstack/react-router'
-import { Briefcase, Columns3, House, Settings } from 'lucide-react'
+import { Briefcase, CalendarDays, Columns3, House, Settings } from 'lucide-react'
 
 import { NAV_ITEMS, isNavItemActive, type NavIcon } from '../lib/nav'
 import { ColorSchemeToggle } from './ColorSchemeToggle'
+import { PullToRefresh } from './PullToRefresh'
 
 const ICONS: Record<NavIcon, typeof House> = {
   home: House,
   briefcase: Briefcase,
   columns: Columns3,
+  calendar: CalendarDays,
   settings: Settings,
 }
 
@@ -25,7 +27,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <AppShell.Header className="appbar">
         <Group h="100%" px="md" justify="space-between" wrap="nowrap" gap="xs">
           <Text fw={700} size="lg" component={Link} to="/" c="inherit" td="none">
-            案件パイプライン
+            案件管理
           </Text>
           <ColorSchemeToggle />
         </Group>
@@ -49,7 +51,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         })}
       </AppShell.Navbar>
 
-      <AppShell.Main className="app-main">{children}</AppShell.Main>
+      <AppShell.Main className="app-main">
+        <PullToRefresh>{children}</PullToRefresh>
+      </AppShell.Main>
 
       <AppShell.Footer hiddenFrom="sm" className="tabbar" withBorder>
         <Group grow gap={0} h="100%" component="nav" aria-label="主要なページ">

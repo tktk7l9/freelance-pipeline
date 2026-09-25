@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
-import { LOG_KINDS, REMOTE_TYPES, ROUTES, TAX_BASES } from '../lib/enums'
+import { EVENT_KINDS, LOG_KINDS, REMOTE_TYPES, ROUTES, TAX_BASES } from '../lib/enums'
 import { CASE_STATUSES } from '../lib/status'
 
 /**
@@ -99,8 +99,29 @@ export const caseLog = sqliteTable(
   (t) => [index('case_log_case_idx').on(t.caseId, t.at)],
 )
 
+/**
+ * 予定（カレンダー）。終日なら startsAt は 'YYYY-MM-DD'、それ以外は ISO-8601（+09:00）。
+ * 案件に紐づけられる（案件が消えたら予定は残して紐づけだけ外す）。
+ */
+export const events = sqliteTable(
+  'events',
+  {
+    id: id(),
+    title: text('title').notNull(),
+    kind: text('kind', { enum: EVENT_KINDS }).notNull().default('meeting'),
+    startsAt: text('starts_at').notNull(),
+    endsAt: text('ends_at'),
+    allDay: integer('all_day', { mode: 'boolean' }).notNull().default(false),
+    caseId: text('case_id').references(() => cases.id, { onDelete: 'set null' }),
+    note: text('note'),
+    ...timestamps,
+  },
+  (t) => [index('events_starts_idx').on(t.startsAt)],
+)
+
 export type Case = typeof cases.$inferSelect
 export type NewCase = typeof cases.$inferInsert
 export type CaseLogRow = typeof caseLog.$inferSelect
 export type NewCaseLog = typeof caseLog.$inferInsert
 export type Setting = typeof settings.$inferSelect
+export type EventRow = typeof events.$inferSelect

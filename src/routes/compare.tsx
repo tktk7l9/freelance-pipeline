@@ -33,15 +33,7 @@ function Page() {
   const hasThreshold = Object.values(thresholds).some((v) => v !== null)
 
   return (
-    <PageShell
-      title="比較"
-      description={
-        hasThreshold
-          ? '赤いセルは設定の閾値を下回る条件'
-          : '設定で閾値を入れると条件を下回るセルが赤くなります'
-      }
-      wide
-    >
+    <PageShell title="比較" wide>
       <Stack gap="md">
         <Checkbox.Group
           value={selected}
@@ -61,6 +53,9 @@ function Page() {
         )}
         <Text size="xs" c="dimmed">
           参画・終了・辞退・見送りは対象外。時給は税抜 ÷ 基準時間。
+          {hasThreshold
+            ? '赤いセルは設定の閾値を下回る条件。'
+            : '設定で閾値を入れると条件を下回るセルが赤くなる。'}
         </Text>
       </Stack>
     </PageShell>

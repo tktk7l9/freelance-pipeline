@@ -22,3 +22,14 @@ export const REMOTE_LABEL: Record<RemoteType, string> = {
 
 export const LOG_KINDS = ['status', 'memo', 'import'] as const
 export type LogKind = (typeof LOG_KINDS)[number]
+
+/** 予定の種別（カレンダー）。案件に紐づく出来事＋自分の都合 */
+export const EVENT_KINDS = ['meeting', 'interview', 'deadline', 'join', 'other'] as const
+export type EventKind = (typeof EVENT_KINDS)[number]
+export const EVENT_KIND_LABEL: Record<EventKind, string> = {
+  meeting: '商談',
+  interview: '面談',
+  deadline: '期限',
+  join: '参画',
+  other: 'その他',
+}
