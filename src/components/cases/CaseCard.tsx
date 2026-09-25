@@ -8,8 +8,17 @@ import { formatHourlyLines, formatRateLines } from '../../lib/rate'
 import type { CaseListItem } from '../../server/cases'
 import { RateLines } from './RateLines'
 import { StatusBadge } from './StatusBadge'
+import { CompanyName } from '../CompanyName'
 
-export function CaseCard({ item, today }: { item: CaseListItem; today: string }) {
+export function CaseCard({
+  item,
+  siteUrl,
+  today,
+}: {
+  item: CaseListItem
+  siteUrl?: string
+  today: string
+}) {
   return (
     <Link to="/cases/$id" params={{ id: item.id }} style={{ textDecoration: 'none' }}>
       <Card withBorder padding="sm">
@@ -20,7 +29,7 @@ export function CaseCard({ item, today }: { item: CaseListItem; today: string })
                 {item.title}
               </Text>
               <Text size="sm" c="dimmed" lineClamp={1}>
-                {item.company}・{ROUTE_LABEL[item.route]}
+                <CompanyName name={item.company} url={siteUrl} nested />・{ROUTE_LABEL[item.route]}
               </Text>
             </Stack>
             <StatusBadge status={item.status} />

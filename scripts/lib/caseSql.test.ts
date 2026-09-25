@@ -9,6 +9,7 @@ import {
   sqlLiteral,
   updateCaseStatement,
   updateLogStatement,
+  upsertCompanyStatement,
 } from './caseSql.ts'
 import type { CaseRowValues } from '../../src/lib/caseInput.ts'
 
@@ -127,5 +128,15 @@ describe('updateCaseStatement / duplicateQuery / slugToId', () => {
   it('slug から決定的な UUID 形', () => {
     assert.equal(slugToId('a'), slugToId('a'))
     assert.match(slugToId('a'), /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+  })
+})
+
+describe('upsertCompanyStatement', () => {
+  it('同名なら URL を上書きする 1 文', () => {
+    const sql = upsertCompanyStatement("甲社 O'Reilly", 'https://example.com')
+    assert.equal(
+      sql,
+      "INSERT INTO companies (name, url) VALUES ('甲社 O''Reilly', 'https://example.com') ON CONFLICT(name) DO UPDATE SET url = excluded.url, updated_at = (datetime('now'));",
+    )
   })
 })

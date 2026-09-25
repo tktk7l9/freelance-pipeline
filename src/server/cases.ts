@@ -16,7 +16,9 @@ import {
   getCase,
   insertCase,
   listCases,
+  listCompanySites,
   listLog,
+  setCompanySite,
   setNextAction,
   updateCase,
 } from './repository'
@@ -52,8 +54,9 @@ export function decorate(c: Case): CaseListItem {
 }
 
 export const listCasesFn = createServerFn().handler(async () => {
-  const rows = await listCases(getDb())
-  return { cases: rows.map(decorate), today: todayJst() }
+  const db = getDb()
+  const [rows, sites] = await Promise.all([listCases(db), listCompanySites(db)])
+  return { cases: rows.map(decorate), sites, today: todayJst() }
 })
 
 export const getCaseDetail = createServerFn()
@@ -62,8 +65,8 @@ export const getCaseDetail = createServerFn()
     const db = getDb()
     const c = await getCase(db, data.id)
     if (!c) throw new Response('Not Found', { status: 404 })
-    const log = await listLog(db, data.id)
-    return { item: decorate(c), log, today: todayJst() }
+    const [log, sites] = await Promise.all([listLog(db, data.id), listCompanySites(db)])
+    return { item: decorate(c), log, companyUrl: sites[c.company] ?? null, today: todayJst() }
   })
 
 export const saveCase = createServerFn({ method: 'POST' })
@@ -71,6 +74,8 @@ export const saveCase = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const db = getDb()
     const row = toCaseRow(data.values)
+    // 会社の公式サイトはフォームの値で置く（空なら消す）。案件の列ではなく companies 表
+    await setCompanySite(db, row.company, data.values.companyUrl)
     if (data.id) {
       const existing = await getCase(db, data.id)
       if (!existing) throw new Response('Not Found', { status: 404 })
@@ -141,6 +146,8 @@ export const importCase = createServerFn({ method: 'POST' })
         ok: false as const,
         duplicate: { id: dup.id, company: dup.company, title: dup.title },
       }
+    // JSON に companyUrl があるときだけ置く（無いときに既存のリンクを消さない）
+    if (parsed.input.companyUrl) await setCompanySite(db, row.company, parsed.input.companyUrl)
     const id = await insertCase(db, row, {
       importNote: '取込フォーム',
       at: new Date().toISOString(),

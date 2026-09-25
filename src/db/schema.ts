@@ -32,6 +32,16 @@ export const settings = sqliteTable('settings', {
   updatedAt: timestamps.updatedAt,
 })
 
+/**
+ * 会社の公式サイト。会社名（cases.company の文字列そのもの）をキーにして 1 社 1 行。
+ * 案件ごとに持たないのは、同じ会社の案件が複数あっても 1 回設定すれば全部に効かせるため。
+ */
+export const companies = sqliteTable('companies', {
+  name: text('name').primaryKey(),
+  url: text('url').notNull(),
+  updatedAt: timestamps.updatedAt,
+})
+
 /** 1 行 = 1 案件。選考中も過去案件も同じ表 */
 export const cases = sqliteTable(
   'cases',
@@ -125,3 +135,4 @@ export type CaseLogRow = typeof caseLog.$inferSelect
 export type NewCaseLog = typeof caseLog.$inferInsert
 export type Setting = typeof settings.$inferSelect
 export type EventRow = typeof events.$inferSelect
+export type CompanyRow = typeof companies.$inferSelect
