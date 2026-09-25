@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  forecastMonths,
   forecastYear,
+  joinedMonthlyFor,
   latestOfficerMonthly,
   monthlyBreakdown,
   summarizeYear,
@@ -57,6 +59,8 @@ describe('monthlyBreakdown', () => {
       otherIncome: 0,
       income: 1_180_000,
       outgo: 0,
+      forecastFreelance: 0,
+      forecastOfficer: 0,
     })
     expect(m[1]?.income).toBe(1_230_000)
     expect(m[2]?.outgo).toBe(200_000)
@@ -88,24 +92,57 @@ describe('yearsOf / ym / yoyPercent / latestOfficerMonthly', () => {
   })
 })
 
-describe('forecastYear', () => {
-  it('今月以降で記録の無い月にだけ見込みを足す', () => {
-    const f = forecastYear(rows, 2030, '2030-11', 900_000, 300_000)
-    // 11・12 月に freelance 900,000 と officer 300,000 を足す
-    expect(f.salesIncl).toBe(1_760_000 + 900_000 * 2)
-    expect(f.officer).toBe(600_000 + 300_000 * 2)
-    expect(f.incomeTotal).toBe(f.salesIncl + f.officer + 50_000)
-    expect(f.filledMonths).toBe(2)
+describe('joinedMonthlyFor', () => {
+  const dmm = { monthly: 900_000, startDate: '2030-10-16', endDate: '2030-12-31' }
+  it('期間外は 0、開始月と終了月は日割り、途中の月は満額', () => {
+    expect(joinedMonthlyFor([dmm], '2030-09')).toBe(0)
+    expect(joinedMonthlyFor([dmm], '2030-10')).toBe(Math.round((900_000 * 16) / 31))
+    expect(joinedMonthlyFor([dmm], '2030-11')).toBe(900_000)
+    expect(joinedMonthlyFor([dmm], '2030-12')).toBe(900_000)
+    expect(joinedMonthlyFor([dmm], '2031-01')).toBe(0)
   })
-  it('既に記録のある月は埋めない。過去の空白も埋めない', () => {
-    const f = forecastYear(rows, 2030, '2030-02', 900_000, 300_000)
-    // 2 月は両方あるので足さない。3〜12 月の 10 か月に足す
-    expect(f.salesIncl).toBe(1_760_000 + 900_000 * 10)
-    expect(f.filledMonths).toBe(10)
+  it('YYYY-MM の開始は月初、終了なしは無期限。複数案件は合算', () => {
+    const open = { monthly: 100_000, startDate: '2030-01', endDate: null }
+    expect(joinedMonthlyFor([open], '2029-12')).toBe(0)
+    expect(joinedMonthlyFor([open], '2030-01')).toBe(100_000)
+    expect(joinedMonthlyFor([open, dmm], '2030-11')).toBe(1_000_000)
+    // 終了が年月だけなら終了月は満額（日割りしない）
+    expect(
+      joinedMonthlyFor([{ monthly: 100_000, startDate: '2030-01', endDate: '2030-03' }], '2030-03'),
+    ).toBe(100_000)
+    expect(
+      joinedMonthlyFor(
+        [{ monthly: 310_000, startDate: '2030-10-01', endDate: '2030-10-10' }],
+        '2030-10',
+      ),
+    ).toBe(100_000)
   })
-  it('見込み額が 0 なら何も足さない', () => {
-    const f = forecastYear(rows, 2030, '2030-01', 0, 0)
-    expect(f.salesIncl).toBe(1_760_000)
-    expect(f.filledMonths).toBe(0)
+})
+
+describe('forecastMonths / forecastYear', () => {
+  const dmm = { monthly: 900_000, startDate: '2030-10-16', endDate: null }
+  it('今月以降で記録の無い月にだけ見込みを入れる', () => {
+    const f = forecastMonths(rows, 2030, '2030-11', [dmm], 300_000)
+    expect([...f.keys()]).toEqual(['2030-11', '2030-12'])
+    expect(f.get('2030-11')).toEqual({ freelance: 900_000, officer: 300_000 })
+    const y = forecastYear(rows, 2030, '2030-11', [dmm], 300_000)
+    expect(y.salesIncl).toBe(1_760_000 + 900_000 * 2)
+    expect(y.officer).toBe(600_000 + 300_000 * 2)
+    expect(y.incomeTotal).toBe(y.salesIncl + y.officer + 50_000)
+    expect(y.filledMonths).toBe(2)
+  })
+  it('既に記録のある月は種別ごとに埋めない。案件の開始前は役員報酬だけ', () => {
+    const f = forecastMonths(rows, 2030, '2030-02', [dmm], 300_000)
+    expect(f.has('2030-02')).toBe(false)
+    expect(f.get('2030-03')).toEqual({ freelance: 0, officer: 300_000 })
+    expect(f.get('2030-10')).toEqual({
+      freelance: Math.round((900_000 * 16) / 31),
+      officer: 300_000,
+    })
+    expect(forecastYear(rows, 2030, '2030-02', [dmm], 300_000).filledMonths).toBe(10)
+  })
+  it('材料が無ければ何も入れない', () => {
+    expect(forecastMonths(rows, 2030, '2030-01', [], 0).size).toBe(0)
+    expect(forecastYear(rows, 2030, '2030-01', [], 0).salesIncl).toBe(1_760_000)
   })
 })

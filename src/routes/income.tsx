@@ -16,6 +16,7 @@ import { PageShell } from '../components/PageShell'
 import { showUndo } from '../components/undoNotification'
 import type { LedgerRow } from '../db/schema'
 import {
+  forecastMonths,
   forecastYear,
   latestOfficerMonthly,
   monthlyBreakdown,
@@ -34,7 +35,7 @@ export const Route = createFileRoute('/income')({
 })
 
 function Page() {
-  const { rows, joinedMonthly, caseOptions, todayYm } = Route.useLoaderData()
+  const { rows, joined, caseOptions, todayYm } = Route.useLoaderData()
   const { y } = Route.useSearch()
   const navigate = useNavigate({ from: '/income' })
   const router = useRouter()
@@ -48,11 +49,20 @@ function Page() {
   const year = y ?? thisYear
   const summary = useMemo(() => summarizeYear(rows, year), [rows, year])
   const previous = useMemo(() => summarizeYear(rows, year - 1), [rows, year])
-  const months = useMemo(() => monthlyBreakdown(rows, year), [rows, year])
+  const officerMonthly = latestOfficerMonthly(rows)
+  const forecastByMonth = useMemo(
+    () =>
+      year === thisYear
+        ? forecastMonths(rows, year, todayYm, joined, officerMonthly)
+        : new Map<string, never>(),
+    [rows, year, thisYear, todayYm, joined, officerMonthly],
+  )
+  const months = useMemo(
+    () => monthlyBreakdown(rows, year, forecastByMonth),
+    [rows, year, forecastByMonth],
+  )
   const forecast =
-    year === thisYear
-      ? forecastYear(rows, year, todayYm, joinedMonthly, latestOfficerMonthly(rows))
-      : null
+    year === thisYear ? forecastYear(rows, year, todayYm, joined, officerMonthly) : null
   const inYear = rows.filter((r) => yearOf(r.yearMonth) === year)
   // 新規の既定は直近の行に合わせる（同じ源泉・同じ額が続くことが多い）
   const latest = rows[0]

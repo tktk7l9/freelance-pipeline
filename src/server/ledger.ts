@@ -21,11 +21,17 @@ export type { LedgerInput } from './ledger.schema'
 export const ledgerData = createServerFn().handler(async () => {
   const db = getDb()
   const [rows, cases] = await Promise.all([listRows(db), listCases(db)])
-  const joined = cases.filter((c) => c.status === 'joined')
-  const joinedMonthly = joined.reduce((s, c) => s + (c.actualMonthlyIncl ?? c.monthlyMaxIncl), 0)
+  // 見込みの材料。期間を持たせ、終了した案件や開始前の案件を月ごとに外す（日割りは lib）
+  const joined = cases
+    .filter((c) => c.status === 'joined')
+    .map((c) => ({
+      monthly: c.actualMonthlyIncl ?? c.monthlyMaxIncl,
+      startDate: c.startDate,
+      endDate: c.endDate,
+    }))
   return {
     rows,
-    joinedMonthly,
+    joined,
     caseOptions: cases.map((c) => ({ id: c.id, label: `${c.company}｜${c.title}` })),
     todayYm: formatJst(new Date().toISOString(), { withTime: false }).slice(0, 7),
   }
