@@ -9,6 +9,7 @@ import { Row } from '../components/DetailRow'
 import { FormDrawer } from '../components/FormDrawer'
 import { PageShell } from '../components/PageShell'
 import { CaseForm } from '../components/cases/CaseForm'
+import { CompanyName } from '../components/CompanyName'
 import { CaseLogList } from '../components/cases/CaseLogList'
 import { NextActionEditor } from '../components/cases/NextActionEditor'
 import { RateLines } from '../components/cases/RateLines'
@@ -34,7 +35,7 @@ export const Route = createFileRoute('/cases_/$id')({
 })
 
 function Page() {
-  const { item, log, today, axes } = Route.useLoaderData()
+  const { item, log, companyUrl, today, axes } = Route.useLoaderData()
   const navigate = useNavigate()
   const remove = useServerFn(deleteCaseFn)
   const [editing, setEditing] = useState(false)
@@ -55,7 +56,12 @@ function Page() {
     <PageShell
       title={item.title}
       heading
-      description={`${item.company}・${ROUTE_LABEL[item.route]}${item.agentName ? `（${item.agentName}）` : ''}`}
+      description={
+        <>
+          <CompanyName name={item.company} url={companyUrl} />・{ROUTE_LABEL[item.route]}
+          {item.agentName ? `（${item.agentName}）` : ''}
+        </>
+      }
       actions={
         <Group gap="xs">
           <StatusBadge status={item.status} />
@@ -187,7 +193,12 @@ function Page() {
       <RawTextPanel text={item.rawText} />
 
       <FormDrawer opened={editing} onClose={() => setEditing(false)} title="案件を編集">
-        <CaseForm item={item} axes={axes} onSaved={() => setEditing(false)} />
+        <CaseForm
+          item={item}
+          companyUrl={companyUrl}
+          axes={axes}
+          onSaved={() => setEditing(false)}
+        />
       </FormDrawer>
     </PageShell>
   )

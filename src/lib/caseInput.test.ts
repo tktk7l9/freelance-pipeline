@@ -34,6 +34,14 @@ describe('caseInputSchema', () => {
     expect(caseInputSchema.safeParse({ ...minimal, nextActionDue: '2030-01' }).success).toBe(false)
   })
 
+  it('companyUrl は受けるが案件の行には入らない（companies 表へ）', () => {
+    const input = caseInputSchema.parse({ ...minimal, companyUrl: 'https://example.com' })
+    expect(input.companyUrl).toBe('https://example.com')
+    expect('companyUrl' in toCaseRow(input)).toBe(false)
+    expect(caseInputSchema.parse({ ...minimal, companyUrl: '' }).companyUrl).toBeNull()
+    expect(caseInputSchema.safeParse({ ...minimal, companyUrl: 'ftp://x' }).success).toBe(false)
+  })
+
   it('URL は http(s) のみ', () => {
     expect(
       caseInputSchema.safeParse({ ...minimal, sourceUrl: 'javascript:alert(1)' }).success,

@@ -26,6 +26,15 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/
 export const caseInputSchema = z
   .object({
     company: z.string().trim().min(1).max(200),
+    /** 会社の公式サイト。案件の列ではなく companies 表に入る（toCaseRow で外す） */
+    companyUrl: z
+      .string()
+      .trim()
+      .max(500)
+      .transform((v) => (v === '' ? null : v))
+      .nullable()
+      .default(null)
+      .refine((v) => v === null || /^https?:\/\//.test(v), 'URL は http(s):// で始めてください'),
     title: z.string().trim().min(1).max(300),
     route: z.enum(ROUTES),
     agentName: nullableText(100),
@@ -106,7 +115,7 @@ export type CaseRowValues = {
 }
 
 export function toCaseRow(input: CaseInput): CaseRowValues {
-  const { monthlyMax, monthlyMin, taxBasis, ...rest } = input
+  const { monthlyMax, monthlyMin, taxBasis, companyUrl: _companyUrl, ...rest } = input
   return {
     ...rest,
     monthlyMaxIncl: toIncl(monthlyMax, taxBasis),
@@ -138,6 +147,7 @@ export function parseCaseJson(
 export const CASE_JSON_EXAMPLE = JSON.stringify(
   {
     company: '甲社',
+    companyUrl: 'https://example.com',
     title: 'テスト案件（サンプル）',
     route: 'findy',
     agentName: null,

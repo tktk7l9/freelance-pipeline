@@ -104,6 +104,11 @@ export function updateLogStatement(p: {
   )
 }
 
+/** 会社の公式サイトを 1 社 1 行で置く（同名なら URL を上書き） */
+export function upsertCompanyStatement(name: string, url: string): string {
+  return `INSERT INTO companies (name, url) VALUES (${sqlLiteral(name)}, ${sqlLiteral(url)}) ON CONFLICT(name) DO UPDATE SET url = excluded.url, updated_at = (datetime('now'));`
+}
+
 export function duplicateQuery(q: {
   sourceUrl: string | null
   company: string

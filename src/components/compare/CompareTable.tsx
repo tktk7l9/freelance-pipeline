@@ -3,13 +3,17 @@ import { Link } from '@tanstack/react-router'
 
 import { buildCompareRows, type CompareCase, type Thresholds } from '../../lib/compare'
 import { RateLines } from '../cases/RateLines'
+import type { CompanySites } from '../../server/repository'
+import { CompanyName } from '../CompanyName'
 
 export function CompareTable({
   cases,
+  sites,
   thresholds,
   axes,
 }: {
   cases: CompareCase[]
+  sites: CompanySites
   thresholds: Thresholds
   axes: string[]
 }) {
@@ -28,7 +32,7 @@ export function CompareTable({
                   </Text>
                 </Link>
                 <Text size="xs" c="dimmed">
-                  {c.company}
+                  <CompanyName name={c.company} url={sites[c.company]} />
                 </Text>
               </Table.Th>
             ))}

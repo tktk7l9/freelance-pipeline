@@ -24,6 +24,7 @@ import {
   insertCaseStatements,
   sqlLiteral,
   updateCaseStatement,
+  upsertCompanyStatement,
   updateLogStatement,
 } from './lib/caseSql.ts'
 
@@ -106,6 +107,10 @@ const statements = updateId
       }),
     ]
   : insertCaseStatements({ id, row, at, importNote: 'add-case', logId: crypto.randomUUID() })
+// 会社の公式サイトは案件の列ではなく companies 表へ（同名なら上書き）
+if (parsed.input.companyUrl) {
+  statements.push(upsertCompanyStatement(row.company, parsed.input.companyUrl))
+}
 
 if (dryRun) {
   console.log(

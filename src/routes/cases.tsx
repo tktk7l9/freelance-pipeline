@@ -19,7 +19,7 @@ export const Route = createFileRoute('/cases')({
 })
 
 function Page() {
-  const { cases, today } = Route.useLoaderData()
+  const { cases, sites, today } = Route.useLoaderData()
   const { group } = Route.useSearch()
   const navigate = useNavigate({ from: '/cases' })
   const items = cases.filter((c) => c.group === group)
@@ -53,12 +53,12 @@ function Page() {
             <Box hiddenFrom="md">
               <Stack gap="sm">
                 {items.map((c) => (
-                  <CaseCard key={c.id} item={c} today={today} />
+                  <CaseCard key={c.id} item={c} siteUrl={sites[c.company]} today={today} />
                 ))}
               </Stack>
             </Box>
             <Box visibleFrom="md">
-              <CaseTable items={items} today={today} />
+              <CaseTable items={items} sites={sites} today={today} />
             </Box>
           </>
         )}

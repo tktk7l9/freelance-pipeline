@@ -34,7 +34,8 @@
 
 1. 案件票を読み、`src/lib/caseInput.ts` の `caseInputSchema` に合う JSON を **scratchpad**（リポジトリ外）に書く。
    例は `CASE_JSON_EXAMPLE`（同ファイル）。金額は **案件票の表示のまま** 入れ、`taxBasis` で
-   `incl`（税込表示）/ `excl`（税抜表示）を宣言する。×1.1 は自分で計算しない
+   `incl`（税込表示）/ `excl`（税抜表示）を宣言する。×1.1 は自分で計算しない。
+   会社の公式サイトが分かれば任意の `companyUrl` に入れる（`companies` 表に 1 社 1 行で入り、会社名の表示すべてにリンクが付く）
 2. `rawText` には案件票の原文をそのまま入れる（要約しない）
 3. `npm run add-case -- --file=<json> --remote --dry-run` → 検証が通ったら `--dry-run` を外して実行
 4. 「同じ案件が既にあります」と出たら、表示された id を確認し、上書きなら `--update=<id>`。

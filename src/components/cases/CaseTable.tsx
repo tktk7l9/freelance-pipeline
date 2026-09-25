@@ -8,8 +8,18 @@ import { formatHourlyLines, formatRateLines } from '../../lib/rate'
 import type { CaseListItem } from '../../server/cases'
 import { RateLines } from './RateLines'
 import { StatusBadge } from './StatusBadge'
+import type { CompanySites } from '../../server/repository'
+import { CompanyName } from '../CompanyName'
 
-export function CaseTable({ items, today }: { items: CaseListItem[]; today: string }) {
+export function CaseTable({
+  items,
+  sites,
+  today,
+}: {
+  items: CaseListItem[]
+  sites: CompanySites
+  today: string
+}) {
   return (
     <Table.ScrollContainer minWidth={900}>
       <Table striped highlightOnHover stickyHeader className="case-table">
@@ -35,7 +45,7 @@ export function CaseTable({ items, today }: { items: CaseListItem[]; today: stri
                   </Text>
                 </Link>
                 <Text size="xs" c="dimmed">
-                  {c.company}
+                  <CompanyName name={c.company} url={sites[c.company]} />
                 </Text>
               </Table.Td>
               <Table.Td>{ROUTE_LABEL[c.route]}</Table.Td>

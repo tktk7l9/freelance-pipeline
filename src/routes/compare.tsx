@@ -14,13 +14,13 @@ export const Route = createFileRoute('/compare')({
   component: Page,
   validateSearch: (s) => search.parse(s),
   loader: async () => {
-    const [{ cases }, settings] = await Promise.all([listCasesFn(), getSettingsData()])
-    return { cases, ...settings }
+    const [{ cases, sites }, settings] = await Promise.all([listCasesFn(), getSettingsData()])
+    return { cases, sites, ...settings }
   },
 })
 
 function Page() {
-  const { cases, thresholds, axes } = Route.useLoaderData()
+  const { cases, sites, thresholds, axes } = Route.useLoaderData()
   const { ids } = Route.useSearch()
   const navigate = useNavigate({ from: '/compare' })
   const candidates = cases.filter((c) => c.group === 'active' || c.group === 'onhold')
@@ -49,7 +49,7 @@ function Page() {
         {shown.length === 0 ? (
           <EmptyState emoji="⚖️" title="比較する案件を選んでください" />
         ) : (
-          <CompareTable cases={shown} thresholds={thresholds} axes={axes} />
+          <CompareTable cases={shown} sites={sites} thresholds={thresholds} axes={axes} />
         )}
         <Text size="xs" c="dimmed">
           参画・終了・辞退・見送りは対象外。時給は税抜 ÷ 基準時間。

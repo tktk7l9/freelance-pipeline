@@ -25,6 +25,7 @@ type Num = number | ''
 type Values = {
   company: string
   title: string
+  companyUrl: string
   route: Case['route']
   agentName: string
   monthlyMax: Num
@@ -53,10 +54,13 @@ const s = (v: string) => v.trim() || null
 
 export function CaseForm({
   item,
+  companyUrl = null,
   axes,
   onSaved,
 }: {
   item: Case | null
+  /** 会社の公式サイト（companies 表）。案件の列ではないので別に受ける */
+  companyUrl?: string | null
   axes: string[]
   onSaved: (id: string) => void
 }) {
@@ -66,6 +70,7 @@ export function CaseForm({
   const form = useForm<Values>({
     initialValues: {
       company: item?.company ?? '',
+      companyUrl: companyUrl ?? '',
       title: item?.title ?? '',
       route: item?.route ?? 'findy',
       agentName: item?.agentName ?? '',
@@ -107,6 +112,7 @@ export function CaseForm({
           id: item?.id ?? null,
           values: {
             company: v.company,
+            companyUrl: s(v.companyUrl),
             title: v.title,
             route: v.route,
             agentName: s(v.agentName),
@@ -152,6 +158,12 @@ export function CaseForm({
     <form onSubmit={form.onSubmit(submit)}>
       <Stack gap="md">
         <TextInput label="企業名" required {...form.getInputProps('company')} />
+        <TextInput
+          label="会社の公式サイト（同じ会社の案件すべてに効く）"
+          type="url"
+          placeholder="https://"
+          {...form.getInputProps('companyUrl')}
+        />
         <TextInput label="案件名" required {...form.getInputProps('title')} />
         <Group grow>
           <Select

@@ -3,6 +3,8 @@ import { Link } from '@tanstack/react-router'
 
 import { DUE_COLOR, dueState, groupByDue } from '../../lib/deadlines'
 import { formatDateSlash } from '../../lib/format'
+import type { CompanySites } from '../../server/repository'
+import { CompanyName } from '../CompanyName'
 
 type Item = {
   id: string
@@ -12,7 +14,15 @@ type Item = {
   nextActionDue: string
 }
 
-export function DueList({ items, today }: { items: Item[]; today: string }) {
+export function DueList({
+  items,
+  sites,
+  today,
+}: {
+  items: Item[]
+  sites: CompanySites
+  today: string
+}) {
   if (items.length === 0) return null
   const groups = groupByDue(items)
   return (
@@ -50,7 +60,7 @@ export function DueList({ items, today }: { items: Item[]; today: string }) {
                       {i.nextAction ?? '（次の一手が未設定）'}
                     </Text>
                     <Text size="xs" c="dimmed" lineClamp={1}>
-                      {i.company}・{i.title}
+                      <CompanyName name={i.company} url={sites[i.company]} nested />・{i.title}
                     </Text>
                   </Stack>
                 </Card>
