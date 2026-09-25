@@ -3,7 +3,6 @@ import { Link, useLocation } from '@tanstack/react-router'
 import { Briefcase, CalendarDays, Columns3, House, JapaneseYen, Settings } from 'lucide-react'
 
 import { NAV_ITEMS, isNavItemActive, type NavIcon } from '../lib/nav'
-import { ColorSchemeToggle } from './ColorSchemeToggle'
 import { PullToRefresh } from './PullToRefresh'
 
 const ICONS: Record<NavIcon, typeof House> = {
@@ -26,11 +25,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       padding="md"
     >
       <AppShell.Header className="appbar">
-        <Group h="100%" px="md" justify="space-between" wrap="nowrap" gap="xs">
+        <Group h="100%" px="md" wrap="nowrap" gap="xs">
           <Text fw={700} size="lg" component={Link} to="/" c="inherit" td="none">
             案件管理
           </Text>
-          <ColorSchemeToggle />
         </Group>
       </AppShell.Header>
 

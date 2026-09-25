@@ -20,7 +20,7 @@ export const Route = createRootRoute({
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
       { name: 'robots', content: 'noindex, nofollow, noarchive' },
-      // theme-color はライト/ダーク 2 本を RootDocument の <head> に直接書く
+      // theme-color は RootDocument の <head> に直接書く（ダーク固定）
       // （head() の meta 配列は name が同じタグを 1 本にまとめてしまうため）
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
@@ -46,16 +46,16 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" {...mantineHtmlProps}>
       <head>
-        <ColorSchemeScript defaultColorScheme="auto" />
-        {/* 地色は src/theme.ts の gray[0]（ライト）と dark[7]（ダーク）に合わせる */}
-        <meta name="theme-color" content="#f4f6f9" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#171d27" media="(prefers-color-scheme: dark)" />
+        {/* ダークのみ（所有者の要望 2026-09-25）。切り替え UI は無く、OS 設定にも追従しない */}
+        <ColorSchemeScript forceColorScheme="dark" />
+        {/* 地色は src/theme.ts の dark[7] に合わせる */}
+        <meta name="theme-color" content="#171d27" />
         <HeadContent />
       </head>
       <body>
         <MantineProvider
           theme={theme}
-          defaultColorScheme="auto"
+          forceColorScheme="dark"
           cssVariablesResolver={cssVariablesResolver}
         >
           <DatesProvider settings={{ locale: 'ja', firstDayOfWeek: 0 }}>
