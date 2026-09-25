@@ -6,6 +6,8 @@ import {
   joinedMonthlyFor,
   latestOfficerMonthly,
   monthlyBreakdown,
+  rateChanges,
+  rateHistory,
   summarizeYear,
   yearsOf,
   ym,
@@ -144,5 +146,40 @@ describe('forecastMonths / forecastYear', () => {
   it('材料が無ければ何も入れない', () => {
     expect(forecastMonths(rows, 2030, '2030-01', [], 0).size).toBe(0)
     expect(forecastYear(rows, 2030, '2030-01', [], 0).salesIncl).toBe(1_760_000)
+  })
+})
+
+describe('rateHistory / rateChanges', () => {
+  const rows: LedgerLike[] = [
+    { id: '1', yearMonth: '2030-01', kind: 'freelance', amount: 780_000 },
+    { id: '2', yearMonth: '2030-01', kind: 'freelance', amount: 50_000 }, // 単発は無視
+    { id: '3', yearMonth: '2030-02', kind: 'freelance', amount: 780_000 },
+    { id: '4', yearMonth: '2030-03', kind: 'freelance', amount: 300_000 }, // 日割り
+    { id: '5', yearMonth: '2030-04', kind: 'freelance', amount: 830_000 },
+    { id: '6', yearMonth: '2030-05', kind: 'freelance', amount: 830_000 },
+    { id: '7', yearMonth: '2030-05', kind: 'officer', amount: 300_000 }, // 別種別は無視
+  ]
+  it('月ごとの最大行を並べ、前後より低い月は日割りにする', () => {
+    const h = rateHistory(rows)
+    expect(h.map((p) => [p.yearMonth, p.rate, p.partial])).toEqual([
+      ['2030-01', 780_000, false],
+      ['2030-02', 780_000, false],
+      ['2030-03', 300_000, true],
+      ['2030-04', 830_000, false],
+      ['2030-05', 830_000, false],
+    ])
+  })
+  it('改定は日割りを飛ばして検出する', () => {
+    expect(rateChanges(rateHistory(rows))).toEqual([
+      { yearMonth: '2030-04', from: 780_000, to: 830_000 },
+    ])
+    expect(rateChanges([])).toEqual([])
+  })
+  it('端の月は日割り判定しない', () => {
+    const h = rateHistory([
+      { id: 'a', yearMonth: '2030-01', kind: 'freelance', amount: 100 },
+      { id: 'b', yearMonth: '2030-02', kind: 'freelance', amount: 900 },
+    ])
+    expect(h.every((p) => !p.partial)).toBe(true)
   })
 })

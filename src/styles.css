@@ -302,3 +302,34 @@ body {
   outline: 3px solid var(--mantine-color-yellow-4);
   outline-offset: -3px;
 }
+
+/* 収入 › 単価の推移。月ごとの縦棒。改定した月は濃く、日割りの月は斜線 */
+.rate-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 72px;
+}
+.rate-bar {
+  flex: 1 1 0;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  min-width: 4px;
+}
+.rate-bar-fill {
+  display: block;
+  width: 100%;
+  border-radius: 2px 2px 0 0;
+  background: var(--mantine-color-indigo-4);
+}
+.rate-bar.is-change .rate-bar-fill {
+  background: var(--mantine-color-indigo-7);
+}
+.rate-bar.is-partial .rate-bar-fill {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--mantine-color-indigo-3) 0 3px,
+    var(--mantine-color-gray-1) 3px 6px
+  );
+}

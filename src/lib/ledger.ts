@@ -231,3 +231,51 @@ export function latestOfficerMonthly(rows: readonly LedgerLike[]): number {
   }
   return best?.amount ?? 0
 }
+
+export type RatePoint = {
+  yearMonth: string
+  /** その月のフリーランス売上の最大行＝主契約の月額（税込） */
+  rate: number
+  /** 前後の月より低い＝日割りなど一時的な月。改定の検出から外す */
+  partial: boolean
+}
+
+/**
+ * 単価の推移。月ごとにフリーランス売上の最大の行を「主契約の月額」とみなす
+ * （単発の請求が同じ月にあっても主契約の額が残る）。
+ * 前後の月より低い月は日割りとみなして partial にする（改定の誤検出を防ぐ）。
+ */
+export function rateHistory(rows: readonly LedgerLike[]): RatePoint[] {
+  const byMonth = new Map<string, number>()
+  for (const r of rows) {
+    if (r.kind !== 'freelance') continue
+    const cur = byMonth.get(r.yearMonth) ?? 0
+    if (r.amount > cur) byMonth.set(r.yearMonth, r.amount)
+  }
+  const points = [...byMonth.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([yearMonth, rate]) => ({ yearMonth, rate, partial: false }))
+  for (let i = 0; i < points.length; i += 1) {
+    const prev = points[i - 1]
+    const next = points[i + 1]
+    if (prev && next && points[i].rate < prev.rate && points[i].rate < next.rate) {
+      points[i].partial = true
+    }
+  }
+  return points
+}
+
+export type RateChange = { yearMonth: string; from: number; to: number }
+
+/** 単価の改定（日割りの月を除いて、前の月額と違う最初の月） */
+export function rateChanges(history: readonly RatePoint[]): RateChange[] {
+  const out: RateChange[] = []
+  let last: number | null = null
+  for (const p of history) {
+    if (p.partial) continue
+    if (last !== null && p.rate !== last)
+      out.push({ yearMonth: p.yearMonth, from: last, to: p.rate })
+    last = p.rate
+  }
+  return out
+}
