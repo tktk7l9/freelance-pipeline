@@ -16,6 +16,7 @@ import { useServerFn } from '@tanstack/react-start'
 import { useState } from 'react'
 
 import type { Case } from '../../db/schema'
+import { parseMonthOrDateInput } from '../../lib/dates'
 import { REMOTE_LABEL, REMOTE_TYPES, ROUTES, ROUTE_LABEL } from '../../lib/enums'
 import { extractFormError } from '../../lib/formError'
 import { saveCase } from '../../server/cases'
@@ -98,7 +99,12 @@ export function CaseForm({
       company: (v) => (v.trim() ? null : '企業名は必須です'),
       title: (v) => (v.trim() ? null : '案件名は必須です'),
       monthlyMax: (v) => (v === '' ? '単価上限は必須です' : null),
-      startDate: (v) => (/^\d{4}-\d{2}(-\d{2})?$/.test(v) ? null : 'YYYY-MM-DD か YYYY-MM'),
+      startDate: (v) =>
+        parseMonthOrDateInput(v) ? null : '2030/11 や 2030/11/16 の形で入れてください',
+      endDate: (v) =>
+        v.trim() === '' || parseMonthOrDateInput(v)
+          ? null
+          : '2030/12 や 2030/12/31 の形で入れてください',
       rawText: (v) => (v.trim() ? null : '原文は必須です'),
     },
   })
@@ -123,8 +129,8 @@ export function CaseForm({
             settlementMaxH: n(v.settlementMaxH),
             remoteType: v.remoteType,
             onsiteNote: s(v.onsiteNote),
-            startDate: v.startDate,
-            endDate: s(v.endDate),
+            startDate: parseMonthOrDateInput(v.startDate) ?? v.startDate,
+            endDate: parseMonthOrDateInput(v.endDate),
             daysPerWeek: s(v.daysPerWeek),
             workLocation: s(v.workLocation),
             supplyChain: s(v.supplyChain),
@@ -216,12 +222,8 @@ export function CaseForm({
           />
         </Group>
         <Group grow>
-          <TextInput
-            label="開始（YYYY/MM/DD または YYYY/MM）"
-            required
-            {...form.getInputProps('startDate')}
-          />
-          <TextInput label="終了" {...form.getInputProps('endDate')} />
+          <TextInput label="開始（月だけでも可）" required {...form.getInputProps('startDate')} />
+          <TextInput label="終了（月だけでも可）" {...form.getInputProps('endDate')} />
         </Group>
         <Group grow>
           <TextInput label="稼働" placeholder="例: 週4〜5" {...form.getInputProps('daysPerWeek')} />

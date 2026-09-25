@@ -18,6 +18,7 @@ import {
   listCases,
   listCompanySites,
   listLog,
+  revertLastStatusChange,
   setCompanySite,
   setNextAction,
   updateCase,
@@ -98,6 +99,11 @@ export const changeCaseStatus = createServerFn({ method: 'POST' })
     const result = await changeStatus(getDb(), data.id, data.to, new Date().toISOString())
     return result === 'ok' ? { ok: true as const } : { ok: false as const, reason: result }
   })
+
+/** 通知の「取り消す」。直前のステータス変更を戻す */
+export const undoStatusChange = createServerFn({ method: 'POST' })
+  .validator(idInput)
+  .handler(async ({ data }) => ({ result: await revertLastStatusChange(getDb(), data.id) }))
 
 export const saveNextAction = createServerFn({ method: 'POST' })
   .validator(nextActionInput)

@@ -1,4 +1,4 @@
-import { Table, Text } from '@mantine/core'
+import { Table, Text, VisuallyHidden } from '@mantine/core'
 import { Link } from '@tanstack/react-router'
 
 import { buildCompareRows, type CompareCase, type Thresholds } from '../../lib/compare'
@@ -44,10 +44,17 @@ export function CompareTable({
               <Table.Th scope="row">{r.label}</Table.Th>
               {r.cells.map((cell) => (
                 <Table.Td key={cell.caseId} className={cell.bad ? 'cell-bad' : undefined}>
+                  {/* 色だけに頼らない: 下回るセルは記号と読み上げ用の文言も付ける */}
+                  {cell.bad ? (
+                    <Text size="xs" fw={700} component="span" mr={4}>
+                      <span aria-hidden>▼</span>
+                      <VisuallyHidden>閾値を下回る</VisuallyHidden>
+                    </Text>
+                  ) : null}
                   {cell.sub ? (
                     <RateLines main={cell.text} sub={cell.sub} />
                   ) : (
-                    <Text size="sm" className="breakable">
+                    <Text size="sm" className="breakable" component="span">
                       {cell.text}
                     </Text>
                   )}

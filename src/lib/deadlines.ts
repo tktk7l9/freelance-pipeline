@@ -44,3 +44,15 @@ export function groupByDue<T extends { nextActionDue: string }>(
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([date, group]) => ({ date, items: group }))
 }
+
+/**
+ * 期日バッジに添える文字。色だけで緊急度を伝えない（色覚・グレースケールでも読めるように）。
+ * 期限切れ／今日／あと N 日（3 日以内）。それより先は null＝日付だけ出す。
+ */
+export function dueLabel(due: string, today: string): string | null {
+  const d = daysBetween(today, due)
+  if (d < 0) return '期限切れ'
+  if (d === 0) return '今日'
+  if (d <= 3) return `あと${d}日`
+  return null
+}

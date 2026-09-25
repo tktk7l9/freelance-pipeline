@@ -8,6 +8,8 @@ import {
   isTerminal,
   progressRank,
   statusGroup,
+  nextProgress,
+  transitionOptions,
 } from './status'
 
 describe('status', () => {
@@ -54,5 +56,20 @@ describe('status', () => {
     expect(statusGroup('onhold')).toBe('onhold')
     expect(statusGroup('declined')).toBe('closed')
     expect(statusGroup('rejected')).toBe('closed')
+  })
+
+  it('次に進む状態と、ボタンの構成', () => {
+    expect(nextProgress('saved')).toBe('applied')
+    expect(nextProgress('offer')).toBe('joined')
+    expect(nextProgress('ended')).toBeNull()
+    expect(nextProgress('onhold')).toBeNull()
+    expect(nextProgress('declined')).toBeNull()
+    expect(transitionOptions('applied')).toEqual({
+      primary: 'screening',
+      others: ['meeting', 'offer', 'joined', 'ended', 'declined', 'rejected', 'onhold'],
+    })
+    expect(transitionOptions('onhold').primary).toBeNull()
+    expect(transitionOptions('onhold').others).toContain('applied')
+    expect(transitionOptions('rejected')).toEqual({ primary: null, others: [] })
   })
 })

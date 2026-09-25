@@ -14,6 +14,7 @@ import {
   listCases,
   listLog,
   recentLog,
+  revertLastStatusChange,
   setNextAction,
   updateCase,
 } from './cases'
@@ -133,5 +134,17 @@ describe('cases repository', () => {
     await expect(
       db.insert(cases).values(fakeCase({ sourceUrl: 'https://example.com/a' })),
     ).rejects.toThrow()
+  })
+
+  it('直前のステータス変更を取り消すと状態が戻り、ログも消える', async () => {
+    const id = await insertCase(db, values, { importNote: 'x', at: '2030-01-01T00:00:00.000Z' })
+    expect(await changeStatus(db, id, 'applied', '2030-01-02T00:00:00.000Z')).toBe('ok')
+    expect(await changeStatus(db, id, 'rejected', '2030-01-03T00:00:00.000Z')).toBe('ok')
+    expect(await revertLastStatusChange(db, id)).toBe('ok')
+    expect((await getCase(db, id))?.status).toBe('applied')
+    expect((await listLog(db, id)).filter((l) => l.kind === 'status')).toHaveLength(1)
+    expect(await revertLastStatusChange(db, id)).toBe('ok')
+    expect((await getCase(db, id))?.status).toBe('saved')
+    expect(await revertLastStatusChange(db, id)).toBe('nothing')
   })
 })

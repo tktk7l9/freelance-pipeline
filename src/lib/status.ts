@@ -74,3 +74,25 @@ export function canTransition(from: CaseStatus, to: CaseStatus): boolean {
   if (from === 'onhold') return true
   return progressRank(to) > progressRank(from)
 }
+
+/** 次に進む状態（進行の 1 つ先）。終端や別枠・進めない状態なら null */
+export function nextProgress(status: CaseStatus): CaseStatus | null {
+  if (status === 'onhold') return null
+  const rank = progressRank(status)
+  if (rank < 0) return null
+  const next = PROGRESS_STATUSES[rank + 1]
+  return next && canTransition(status, next) ? next : null
+}
+
+/**
+ * ステータス変更ボタンの構成。primary＝1 タップで進める「次の状態」、
+ * others＝メニューに畳む残り（飛び級の進行と別枠）。選択肢を並べ切らないため（ヒックの法則）。
+ */
+export function transitionOptions(status: CaseStatus): {
+  primary: CaseStatus | null
+  others: CaseStatus[]
+} {
+  const primary = nextProgress(status)
+  const others = CASE_STATUSES.filter((s) => s !== primary && canTransition(status, s))
+  return { primary, others }
+}

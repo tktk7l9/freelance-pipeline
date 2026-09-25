@@ -32,7 +32,7 @@ function isRealDate(year: number, month: number, day: number): boolean {
  * 過去の記録を写しているときに黙って違う年で保存されてしまう。
  */
 export function parseDateInput(value: string | null | undefined): string | null {
-  const trimmed = value?.trim()
+  const trimmed = normalizeWidth(value)
   if (!trimmed) return null
 
   for (const pattern of PATTERNS) {
@@ -48,5 +48,36 @@ export function parseDateInput(value: string | null | undefined): string | null 
     return `${rawYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
   }
 
+  return null
+}
+
+/** 全角の数字・記号を半角に寄せ、前後の空白を落とす（厳密さをユーザーに求めない） */
+function normalizeWidth(value: string | null | undefined): string | undefined {
+  return value?.normalize('NFKC').trim()
+}
+
+const MONTH_PATTERNS: readonly RegExp[] = [
+  // 2026-07 / 2026/7 / 2026.07
+  /^(\d{4})[-/.](\d{1,2})$/,
+  // 2026年7月
+  /^(\d{4})年(\d{1,2})月$/,
+]
+
+/**
+ * 案件の開始・終了は「日まで決まっている」ことも「月だけ」のこともある。
+ * 日付なら 'YYYY-MM-DD'、年月なら 'YYYY-MM' に直す。読めなければ null。
+ */
+export function parseMonthOrDateInput(value: string | null | undefined): string | null {
+  const date = parseDateInput(value)
+  if (date) return date
+  const trimmed = normalizeWidth(value)
+  if (!trimmed) return null
+  for (const pattern of MONTH_PATTERNS) {
+    const match = pattern.exec(trimmed)
+    if (!match) continue
+    const month = Number(match[2])
+    if (month < 1 || month > 12) return null
+    return `${match[1]}-${String(month).padStart(2, '0')}`
+  }
   return null
 }

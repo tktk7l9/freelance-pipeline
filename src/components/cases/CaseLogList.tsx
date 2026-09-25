@@ -8,6 +8,8 @@ import { useState } from 'react'
 
 import type { CaseLogRow } from '../../db/schema'
 import { describeLog, formatLogAt, sortLogNewestFirst } from '../../lib/caseLog'
+import { formatJst } from '../../lib/jst'
+import { showUndo } from '../undoNotification'
 import { extractErrorMessage } from '../../lib/formError'
 import { addCaseMemo, deleteCaseMemo } from '../../server/cases'
 
@@ -42,11 +44,20 @@ export function CaseLogList({
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!window.confirm('このメモを削除します。')) return
+  /** 確認ダイアログは出さず、消してから「取り消す」で戻せるようにする（同じ本文・日付で足し直す） */
+  async function handleDelete(entry: CaseLogRow) {
     try {
-      await remove({ data: { id } })
+      await remove({ data: { id: entry.id } })
       await router.invalidate()
+      showUndo({
+        message: 'メモを削除しました',
+        onUndo: async () => {
+          await add({
+            data: { id: caseId, body: entry.body, date: formatJst(entry.at, { withTime: false }) },
+          })
+          await router.invalidate()
+        },
+      })
     } catch {
       notifications.show({ message: '削除できませんでした', color: 'red' })
     }
@@ -71,7 +82,7 @@ export function CaseLogList({
                   variant="subtle"
                   color="red"
                   aria-label="メモを削除"
-                  onClick={() => handleDelete(e.id)}
+                  onClick={() => handleDelete(e)}
                 >
                   <Trash2 size={16} />
                 </ActionIcon>
@@ -83,7 +94,7 @@ export function CaseLogList({
       <Group align="flex-end" gap="xs" wrap="nowrap">
         <DateInput
           label="日付"
-          valueFormat="YYYY-MM-DD"
+          valueFormat="YYYY/MM/DD"
           value={date}
           onChange={(v) => setDate(v ?? today)}
         />

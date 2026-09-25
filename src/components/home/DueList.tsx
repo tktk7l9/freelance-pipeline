@@ -1,7 +1,7 @@
 import { Badge, Card, Group, Stack, Text, Title } from '@mantine/core'
 import { Link } from '@tanstack/react-router'
 
-import { DUE_COLOR, dueState, groupByDue } from '../../lib/deadlines'
+import { DUE_COLOR, dueLabel, dueState, groupByDue } from '../../lib/deadlines'
 import { formatDateSlash } from '../../lib/format'
 import type { CompanySites } from '../../server/repository'
 import { CompanyName } from '../CompanyName'
@@ -36,14 +36,9 @@ export function DueList({
               <Text size="sm" fw={700} c={DUE_COLOR[state]}>
                 {formatDateSlash(g.date)}
               </Text>
-              {state === 'overdue' ? (
+              {dueLabel(g.date, today) ? (
                 <Badge color={DUE_COLOR[state]} variant="light" size="sm">
-                  期限切れ
-                </Badge>
-              ) : null}
-              {state === 'today' ? (
-                <Badge color={DUE_COLOR[state]} variant="light" size="sm">
-                  今日
+                  {dueLabel(g.date, today)}
                 </Badge>
               ) : null}
             </Group>

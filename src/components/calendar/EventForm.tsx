@@ -9,6 +9,7 @@ import { useState } from 'react'
 
 import type { EventRow } from '../../db/schema'
 import { splitStartsAt } from '../../lib/calendar'
+import { extractErrorMessage } from '../../lib/formError'
 import { EVENT_KINDS, EVENT_KIND_LABEL } from '../../lib/enums'
 import { saveEvent, type EventInput } from '../../server/events'
 
@@ -73,8 +74,8 @@ export function EventForm({
       await router.invalidate()
       notifications.show({ message: event ? '予定を更新しました' : '予定を追加しました' })
       onSaved(res.id)
-    } catch {
-      notifications.show({ message: '保存できませんでした', color: 'red' })
+    } catch (e) {
+      notifications.show({ message: extractErrorMessage(e), color: 'red' })
     } finally {
       setSaving(false)
     }

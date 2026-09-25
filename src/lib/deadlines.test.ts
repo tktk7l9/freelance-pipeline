@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { DUE_COLOR, dueState, groupByDue, withDue, type DueState } from './deadlines'
+import { DUE_COLOR, dueLabel, dueState, groupByDue, type DueState, withDue } from './deadlines'
 
 describe('deadlines', () => {
   it('期限状態', () => {
@@ -39,5 +39,15 @@ describe('deadlines', () => {
       { date: '2030-01-01', items: [b] },
       { date: '2030-01-05', items: [a, c] },
     ])
+  })
+})
+
+describe('dueLabel', () => {
+  it('期限切れ・今日・あと N 日・それより先は null', () => {
+    expect(dueLabel('2030-01-04', '2030-01-05')).toBe('期限切れ')
+    expect(dueLabel('2030-01-05', '2030-01-05')).toBe('今日')
+    expect(dueLabel('2030-01-07', '2030-01-05')).toBe('あと2日')
+    expect(dueLabel('2030-01-08', '2030-01-05')).toBe('あと3日')
+    expect(dueLabel('2030-01-09', '2030-01-05')).toBeNull()
   })
 })

@@ -79,9 +79,9 @@ describe('compare', () => {
   })
 
   it('○△×', () => {
-    expect(fitMark(2)).toBe('○')
-    expect(fitMark(1)).toBe('△')
-    expect(fitMark(0)).toBe('×')
+    expect(fitMark(2)).toBe('合う')
+    expect(fitMark(1)).toBe('一部')
+    expect(fitMark(0)).toBe('合わない')
     expect(fitMark(null)).toBe('—')
   })
 
@@ -103,7 +103,7 @@ describe('compare', () => {
     expect(row('hourly').cells[1].bad).toBe(true)
     expect(row('start').cells.map((c) => c.bad)).toEqual([false, true])
     expect(row('onsite').cells.map((c) => c.bad)).toEqual([false, true])
-    expect(row('axis:0').cells.map((c) => c.text)).toEqual(['○', '—'])
+    expect(row('axis:0').cells.map((c) => c.text)).toEqual(['合う', '—'])
     expect(rows.map((r) => r.key)).toEqual([
       'rate',
       'hourly',
