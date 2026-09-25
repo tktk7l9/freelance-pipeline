@@ -21,3 +21,14 @@ export function formatDateSlash(value: string | null | undefined): string {
   if (!d) return `${y}/${mo}`
   return `${y}/${mo}/${d}${time ?? ''}`
 }
+
+/**
+ * 住所を Google マップで開く URL。括弧書き（「（都営大江戸線 六本木駅 直結）」のような補足）は
+ * 検索語から外す。空なら null。
+ */
+export function mapsUrl(address: string | null | undefined): string | null {
+  const trimmed = address?.trim()
+  if (!trimmed) return null
+  const query = trimmed.replace(/[（(].*$/, '').trim() || trimmed
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+}

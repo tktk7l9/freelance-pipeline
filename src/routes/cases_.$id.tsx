@@ -10,6 +10,7 @@ import { FormDrawer } from '../components/FormDrawer'
 import { PageShell } from '../components/PageShell'
 import { CaseForm } from '../components/cases/CaseForm'
 import { CompanyName } from '../components/CompanyName'
+import { PlaceLink } from '../components/PlaceLink'
 import { CaseLogList } from '../components/cases/CaseLogList'
 import { NextActionEditor } from '../components/cases/NextActionEditor'
 import { RateLines } from '../components/cases/RateLines'
@@ -128,7 +129,7 @@ function Page() {
             }
           />
           <Row label="稼働" value={item.daysPerWeek} />
-          <Row label="作業場所" value={item.workLocation} />
+          <Row label="作業場所" value={<PlaceLink address={item.workLocation} />} />
           <Row label="商流" value={item.supplyChain} />
           <Row
             label="支払サイト"

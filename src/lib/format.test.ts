@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatDateSlash, formatYen } from './format'
+import { formatDateSlash, formatYen, mapsUrl } from './format'
 
 describe('formatYen', () => {
   it('万円単位に丸め、1万円未満は円、null は「—」', () => {
@@ -22,5 +22,21 @@ describe('formatDateSlash', () => {
     expect(formatDateSlash('未定')).toBe('未定')
     expect(formatDateSlash(null)).toBe('')
     expect(formatDateSlash(undefined)).toBe('')
+  })
+})
+
+describe('mapsUrl', () => {
+  it('住所を検索 URL にし、括弧書きは外す', () => {
+    expect(mapsUrl('東京都港区六本木3-2-1 ビル 24F（駅直結）')).toBe(
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('東京都港区六本木3-2-1 ビル 24F')}`,
+    )
+    expect(mapsUrl('六本木')).toContain('query=%E5%85%AD')
+  })
+  it('括弧だけ・空・null は', () => {
+    expect(mapsUrl('（未定）')).toBe(
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('（未定）')}`,
+    )
+    expect(mapsUrl('  ')).toBeNull()
+    expect(mapsUrl(null)).toBeNull()
   })
 })
