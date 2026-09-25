@@ -1,66 +1,81 @@
-import { Button, Group, Select } from '@mantine/core'
+import { Button, Menu, Stack, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
+import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 
-import {
-  CASE_STATUSES,
-  STATUS_LABEL,
-  canTransition,
-  isTerminal,
-  type CaseStatus,
-} from '../../lib/status'
-import { changeCaseStatus } from '../../server/cases'
+import { STATUS_LABEL, transitionOptions, type CaseStatus } from '../../lib/status'
+import { changeCaseStatus, undoStatusChange } from '../../server/cases'
+import { showUndo } from '../undoNotification'
 
+/**
+ * ステータス変更。いちばん多い「次へ進める」は 1 タップ、残り（飛び級・保留・辞退・見送り）は
+ * メニューに畳む（選択肢を並べ切らない＝ヒックの法則）。確認ダイアログは出さず、
+ * 変えたあと通知の「取り消す」で戻せる。
+ */
 export function StatusChanger({ id, status }: { id: string; status: CaseStatus }) {
   const router = useRouter()
   const change = useServerFn(changeCaseStatus)
-  const [to, setTo] = useState<CaseStatus | null>(null)
-  const [saving, setSaving] = useState(false)
-  const options = CASE_STATUSES.filter((s) => canTransition(status, s)).map((s) => ({
-    value: s,
-    label: STATUS_LABEL[s],
-  }))
+  const undo = useServerFn(undoStatusChange)
+  const [saving, setSaving] = useState<CaseStatus | null>(null)
+  const { primary, others } = transitionOptions(status)
 
-  async function submit() {
-    if (!to) return
-    if (
-      isTerminal(to) &&
-      !window.confirm(`「${STATUS_LABEL[to]}」にすると戻せません。よいですか？`)
-    )
-      return
-    setSaving(true)
+  async function apply(to: CaseStatus) {
+    setSaving(to)
     try {
       const r = await change({ data: { id, to } })
       if (!r.ok) {
         notifications.show({ message: 'この遷移はできません', color: 'red' })
         return
       }
-      setTo(null)
       await router.invalidate()
-      notifications.show({ message: `${STATUS_LABEL[to]} にしました` })
+      showUndo({
+        message: `${STATUS_LABEL[to]} にしました`,
+        onUndo: async () => {
+          await undo({ data: { id } })
+          await router.invalidate()
+        },
+      })
     } catch {
       notifications.show({ message: '変更できませんでした', color: 'red' })
     } finally {
-      setSaving(false)
+      setSaving(null)
     }
   }
 
-  if (options.length === 0) return null
+  if (!primary && others.length === 0) return null
   return (
-    <Group gap="xs" align="flex-end" wrap="nowrap">
-      <Select
-        label="ステータスを変更"
-        placeholder="次の状態"
-        data={options}
-        value={to}
-        onChange={(v) => setTo(v as CaseStatus | null)}
-        style={{ flex: 1 }}
-      />
-      <Button onClick={submit} loading={saving} disabled={!to}>
-        変更
-      </Button>
-    </Group>
+    <Stack gap="xs">
+      <Text size="sm" fw={600}>
+        状態
+      </Text>
+      {primary ? (
+        <Button onClick={() => apply(primary)} loading={saving === primary} fullWidth>
+          {STATUS_LABEL[primary]}へ進める
+        </Button>
+      ) : null}
+      {others.length > 0 ? (
+        <Menu position="bottom-end" withinPortal>
+          <Menu.Target>
+            <Button
+              variant={primary ? 'subtle' : 'default'}
+              fullWidth
+              rightSection={<ChevronDown size={14} aria-hidden />}
+              loading={saving !== null && saving !== primary}
+            >
+              {primary ? '他の状態にする' : '状態を変える'}
+            </Button>
+          </Menu.Target>
+          <Menu.Dropdown>
+            {others.map((s) => (
+              <Menu.Item key={s} onClick={() => apply(s)}>
+                {STATUS_LABEL[s]}にする
+              </Menu.Item>
+            ))}
+          </Menu.Dropdown>
+        </Menu>
+      ) : null}
+    </Stack>
   )
 }

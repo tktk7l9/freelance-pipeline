@@ -82,9 +82,10 @@ export function onsitePerMonth(remoteType: RemoteType, onsiteNote: string | null
 }
 
 export function fitMark(score: number | null | undefined): string {
-  if (score === 2) return '○'
-  if (score === 1) return '△'
-  if (score === 0) return '×'
+  // ○△× は文化で意味が変わる記号なので文字にする（SHIG 70・96）
+  if (score === 2) return '合う'
+  if (score === 1) return '一部'
+  if (score === 0) return '合わない'
   return '—'
 }
 

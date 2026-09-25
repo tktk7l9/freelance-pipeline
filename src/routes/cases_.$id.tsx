@@ -1,4 +1,4 @@
-import { ActionIcon, Anchor, Badge, Card, Group, Stack, Text, Title } from '@mantine/core'
+import { Anchor, Badge, Button, Card, Group, Stack, Text, Title } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
@@ -62,18 +62,33 @@ function Page() {
           {item.agentName ? `（${item.agentName}）` : ''}
         </>
       }
+      back={{ to: '/cases', label: '案件' }}
       actions={
         <Group gap="xs">
           <StatusBadge status={item.status} />
-          <ActionIcon variant="default" aria-label="編集" onClick={() => setEditing(true)}>
-            <Pencil size={16} />
-          </ActionIcon>
-          <ActionIcon variant="default" color="red" aria-label="削除" onClick={handleDelete}>
-            <Trash2 size={16} />
-          </ActionIcon>
+          <Button
+            variant="default"
+            size="xs"
+            leftSection={<Pencil size={14} aria-hidden />}
+            onClick={() => setEditing(true)}
+          >
+            編集
+          </Button>
         </Group>
       }
     >
+      {/* いちばん多い操作（連絡が来た → 状態と次の一手を更新）を先頭に置く。条件は取込後ほぼ変わらない */}
+      <Card withBorder padding="md">
+        <Stack gap="md">
+          <NextActionEditor
+            id={item.id}
+            nextAction={item.nextAction}
+            nextActionDue={item.nextActionDue}
+          />
+          <StatusChanger id={item.id} status={item.status} />
+        </Stack>
+      </Card>
+
       <Card withBorder padding="md">
         <Stack gap="xs">
           <Row
@@ -178,19 +193,21 @@ function Page() {
         </Card>
       ) : null}
 
-      <Card withBorder padding="md">
-        <Stack gap="md">
-          <NextActionEditor
-            id={item.id}
-            nextAction={item.nextAction}
-            nextActionDue={item.nextActionDue}
-          />
-          <StatusChanger id={item.id} status={item.status} />
-        </Stack>
-      </Card>
-
       <CaseLogList caseId={item.id} log={log} today={today} />
       <RawTextPanel text={item.rawText} />
+
+      {/* 削除は不可逆なのでここだけ確認を残す。編集の隣に置かない（押し間違い） */}
+      <Group justify="center">
+        <Button
+          variant="subtle"
+          color="red"
+          size="xs"
+          leftSection={<Trash2 size={14} aria-hidden />}
+          onClick={handleDelete}
+        >
+          この案件と経緯を削除
+        </Button>
+      </Group>
 
       <FormDrawer opened={editing} onClose={() => setEditing(false)} title="案件を編集">
         <CaseForm

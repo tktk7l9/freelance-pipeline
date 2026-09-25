@@ -11,6 +11,7 @@ import { Row } from '../DetailRow'
 import { t } from './formValues'
 import { FILING_TYPE_LABEL, type BusinessInfo } from '../../lib/business'
 import { extractErrorMessage } from '../../lib/formError'
+import { formatDateSlash } from '../../lib/format'
 import { saveBusiness } from '../../server/settings'
 
 type BusinessValues = {
@@ -109,11 +110,15 @@ export function BusinessCard({
           ) : null}
         </Group>
         <Text size="sm" c="dimmed">
-          確定申告・請求書まわりの基礎情報。値は D1 にだけ入る。
+          確定申告・請求書まわりの基礎情報。
         </Text>
-        {!editing ? (
+        {!editing && Object.values(value).every((v) => v === null) ? (
+          <Text size="sm" c="dimmed">
+            未入力。「編集」から入れると、ここに一覧で出ます。
+          </Text>
+        ) : !editing ? (
           <Stack gap="xs">
-            <Row label="開業日" value={value.openedOn} />
+            <Row label="開業日" value={formatDateSlash(value.openedOn)} />
             <Row label="職業" value={value.occupation} />
             <Row label="事業概要" value={value.description} />
             <Row
@@ -123,7 +128,7 @@ export function BusinessCard({
             <Row label="所轄税務署" value={value.taxOffice} />
             <Row label="納税地の住所" value={value.taxAddress} />
             <Row label="適格請求書発行事業者登録番号" value={value.invoiceNumber} />
-            <Row label="登録年月日" value={value.invoiceRegisteredOn} />
+            <Row label="登録年月日" value={formatDateSlash(value.invoiceRegisteredOn)} />
             <Row label="e-Tax 利用者識別番号" value={value.etaxUserId} />
             <Row label="事業者番号" value={value.businessNumber} />
           </Stack>
@@ -133,7 +138,7 @@ export function BusinessCard({
               <Group grow>
                 <DateInput
                   label="開業日"
-                  valueFormat="YYYY-MM-DD"
+                  valueFormat="YYYY/MM/DD"
                   clearable
                   {...form.getInputProps('openedOn')}
                   value={form.values.openedOn || null}
@@ -178,7 +183,7 @@ export function BusinessCard({
                 />
                 <DateInput
                   label="登録年月日"
-                  valueFormat="YYYY-MM-DD"
+                  valueFormat="YYYY/MM/DD"
                   clearable
                   {...form.getInputProps('invoiceRegisteredOn')}
                   value={form.values.invoiceRegisteredOn || null}

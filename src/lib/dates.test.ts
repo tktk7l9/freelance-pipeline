@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { parseDateInput } from './dates'
+import { parseDateInput, parseMonthOrDateInput } from './dates'
 
 describe('parseDateInput', () => {
   it('保存する形はそのまま通す', () => {
@@ -61,5 +61,27 @@ describe('parseDateInput', () => {
     expect(parseDateInput('   ')).toBeNull()
     expect(parseDateInput(null)).toBeNull()
     expect(parseDateInput(undefined)).toBeNull()
+  })
+})
+
+describe('parseMonthOrDateInput', () => {
+  it('日付はそのまま、年月は YYYY-MM に直す', () => {
+    expect(parseMonthOrDateInput('2030-01-05')).toBe('2030-01-05')
+    expect(parseMonthOrDateInput('2030/1/5')).toBe('2030-01-05')
+    expect(parseMonthOrDateInput('2030-01')).toBe('2030-01')
+    expect(parseMonthOrDateInput('2030/1')).toBe('2030-01')
+    expect(parseMonthOrDateInput('2030.11')).toBe('2030-11')
+    expect(parseMonthOrDateInput('2030年11月')).toBe('2030-11')
+  })
+  it('全角も受ける', () => {
+    expect(parseMonthOrDateInput('２０３０／１１')).toBe('2030-11')
+    expect(parseDateInput('２０３０／１／５')).toBe('2030-01-05')
+  })
+  it('月の範囲外・読めないもの・空は null', () => {
+    expect(parseMonthOrDateInput('2030-13')).toBeNull()
+    expect(parseMonthOrDateInput('2030/0')).toBeNull()
+    expect(parseMonthOrDateInput('来月')).toBeNull()
+    expect(parseMonthOrDateInput('')).toBeNull()
+    expect(parseMonthOrDateInput(null)).toBeNull()
   })
 })

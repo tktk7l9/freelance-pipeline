@@ -1,7 +1,7 @@
 import { Badge, Card, Group, Stack, Text } from '@mantine/core'
 import { Link } from '@tanstack/react-router'
 
-import { DUE_COLOR, dueState } from '../../lib/deadlines'
+import { DUE_COLOR, dueLabel, dueState } from '../../lib/deadlines'
 import { REMOTE_LABEL, ROUTE_LABEL } from '../../lib/enums'
 import { formatDateSlash } from '../../lib/format'
 import { formatHourlyLines, formatRateLines } from '../../lib/rate'
@@ -49,6 +49,9 @@ export function CaseCard({
               {item.nextActionDue ? (
                 <Badge color={DUE_COLOR[dueState(item.nextActionDue, today)]} variant="light">
                   {formatDateSlash(item.nextActionDue)}
+                  {dueLabel(item.nextActionDue, today)
+                    ? ` ${dueLabel(item.nextActionDue, today)}`
+                    : ''}
                 </Badge>
               ) : null}
               <Text size="sm" lineClamp={1}>

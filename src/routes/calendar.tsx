@@ -17,7 +17,9 @@ import { formatDateSlash } from '../lib/format'
 import { holidayName } from '../lib/holidays'
 import { dueToScheduleEvents, toScheduleEvents, type CalendarPayload } from '../lib/scheduleEvents'
 import { SCHEDULE_LABELS_JA } from '../lib/scheduleLabels'
-import { deleteEvent, listEventsBetween } from '../server/events'
+import { deleteEvent, listEventsBetween, saveEvent } from '../server/events'
+import { splitStartsAt } from '../lib/calendar'
+import { showUndo } from '../components/undoNotification'
 import type { EventRow } from '../db/schema'
 
 const search = z.object({
@@ -52,6 +54,7 @@ function Page() {
   const navigate = useNavigate({ from: '/calendar' })
   const router = useRouter()
   const remove = useServerFn(deleteEvent)
+  const restore = useServerFn(saveEvent)
   const [editing, setEditing] = useState<EventRow | null>(null)
   const [creating, setCreating] = useState(false)
   // 'year' は URL に持たせない。ヘッダーから選ばれても表示だけローカルで切り替える
@@ -92,13 +95,31 @@ function Page() {
     navigate({ to: '/cases/$id', params: { id: payload.caseId } })
   }
 
+  /** 確認は出さず、消したあと「取り消す」で同じ内容を入れ直せるようにする */
   async function handleDelete(e: EventRow) {
-    if (!window.confirm(`「${e.title}」を削除します。`)) return
     try {
       await remove({ data: { id: e.id } })
       await router.invalidate()
       setEditing(null)
-      notifications.show({ message: '予定を削除しました' })
+      showUndo({
+        message: '予定を削除しました',
+        onUndo: async () => {
+          const { date, time } = splitStartsAt(e.startsAt)
+          await restore({
+            data: {
+              title: e.title,
+              kind: e.kind,
+              date,
+              allDay: e.allDay,
+              startTime: e.allDay ? null : time,
+              endTime: e.endsAt ? splitStartsAt(e.endsAt).time : null,
+              caseId: e.caseId,
+              note: e.note,
+            },
+          })
+          await router.invalidate()
+        },
+      })
     } catch {
       notifications.show({ message: '削除できませんでした', color: 'red' })
     }
