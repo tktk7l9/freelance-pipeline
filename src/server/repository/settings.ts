@@ -3,6 +3,7 @@ import { eq, sql } from 'drizzle-orm'
 import type { Db } from '../../db/client'
 import { settings } from '../../db/schema'
 import { type BusinessInfo, parseBusiness } from '../../lib/business'
+import { parseImprovements } from '../../lib/improvements'
 import { parseAxes, parseThresholds, type Thresholds } from '../../lib/compare'
 
 export async function readSetting(db: Db, key: string): Promise<string | null> {
@@ -23,6 +24,10 @@ export async function readThresholds(db: Db): Promise<Thresholds> {
 
 export async function readAxes(db: Db): Promise<string[]> {
   return parseAxes(await readSetting(db, 'axes'))
+}
+
+export async function readImprovements(db: Db): Promise<string[]> {
+  return parseImprovements(await readSetting(db, 'improvements'))
 }
 
 export async function readBusiness(db: Db): Promise<BusinessInfo> {

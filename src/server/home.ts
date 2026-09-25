@@ -6,14 +6,15 @@ import { formatJst } from '../lib/jst'
 import { median, statsByRoute } from '../lib/rate'
 import { statusGroup } from '../lib/status'
 import { decorate } from './cases'
-import { listCases, listCompanySites, recentLog } from './repository'
+import { listCases, listCompanySites, readImprovements, recentLog } from './repository'
 
 export const homeData = createServerFn().handler(async () => {
   const db = getDb()
-  const [rows, recent, sites] = await Promise.all([
+  const [rows, recent, sites, improvements] = await Promise.all([
     listCases(db),
     recentLog(db, 10),
     listCompanySites(db),
+    readImprovements(db),
   ])
   const active = rows.filter((c) => statusGroup(c.status) === 'active')
   // 参画中＝いまの案件。複数なら開始日の新しい順
@@ -24,6 +25,7 @@ export const homeData = createServerFn().handler(async () => {
   return {
     current,
     sites,
+    improvements,
     due: withDue(active).map((c) => ({
       id: c.id,
       company: c.company,
