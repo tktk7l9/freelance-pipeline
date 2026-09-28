@@ -20,6 +20,7 @@ import { parseMonthOrDateInput } from '../../lib/dates'
 import { REMOTE_LABEL, REMOTE_TYPES, ROUTES, ROUTE_LABEL } from '../../lib/enums'
 import { extractFormError } from '../../lib/formError'
 import { saveCase } from '../../server/cases'
+import { useReportDirty } from '../FormDrawer'
 
 /** The form takes tax-included amounts. An empty NumberInput comes as '', so convert to null on submit */
 type Num = number | ''
@@ -108,6 +109,9 @@ export function CaseForm({
       rawText: (v) => (v.trim() ? null : '原文は必須です'),
     },
   })
+
+  // Closing the drawer with unsaved input asks first (SHIG 38)
+  useReportDirty(form.isDirty())
 
   async function submit(v: Values) {
     setSaving(true)
