@@ -121,3 +121,37 @@ export function dueToScheduleEvents(
     }
   })
 }
+
+/** A Schedule date ('YYYY-MM-DD HH:mm:ss' string, or a Date read in local wall-clock time) as a stamp */
+function toStamp(v: string | Date): string {
+  if (typeof v === 'string') return v
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${v.getFullYear()}-${p(v.getMonth() + 1)}-${p(v.getDate())} ${p(v.getHours())}:${p(v.getMinutes())}:${p(v.getSeconds())}`
+}
+
+/**
+ * Events that touch the day `key` ('YYYY-MM-DD'), in start order. Start/end are Schedule's
+ * 'YYYY-MM-DD HH:mm:ss' stamps, so string comparison decides overlap.
+ */
+export function eventsOnDay<T extends { start: string | Date; end: string | Date }>(
+  events: readonly T[],
+  key: string,
+): T[] {
+  const dayStart = `${key} 00:00:00`
+  const dayEnd = `${addDays(key, 1)} 00:00:00`
+  return events
+    .filter((e) => toStamp(e.start) < dayEnd && toStamp(e.end) > dayStart)
+    .sort((a, b) => toStamp(a.start).localeCompare(toStamp(b.start)))
+}
+
+/** Short time label for a row of the day list: '期日' for the due layer, '終日' for all-day, else 'HH:mm' */
+export function dayListTimeLabel(e: {
+  start: string | Date
+  end: string | Date
+  payload?: unknown
+}): string {
+  if ((e.payload as CalendarPayload | undefined)?.kind === 'due') return '期日'
+  const start = toStamp(e.start).slice(11, 16)
+  const end = toStamp(e.end).slice(11, 16)
+  return start === '00:00' && end === '00:00' ? '終日' : start
+}

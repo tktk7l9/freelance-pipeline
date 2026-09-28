@@ -269,7 +269,8 @@ body {
 }
 
 /*
- * "Rate share by age" in Compare › Market. Read via per-band colors plus numbers (8% and up) and an outline on my band.
+ * "Rate share by age" in Compare › Market. One hue, darker for higher bands, plus numbers (8% and up), an
+ * outline on my band, and my age band's breakdown in text. The text color comes from binTextColor.
  */
 .market-bar {
   display: flex;
@@ -283,12 +284,10 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #fff;
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
-  text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
 }
 .market-bar > span.is-mine {
   outline: 3px solid var(--mantine-color-yellow-4);
@@ -332,4 +331,16 @@ body {
   .fp-notifications {
     bottom: calc(132px + env(safe-area-inset-bottom, 0px));
   }
+}
+
+/* Rows of the selected day's events on phones: the whole row is the target, at least 7mm tall (SHIG 78, 93) */
+.day-event {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 0;
+  border-radius: var(--mantine-radius-sm);
+}
+.day-event:hover {
+  background: var(--mantine-color-default-hover);
 }

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  dayListTimeLabel,
   dueToScheduleEvents,
+  eventsOnDay,
   toScheduleEvents,
   toScheduleStamp,
   type CalendarEventRow,
@@ -102,5 +104,44 @@ describe('dueToScheduleEvents', () => {
       { id: 'c', company: '甲社', nextAction: null, nextActionDue: '2020-01-01' },
     ])
     expect(r.payload?.past).toBe(false)
+  })
+})
+
+describe('eventsOnDay', () => {
+  it('その日にかかる予定を開始順に返す（スマホの「選んだ日の予定」, SHIG 82）', () => {
+    const items = [
+      { id: 'b', start: '2030-01-05 13:00:00', end: '2030-01-05 14:00:00' },
+      { id: 'a', start: '2030-01-05 00:00:00', end: '2030-01-06 00:00:00' },
+      { id: 'c', start: '2030-01-04 00:00:00', end: '2030-01-05 00:00:00' },
+      { id: 'd', start: '2030-01-04 22:00:00', end: '2030-01-05 01:00:00' },
+      { id: 'e', start: '2030-01-06 00:00:00', end: '2030-01-07 00:00:00' },
+    ]
+    expect(eventsOnDay(items, '2030-01-05').map((e) => e.id)).toEqual(['d', 'a', 'b'])
+    expect(eventsOnDay(items, '2030-01-08')).toEqual([])
+  })
+  it('Date で渡された開始・終了も壁時計の時刻で比べる', () => {
+    const dated = [
+      { id: 'x', start: new Date(2030, 0, 5, 9, 0, 0), end: new Date(2030, 0, 5, 10, 0, 0) },
+    ]
+    expect(eventsOnDay(dated, '2030-01-05').map((e) => e.id)).toEqual(['x'])
+    expect(eventsOnDay(dated, '2030-01-06')).toEqual([])
+  })
+})
+
+describe('dayListTimeLabel', () => {
+  it('期日・終日・開始時刻', () => {
+    const [due] = dueToScheduleEvents([
+      { id: 'c', company: '甲社', nextAction: null, nextActionDue: '2030-01-05' },
+    ])
+    expect(dayListTimeLabel(due)).toBe('期日')
+    const [allDay, timed] = toScheduleEvents([
+      ev({ id: 'a' }),
+      ev({ id: 'b', allDay: false, startsAt: '2030-01-05T13:30:00+09:00' }),
+    ])
+    expect(dayListTimeLabel(allDay)).toBe('終日')
+    expect(dayListTimeLabel(timed)).toBe('13:30')
+    expect(dayListTimeLabel({ start: '2030-01-05 00:00:00', end: '2030-01-05 09:00:00' })).toBe(
+      '00:00',
+    )
   })
 })

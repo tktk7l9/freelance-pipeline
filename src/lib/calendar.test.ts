@@ -4,6 +4,7 @@ import {
   addDays,
   composeStartsAt,
   dateKey,
+  formatDateJa,
   formatDateWithWeekday,
   formatEventTime,
   splitStartsAt,
@@ -82,5 +83,13 @@ describe('formatEventTime', () => {
       formatEventTime({ startsAt: '2030-01-05T13:00:00+09:00', endsAt: null, allDay: false }),
     ).toBe('13:00')
     expect(formatEventTime({ startsAt: '2030-01-05', endsAt: null, allDay: false })).toBe('')
+  })
+})
+
+describe('formatDateJa', () => {
+  it('読み上げ用に「2026年9月1日」（Mantine 既定の英語順を置き換える, SHIG 94）', () => {
+    expect(formatDateJa('2026-09-01')).toBe('2026年9月1日')
+    expect(formatDateJa('2026-12-31 00:00:00')).toBe('2026年12月31日')
+    expect(formatDateJa('bad')).toBe('bad')
   })
 })
