@@ -20,8 +20,8 @@ export const Route = createRootRoute({
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
       { name: 'robots', content: 'noindex, nofollow, noarchive' },
-      // theme-color は RootDocument の <head> に直接書く（ダーク固定）
-      // （head() の meta 配列は name が同じタグを 1 本にまとめてしまうため）
+      // theme-color is written directly in RootDocument's <head> (dark only)
+      // (the meta array of head() merges tags with the same name into one)
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
       { title: '案件管理' },
@@ -46,9 +46,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" {...mantineHtmlProps}>
       <head>
-        {/* ダークのみ（所有者の要望 2026-09-25）。切り替え UI は無く、OS 設定にも追従しない */}
+        {/* Dark only (owner's request 2026-09-25). No toggle UI, and it does not follow the OS setting */}
         <ColorSchemeScript forceColorScheme="dark" />
-        {/* 地色は src/theme.ts の dark[7] に合わせる */}
+        {/* The base color matches dark[7] in src/theme.ts */}
         <meta name="theme-color" content="#171d27" />
         <HeadContent />
       </head>

@@ -4,7 +4,7 @@
     "target": "ES2022",
     "jsx": "react-jsx",
     "module": "ESNext",
-    // scripts/check-pii.mjs を含む .mjs の import 解決のため（型検査はしない）
+    // For resolving imports of .mjs files including scripts/check-pii.mjs (not type-checked)
     "allowJs": true,
     "paths": {
       "#/*": ["./src/*"],

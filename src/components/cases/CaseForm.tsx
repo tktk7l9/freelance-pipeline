@@ -21,7 +21,7 @@ import { REMOTE_LABEL, REMOTE_TYPES, ROUTES, ROUTE_LABEL } from '../../lib/enums
 import { extractFormError } from '../../lib/formError'
 import { saveCase } from '../../server/cases'
 
-/** フォームは税込で入力する。NumberInput の空欄は '' で来るので送信時に null へ */
+/** The form takes tax-included amounts. An empty NumberInput comes as '', so convert to null on submit */
 type Num = number | ''
 type Values = {
   company: string
@@ -60,7 +60,7 @@ export function CaseForm({
   onSaved,
 }: {
   item: Case | null
-  /** 会社の公式サイト（companies 表）。案件の列ではないので別に受ける */
+  /** The company's official site (companies table). Not a case column, so received separately */
   companyUrl?: string | null
   axes: string[]
   onSaved: (id: string) => void

@@ -19,9 +19,9 @@ import type { MarketSkill } from '../../server/market'
 import { EmptyState } from '../EmptyState'
 
 /**
- * 比較 › 市場。レバテックの市場データ（スキルごと）と、その中での自分の位置。
- * 先頭に「自分の位置」（SHIG 28 データより情報）、次に年齢別の単価割合に自分の帯を
- * 文字とマーカーで示す（96 色に依存しない）。
+ * Compare › Market. Levtech market data (per skill) and my position within it.
+ * First "my position" (SHIG 28: information over data), then my band within the rate share by age,
+ * shown with text and a marker (96: not relying on color).
  */
 export function MarketView({
   skills,

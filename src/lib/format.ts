@@ -1,4 +1,4 @@
-/** 単価の表示用フォーマッタ。金額は円の整数で受け取り、万円単位に丸めて表示する */
+/** Formatter for displaying rates. Takes integer yen and shows it rounded to units of 10,000 yen (万円) */
 
 export function formatYen(value: number | null | undefined): string {
   if (value === null || value === undefined) return '—'
@@ -7,11 +7,11 @@ export function formatYen(value: number | null | undefined): string {
 }
 
 /**
- * 日付の表示は全て `/` 区切りに統一する（所有者の要望、2026-09-25）。
- * 'YYYY-MM-DD' → 'YYYY/MM/DD'、'YYYY-MM' → 'YYYY/MM'、
- * 'YYYY-MM-DD HH:mm' → 'YYYY/MM/DD HH:mm'（経緯の日時）。
- * 形が合わない文字列はそのまま返す。DB の値・URL の検索パラメータは触らない
- * （あくまで表示のときにこれを通す）。
+ * All dates are displayed with `/` separators (owner's request, 2026-09-25).
+ * 'YYYY-MM-DD' → 'YYYY/MM/DD', 'YYYY-MM' → 'YYYY/MM',
+ * 'YYYY-MM-DD HH:mm' → 'YYYY/MM/DD HH:mm' (history timestamps).
+ * Strings that do not match are returned as is. DB values and URL search params are not touched
+ * (this is applied only for display).
  */
 export function formatDateSlash(value: string | null | undefined): string {
   if (!value) return ''
@@ -23,8 +23,8 @@ export function formatDateSlash(value: string | null | undefined): string {
 }
 
 /**
- * 住所を Google マップで開く URL。括弧書き（「（都営大江戸線 六本木駅 直結）」のような補足）は
- * 検索語から外す。空なら null。
+ * URL that opens an address in Google Maps. Parenthetical notes (supplements like "（都営大江戸線 六本木駅 直結）")
+ * are removed from the query. Null if empty.
  */
 export function mapsUrl(address: string | null | undefined): string | null {
   const trimmed = address?.trim()

@@ -4,8 +4,8 @@ import { MapPin } from 'lucide-react'
 import { mapsUrl } from '../lib/format'
 
 /**
- * 作業場所。住所があれば Google マップを新しいタブで開く。
- * `nested` はカード全体が <Link> の場所用（<a> の入れ子を避けて span role=link にする。CompanyName と同じ）。
+ * Work location. If there is an address, open Google Maps in a new tab.
+ * `nested` is for places where the whole card is a <Link> (use span role=link to avoid nested <a>, same as CompanyName).
  */
 export function PlaceLink({
   address,

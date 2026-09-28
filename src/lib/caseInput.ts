@@ -5,8 +5,8 @@ import { toIncl } from './rate.ts'
 import { CASE_STATUSES } from './status.ts'
 
 /**
- * Claude Code が書く JSON の契約。scripts/add-case.ts と /import フォームが同じものを使う。
- * 金額は案件票の表示のまま（taxBasis で税込/税抜を宣言）。税込化は toCaseRow が行う。
+ * Contract for the JSON Claude Code writes. scripts/add-case.ts and the /import form use the same one.
+ * Amounts are as displayed on the case sheet (taxBasis declares incl/excl). toCaseRow converts to tax included.
  */
 const nullableText = (max: number) =>
   z
@@ -26,7 +26,7 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/
 export const caseInputSchema = z
   .object({
     company: z.string().trim().min(1).max(200),
-    /** 会社の公式サイト。案件の列ではなく companies 表に入る（toCaseRow で外す） */
+    /** The company's official site. Goes into the companies table, not a case column (toCaseRow strips it) */
     companyUrl: z
       .string()
       .trim()
@@ -83,7 +83,7 @@ export const caseInputSchema = z
 
 export type CaseInput = z.infer<typeof caseInputSchema>
 
-/** cases テーブルの列（id・timestamps を除く）。schema.ts の NewCase と同じ名前にする */
+/** Columns of the cases table (excluding id and timestamps). Use the same names as NewCase in schema.ts */
 export type CaseRowValues = {
   company: string
   title: string
@@ -143,7 +143,7 @@ export function parseCaseJson(
   }
 }
 
-/** AGENTS.md と /import の placeholder に出す例（架空値） */
+/** Example shown in AGENTS.md and the /import placeholder (fictitious values) */
 export const CASE_JSON_EXAMPLE = JSON.stringify(
   {
     company: '甲社',

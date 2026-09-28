@@ -58,14 +58,14 @@ describe('compare', () => {
     expect(parseAxes(null)).toEqual([])
     expect(parseAxes(JSON.stringify(['a', 1, 'b']))).toEqual(['a', 'b'])
     expect(parseAxes('{bad')).toEqual([])
-    // JSON が配列でない場合
+    // When the JSON is not an array
     expect(parseAxes(JSON.stringify({ a: 'b' }))).toEqual([])
-    // JSON がオブジェクトではない場合
+    // When the JSON is not an object
     expect(parseThresholds(JSON.stringify('not-object'))).toEqual(DEFAULT_THRESHOLDS)
-    // targetStart が不正な形式
+    // targetStart has an invalid format
     expect(parseThresholds(JSON.stringify({ targetStart: '2030-2' }))).toEqual(DEFAULT_THRESHOLDS)
     expect(parseThresholds(JSON.stringify({ targetStart: 'invalid' }))).toEqual(DEFAULT_THRESHOLDS)
-    // 無限大は null になる
+    // Infinity becomes null
     expect(parseThresholds(JSON.stringify({ minMonthlyIncl: Number.POSITIVE_INFINITY }))).toEqual(
       DEFAULT_THRESHOLDS,
     )

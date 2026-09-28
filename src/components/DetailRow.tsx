@@ -1,6 +1,6 @@
 import { Group, Text } from '@mantine/core'
 
-/** 詳細ページの「ラベル: 値」1 行。案件詳細などで共有する */
+/** One "label: value" row on a detail page. Shared by case details and others */
 export function Row({ label, value }: { label: React.ReactNode; value: React.ReactNode }) {
   return (
     <Group justify="space-between" wrap="nowrap" align="flex-start">

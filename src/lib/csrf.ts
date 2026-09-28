@@ -1,11 +1,11 @@
 /**
- * 変更系リクエストの Origin 検査。
+ * Origin check for state-changing requests.
  *
- * Cloudflare Access の Cookie は SameSite が緩いことがあり、別サイトからの
- * POST でも JWT が付いて認証を通ることがある。ブラウザは Origin を偽造できない
- * ので、変更系は「このアプリ自身からの要求」だけを受ける。
+ * The Cloudflare Access cookie may have a lax SameSite, so a POST from another site
+ * can carry the JWT and pass authentication. Browsers cannot forge Origin, so
+ * state-changing requests are accepted only when they come from this app itself.
  *
- * GET / HEAD / OPTIONS は読むだけ（またはプリフライト）なので検査しない。
+ * GET / HEAD / OPTIONS only read (or are preflights), so they are not checked.
  */
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])

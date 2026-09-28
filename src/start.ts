@@ -5,11 +5,11 @@ import { applySecurityHeaders, securityHeadersInit } from './lib/securityHeaders
 import { requireUser } from './server/auth'
 
 /**
- * 全リクエスト（SSR・server function・server route）の入口で認証を強制する。
- * 個別のルートで付け忘れが起きないよう、必ずグローバルミドルウェアで行う。
+ * Enforces authentication at the entry of every request (SSR, server functions, server routes).
+ * Always done in global middleware so no individual route forgets it.
  *
- * 変更系は先に Origin を見る。Access の Cookie が別サイトから送られても、
- * 同じ Origin からしか通さない。そのあと認証を強制する。
+ * State-changing requests check Origin first. Even if the Access cookie is sent from another site,
+ * only the same Origin gets through. Authentication is enforced after that.
  */
 const authMiddleware = createMiddleware().server(async ({ next, request }) => {
   if (
@@ -31,8 +31,8 @@ const authMiddleware = createMiddleware().server(async ({ next, request }) => {
     applySecurityHeaders(result.response.headers)
     return result
   } catch (e) {
-    // ルートハンドラが throw new Response(...)（404 など）で抜けると、通常の
-    // return と違ってここを通らずセキュリティヘッダが付かずに配信されてしまう。
+    // When a route handler exits with throw new Response(...) (e.g. 404), unlike a normal
+    // return it bypasses this point and would be served without the security headers.
     if (e instanceof Response) {
       applySecurityHeaders(e.headers)
       throw e

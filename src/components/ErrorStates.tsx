@@ -3,14 +3,14 @@ import { Link, useRouter } from '@tanstack/react-router'
 import { CircleAlert, House, RotateCw, SearchX } from 'lucide-react'
 
 /**
- * 読み込みに失敗したときの画面。
+ * Screen shown when loading failed.
  *
- * 台帳なので「取得できなかった」ことを黙って空表示にしない。
- * 空っぽの一覧と、読めなかった一覧を取り違えると判断を誤る。
+ * This is a ledger, so "could not fetch" is never silently shown as empty.
+ * Mistaking an empty list for an unreadable one leads to wrong decisions.
  */
 export function RouteErrorState({ error }: { error: unknown }) {
   const router = useRouter()
-  // TanStack Router の errorComponent は error を unknown で渡す（実装は必ず Error を投げるとは限らない）。
+  // TanStack Router's errorComponent passes error as unknown (implementations do not always throw an Error).
   const message = error instanceof Error ? error.message : String(error)
 
   return (
@@ -63,7 +63,7 @@ export function RouteErrorState({ error }: { error: unknown }) {
   )
 }
 
-/** 存在しないURLを開いたとき。 */
+/** When a URL that does not exist is opened. */
 export function RouteNotFoundState() {
   return (
     <Stack gap="lg" p="md">

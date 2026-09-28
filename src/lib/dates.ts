@@ -1,9 +1,9 @@
 /**
- * 日付入力の読み取り。
+ * Parsing date input.
  *
- * 台帳に入る形は 'YYYY-MM-DD' のひと通りだが、書き写す元（登記簿・通知書・
- * 名刺・メール）の表記はまちまちで、打つ人が毎回そこに気を遣うのは無駄。
- * よくある書き方を受けて、保存する形に直す。
+ * The ledger stores only one form, 'YYYY-MM-DD', but the sources people copy from (land registry,
+ * notices, business cards, email) use all sorts of notations, and making the typist care every time is wasteful.
+ * Accept common notations and convert them to the stored form.
  */
 
 const PATTERNS: readonly RegExp[] = [
@@ -17,7 +17,7 @@ const PATTERNS: readonly RegExp[] = [
   /^(\d{4})年(\d{1,2})月(\d{1,2})日?$/,
 ]
 
-/** 実在する日付か。2026-02-30 のような繰り上がる値を弾く。 */
+/** Whether the date actually exists. Rejects values that would roll over, such as 2026-02-30. */
 function isRealDate(year: number, month: number, day: number): boolean {
   const date = new Date(Date.UTC(year, month - 1, day))
   return (
@@ -26,10 +26,10 @@ function isRealDate(year: number, month: number, day: number): boolean {
 }
 
 /**
- * 打たれた文字列を 'YYYY-MM-DD' に直す。読めなければ null。
+ * Converts the typed string to 'YYYY-MM-DD'. Returns null if unreadable.
  *
- * 「7/30」のように年が無いものは受けない。今年だと決めつけると、
- * 過去の記録を写しているときに黙って違う年で保存されてしまう。
+ * Input without a year, like "7/30", is not accepted. Assuming the current year would silently
+ * save the wrong year when copying past records.
  */
 export function parseDateInput(value: string | null | undefined): string | null {
   const trimmed = normalizeWidth(value)
@@ -51,7 +51,7 @@ export function parseDateInput(value: string | null | undefined): string | null 
   return null
 }
 
-/** 全角の数字・記号を半角に寄せ、前後の空白を落とす（厳密さをユーザーに求めない） */
+/** Converts full-width digits and symbols to half-width and trims whitespace (do not demand precision from the user) */
 function normalizeWidth(value: string | null | undefined): string | undefined {
   return value?.normalize('NFKC').trim()
 }
@@ -64,8 +64,8 @@ const MONTH_PATTERNS: readonly RegExp[] = [
 ]
 
 /**
- * 案件の開始・終了は「日まで決まっている」ことも「月だけ」のこともある。
- * 日付なら 'YYYY-MM-DD'、年月なら 'YYYY-MM' に直す。読めなければ null。
+ * A case's start and end may be "fixed to the day" or "month only".
+ * Converts a date to 'YYYY-MM-DD' and a year-month to 'YYYY-MM'. Returns null if unreadable.
  */
 export function parseMonthOrDateInput(value: string | null | undefined): string | null {
   const date = parseDateInput(value)

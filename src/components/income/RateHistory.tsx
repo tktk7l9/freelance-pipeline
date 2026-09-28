@@ -5,8 +5,8 @@ import type { RateChange, RatePoint } from '../../lib/ledger'
 import { formatMan } from '../../lib/rate'
 
 /**
- * 単価の推移（主契約の月額・税込）。年をまたいで全期間を出す。
- * 棒は月ごと、改定した月に額を書く（色に加えて文字で 96）。日割りの月は斜線。
+ * Rate history (monthly amount of the main contract, tax included). Shows the full period across years.
+ * One bar per month; the amount is written on months where the rate changed (text in addition to color, 96). Prorated months are hatched.
  */
 export function RateHistory({ history, changes }: { history: RatePoint[]; changes: RateChange[] }) {
   if (history.length === 0) return null

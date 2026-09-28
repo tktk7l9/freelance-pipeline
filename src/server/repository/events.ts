@@ -4,7 +4,7 @@ import type { Db } from '../../db/client'
 import { events, type EventRow } from '../../db/schema'
 import type { EventValues } from '../events.schema'
 
-/** 新規なら id を採番して挿入、id 付きなら上書き。返り値は id */
+/** Inserts with a new id if new; overwrites if an id is given. Returns the id */
 export async function upsertEvent(db: Db, input: EventValues): Promise<string> {
   const { id, ...values } = input
   if (!id) {
@@ -28,7 +28,7 @@ export async function deleteEvent(db: Db, id: string): Promise<void> {
   await db.delete(events).where(eq(events.id, id))
 }
 
-/** 日付キー（先頭 10 文字）が from〜to に入る予定を開始順で */
+/** Events whose date key (first 10 chars) falls within from–to, in start order */
 export async function listEventsBetween(
   db: Db,
   fromKey: string,

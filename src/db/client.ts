@@ -4,8 +4,8 @@ import { env } from 'cloudflare:workers'
 import * as schema from './schema'
 
 /**
- * D1 への接続。サーバー側（server function / API ルート）からのみ呼ぶこと。
- * バインディングは wrangler.jsonc の d1_databases で定義している。
+ * Connection to D1. Call only from the server side (server functions / API routes).
+ * The binding is defined in d1_databases in wrangler.jsonc.
  */
 export function getDb() {
   return drizzle(env.DB, { schema })

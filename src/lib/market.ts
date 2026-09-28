@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
 /**
- * 市場データ（レバテックプラットフォームの「案件データ」「人材データ」）の 1 スキルぶん。
- * スクショから数字の読める項目だけを写す。折れ線や目盛りの無い分布は持たない。
- * 単価は税込・円。年齢別の単価割合は「〜¥900,000」のような上限（bin）ごとの %。
+ * Market data (the "case data" and "talent data" of the Levtech platform) for one skill.
+ * Only items whose numbers can be read from screenshots are copied. Line charts and distributions without scales are not kept.
+ * Rates are tax included, in yen. The rate share by age is a % per upper bound (bin) such as "〜¥900,000".
  */
 const pctItem = z.object({ label: z.string().min(1).max(40), pct: z.number().min(0).max(100) })
 const countItem = z.object({ label: z.string().min(1).max(40), count: z.number().int().min(0) })
@@ -21,7 +21,7 @@ export const marketDataSchema = z.object({
   }),
   talent: z.object({
     annualRaiseAvg: z.number().int().min(0),
-    /** 単価帯の上限（円・昇順）。凡例の「〜¥500,000」など */
+    /** Upper bounds of the rate bands (yen, ascending). E.g. "〜¥500,000" in the legend */
     bins: z.array(z.number().int().positive()).min(1).max(20),
     ageRate: z
       .array(
@@ -51,7 +51,7 @@ export const AGE_BANDS = [
 ] as const
 export type AgeBand = (typeof AGE_BANDS)[number]
 
-/** 満年齢（today は 'YYYY-MM-DD'） */
+/** Age in full years (today is 'YYYY-MM-DD') */
 export function ageOn(birthDate: string, today: string): number {
   const [by, bm, bd] = birthDate.split('-').map(Number)
   const [ty, tm, td] = today.split('-').map(Number)
@@ -60,7 +60,7 @@ export function ageOn(birthDate: string, today: string): number {
   return age
 }
 
-/** レバテックの年齢帯。20 歳未満は 20代前半に寄せる */
+/** Levtech's age bands. Under 20 is folded into the early 20s */
 export function ageBandOf(age: number): AgeBand {
   if (age >= 60) return '60代以上'
   if (age < 25) return '20代前半'
@@ -69,7 +69,7 @@ export function ageBandOf(age: number): AgeBand {
   return `${decade}代${half}` as AgeBand
 }
 
-/** 単価が入る帯（bins の中で最小の「rate 以下の上限」）。上限を超えるなら最大の帯 */
+/** The band the rate falls into (the smallest upper bound in bins that is ≥ rate). Above all bounds, the largest band */
 export function binFor(bins: readonly number[], rate: number): number {
   const sorted = [...bins].sort((a, b) => a - b)
   for (const b of sorted) if (rate <= b) return b
@@ -79,19 +79,19 @@ export function binFor(bins: readonly number[], rate: number): number {
 export type BandPosition = {
   band: string
   bin: number
-  /** 自分の帯より高い帯の合計 % */
+  /** Total % of bands above mine */
   abovePct: number
-  /** 同じ帯の % */
+  /** % of the same band */
   samePct: number
-  /** 自分の帯より低い帯の合計 % */
+  /** Total % of bands below mine */
   belowPct: number
-  /** いちばん人が多い帯 */
+  /** The band with the most people */
   modeBin: number | null
 }
 
 /**
- * 同年代の単価分布の中で、自分の単価がどこにいるか（SHIG 28: データより情報）。
- * 行が無い年齢帯なら null。
+ * Where my rate sits within the rate distribution of my age group (SHIG 28: information over data).
+ * null for an age band with no row.
  */
 export function positionInBand(
   rows: readonly AgeRateRow[],
@@ -124,8 +124,8 @@ export function positionInBand(
 }
 
 /**
- * 自分の単価の上がり方（円/年）。単価の変わった点（年月・税込月額）を古い順に見て、
- * 最初と最後の差を経過年で割る。1 年未満しか無ければ null（年率にすると誇張になる）。
+ * How fast my rate rises (yen/year). Looks at the points where the rate changed (year-month, monthly amount incl. tax)
+ * from oldest, and divides the difference between first and last by the elapsed years. null if less than a year (an annual rate would exaggerate).
  */
 export function raisePacePerYear(points: readonly { ym: string; rate: number }[]): number | null {
   if (points.length < 2) return null
@@ -143,12 +143,12 @@ function monthsBetween(a: string, b: string): number {
   return (by - ay) * 12 + (bm - am)
 }
 
-/** '〜¥900,000' のような帯ラベル */
+/** Band label such as '〜¥900,000' */
 export function binLabel(bin: number): string {
   return `〜${(bin / 10_000).toLocaleString('ja-JP')}万`
 }
 
-/** 単価帯の色（帯の上限で固定＝スキルをまたいでも同じ帯は同じ色） */
+/** Color of a rate band (fixed by the band's upper bound = the same band has the same color across skills) */
 export function binColor(bin: number): string {
   const table: Record<number, string> = {
     200_000: 'var(--mantine-color-red-3)',

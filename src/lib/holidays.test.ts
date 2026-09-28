@@ -31,7 +31,7 @@ describe('holidaysOfYear / holidayName', () => {
   it('2026 年の祝日（振替休日を含む）', () => {
     const h = holidaysOfYear(2026)
     expect(h.get('2026-01-01')).toBe('元日')
-    expect(h.get('2026-05-06')).toBe('振替休日') // 5/3 憲法記念日が日曜
+    expect(h.get('2026-05-06')).toBe('振替休日') // 5/3 Constitution Memorial Day falls on a Sunday
     expect(h.get('2026-09-21')).toBe('敬老の日')
     expect(h.get('2026-09-22')).toBe('国民の休日')
     expect(h.get('2026-09-23')).toBe('秋分の日')

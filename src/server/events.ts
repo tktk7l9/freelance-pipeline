@@ -17,8 +17,8 @@ export { eventInput }
 export type { EventInput } from './events.schema'
 
 /**
- * 予定タブ用。日/週/月ビューが跨ぐ期間の自分の予定と、進行中の案件の「次の一手」の期日
- * （情報レイヤー）をまとめて返す。「今」はサーバーで決める（端末の時計に依らない）。
+ * For the schedule tab. Returns my events in the period spanned by the day/week/month views together with the due dates
+ * of in-progress cases' "next step" (info layer). "Now" is decided on the server (independent of the device clock).
  */
 export const listEventsBetween = createServerFn()
   .validator(eventRangeInput)

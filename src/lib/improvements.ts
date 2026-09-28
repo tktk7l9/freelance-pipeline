@@ -1,6 +1,6 @@
 /**
- * 「改善したいこと」（ホームに出す箇条書き）。settings の 'improvements' に JSON の文字列配列で持つ。
- * 過去のやり取りから拾った反省・次の一手を、忘れないよう毎回目に入る場所に置く（SHIG 12）。
+ * "Things to improve" (bullet list shown on home). Stored in settings 'improvements' as a JSON string array.
+ * Lessons and next steps picked up from past exchanges are kept where they are seen every time, so they are not forgotten (SHIG 12).
  */
 export function parseImprovements(raw: string | null): string[] {
   if (!raw) return []
@@ -14,7 +14,7 @@ export function parseImprovements(raw: string | null): string[] {
   }
 }
 
-/** 設定画面の Textarea（1 行 1 項目）から配列へ。空行と前後の空白は落とす。先頭の「- 」は外す */
+/** From the settings Textarea (one item per line) to an array. Drops empty lines and surrounding whitespace. Strips a leading "- " */
 export function linesToImprovements(text: string): string[] {
   return text
     .split('\n')

@@ -2,10 +2,10 @@ import { formatDateSlash } from './format'
 import { dayOfWeek } from './holidays'
 
 /**
- * 予定の日時表現。DB には TEXT で、終日は 'YYYY-MM-DD'、時刻ありは
- * 'YYYY-MM-DDTHH:MM:00+09:00'（日本時間のオフセットを明示）で入る。
- * 日付キーは先頭 10 文字。Date オブジェクトに変換しない（タイムゾーンで壊れる）。
- * sumai-log の src/lib/calendar.ts から必要な分だけ移植。
+ * Datetime representation of events. Stored as TEXT: all-day as 'YYYY-MM-DD', timed as
+ * 'YYYY-MM-DDTHH:MM:00+09:00' (with the JST offset explicit).
+ * The date key is the first 10 characters. Never convert to a Date object (time zones break it).
+ * Ported only the needed parts from sumai-log's src/lib/calendar.ts.
  */
 
 export function dateKey(startsAt: string): string {
@@ -14,7 +14,7 @@ export function dateKey(startsAt: string): string {
 
 export const WEEKDAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'] as const
 
-/** 'YYYY-MM-DD' を '2026/09/20（日）' に直す。読めない文字列はそのまま返す。 */
+/** Turns 'YYYY-MM-DD' into '2026/09/20（日）'. Unreadable strings are returned as is. */
 export function formatDateWithWeekday(key: string): string {
   const day = dayOfWeek(key)
   if (day === null) return key
@@ -39,13 +39,13 @@ function toKey(d: Date): string {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`
 }
 
-/** 'YYYY-MM-DD' に days 日足した 'YYYY-MM-DD' を返す（負数も可） */
+/** Returns 'YYYY-MM-DD' plus days as 'YYYY-MM-DD' (negative values allowed) */
 export function addDays(key: string, days: number): string {
   const [year, month, day] = key.split('-').map(Number)
   return toKey(new Date(Date.UTC(year, month - 1, day + days)))
 }
 
-/** UTC の瞬間を JST の 'YYYY-MM-DDTHH:MM:SS+09:00' に直す（Worker は UTC なので +9h） */
+/** Turns a UTC instant into JST 'YYYY-MM-DDTHH:MM:SS+09:00' (the Worker runs in UTC, so +9h) */
 export function toJstIso(now: Date): string {
   const d = new Date(now.getTime() + 9 * 60 * 60 * 1000)
   return `${d.toISOString().slice(0, 19)}+09:00`
@@ -54,8 +54,8 @@ export function toJstIso(now: Date): string {
 export type CalendarView = 'day' | 'week' | 'month'
 
 /**
- * ビューが実際に描画しうる範囲。週表示は月をまたぐことがあるので「表示月だけ」ではなく
- * 実際の日付範囲を計算する。週は月曜始まり。月表示は前後の週がはみ出すぶんも広めに取る。
+ * The range a view can actually render. A week view can span months, so compute the real date range
+ * rather than "only the displayed month". Weeks start on Monday. The month view takes a wider range to cover the overflowing weeks before and after.
  */
 export function visibleRange(date: string, view: CalendarView): { from: string; to: string } {
   if (view === 'day') return { from: date, to: date }

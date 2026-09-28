@@ -44,7 +44,7 @@ export function CaseLogList({
     }
   }
 
-  /** 確認ダイアログは出さず、消してから「取り消す」で戻せるようにする（同じ本文・日付で足し直す） */
+  /** No confirm dialog; delete first, then "Undo" restores it (re-adds with the same body and date) */
   async function handleDelete(entry: CaseLogRow) {
     try {
       await remove({ data: { id: entry.id } })

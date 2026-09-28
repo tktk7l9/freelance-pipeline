@@ -1,13 +1,13 @@
 /**
- * 過去案件ファイル（history.local.json）を D1 の SQL 文へ変換する純粋な部分。
- * slug を冪等キーにして決定的な id を作り、INSERT OR REPLACE で何度流しても同じ状態にする。
+ * Pure part that turns the past-case file (history.local.json) into D1 SQL statements.
+ * Uses the slug as the idempotency key to build deterministic ids, so INSERT OR REPLACE yields the same state however often it runs.
  */
 import { z } from 'zod'
 
 import { caseInputSchema, toCaseRow } from '../../src/lib/caseInput.ts'
 import { insertCaseStatements, slugToId } from './caseSql.ts'
 
-/** history.local.json の形。1 件 = caseInputSchema + slug（冪等キー） */
+/** Shape of history.local.json. One entry = caseInputSchema + slug (idempotency key) */
 export const historyFileSchema = z.object({
   cases: z.array(z.object({ slug: z.string().min(1).max(100) }).and(caseInputSchema)),
 })

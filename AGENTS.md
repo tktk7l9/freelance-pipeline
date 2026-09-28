@@ -1,57 +1,59 @@
-# freelance-pipeline — エージェント向け指示
+# freelance-pipeline — Instructions for agents
 
-一人で使う案件パイプライン管理。**リポジトリは public**、データは D1 にしか無い。
+A case (project) pipeline tracker used by one person. **The repository is public**; the data lives only in D1.
 
-## 絶対に守ること
+## Hard rules
 
-1. **実データをコミットしない。** 企業名・案件名・単価・エージェント名・案件票の原文・メールを
-   コード／テスト／seed／コメント／ドキュメント／スクショに書かない。テストは `甲社` `テスト案件`
-   `owner@example.com` などの架空値。コミット前に `npm run check:pii`（照合元は gitignore 済みの
-   `.dev.vars` と `*.local.json`）。
-2. **判断基準をコードに書かない。** 単価下限・時給下限・希望開始月・出社上限・比較の軸名は D1 の
-   `settings` に画面から入れる。README にも書かない。
-3. **認証を迂回できる経路を足さない。** 判定は `src/lib/access.ts` に集約し、`src/start.ts` の
-   グローバルミドルウェアで全リクエストに適用する。fail closed。
-4. **秘密は `.dev.vars`（ローカル）と `wrangler secret`（本番）だけ。** `wrangler.jsonc` の `vars` に
-   メールを書かない。Keyway は `keyway pull -e development -f .dev.vars -y`。
-5. **`src/lib/` は純粋関数のみ。** カバレッジ 100% ゲートの対象。スクリプトが読む lib
-   （`enums` `status` `rate` `caseInput`）は lib 内 import に `.ts` 拡張子を付ける。
-6. **エラーメッセージ・ログに原文・企業名・単価を載せない**（Workers Observability に流れる）。
+1. **Never commit real data.** Do not write company names, case names, rates, agent names, raw case-sheet text, or
+   emails in code / tests / seed / comments / docs / screenshots. Tests use fictitious values such as `甲社` `テスト案件`
+   `owner@example.com`. Run `npm run check:pii` before committing (its sources are the gitignored
+   `.dev.vars` and `*.local.json`).
+2. **Never write decision criteria in code.** Minimum rate, minimum hourly rate, desired start month, on-site cap, and the
+   names of the comparison axes are entered from the UI into D1 `settings`. Not in the README either.
+3. **Never add a path that can bypass authentication.** The decision is centralized in `src/lib/access.ts` and applied to
+   every request by the global middleware in `src/start.ts`. Fail closed.
+4. **Secrets live only in `.dev.vars` (local) and `wrangler secret` (production).** Never put emails in `vars` of
+   `wrangler.jsonc`. Keyway: `keyway pull -e development -f .dev.vars -y`.
+5. **`src/lib/` holds pure functions only.** It is subject to the 100% coverage gate. The libs read by scripts
+   (`enums` `status` `rate` `caseInput`) use the `.ts` extension on imports within lib.
+6. **Never put raw text, company names, or rates in error messages or logs** (they flow into Workers Observability).
 
-## 設計の約束
+## Design conventions
 
-- 副作用は `src/server/`、DB は `src/db/`、UI は `src/components/` と `src/routes/`
-- D1 アクセスは `src/server/repository/<domain>.ts`。server function の zod は `src/server/cases.schema.ts`
-  に切り出す（`createServerFn` のラッパーは素の workers テストから import できない）
-- 単価は税込が正本（`monthlyMaxIncl`）。税抜→税込は `src/lib/rate.ts` の `toIncl` だけが行う
-- `createdAt`/`updatedAt` は両方 `sql\`(datetime('now'))\``。ISO 文字列を混ぜない
-- 日付は TEXT の ISO-8601、金額は円の整数、id は text（`crypto.randomUUID()`）
-- スマホ優先。下タブ＋FAB＋全画面 Drawer。デスクトップは左ナビ
+- Side effects go in `src/server/`, the DB in `src/db/`, UI in `src/components/` and `src/routes/`
+- D1 access goes in `src/server/repository/<domain>.ts`. Server-function zod schemas are split out into
+  `src/server/cases.schema.ts` (the `createServerFn` wrapper cannot be imported from plain workers tests)
+- Tax-included rates are canonical (`monthlyMaxIncl`). Only `toIncl` in `src/lib/rate.ts` converts tax-excluded → tax-included
+- `createdAt`/`updatedAt` are both `sql\`(datetime('now'))\``. Do not mix in ISO strings
+- Dates are ISO-8601 TEXT, amounts are integer yen, ids are text (`crypto.randomUUID()`)
+- Mobile first. Bottom tabs + FAB + full-screen Drawer. Left nav on desktop
 
-## 収支台帳（/income）
+## Income/expense ledger (/income)
 
-- `ledger` 表に収入（フリーランス売上・役員報酬・その他）と支出（所得税・住民税・消費税・社会保険料・事業経費・その他）を
-  同居させ、`kind` で分ける。金額は円の整数・売上は税込のまま。集計は `src/lib/ledger.ts`（純粋関数）。
-- 実データ（金額・支払元）はコード・seed・テストに書かない。初回投入は本人が SQL を `--remote` で流す。
+- The `ledger` table holds both income (freelance revenue, officer compensation, other) and expenses (income tax, resident tax,
+  consumption tax, social insurance, business expenses, other), split by `kind`. Amounts are integer yen; revenue stays tax included.
+  Aggregation is in `src/lib/ledger.ts` (pure functions).
+- Never write real data (amounts, payers) in code, seed, or tests. The owner runs the initial load as SQL with `--remote`.
 
-## 案件票の登録（Claude Code から）
+## Registering a case sheet (from Claude Code)
 
-「この案件票を登録して」＋ペースト、で次を行う。
+On "register this case sheet" + a paste, do the following.
 
-1. 案件票を読み、`src/lib/caseInput.ts` の `caseInputSchema` に合う JSON を **scratchpad**（リポジトリ外）に書く。
-   例は `CASE_JSON_EXAMPLE`（同ファイル）。金額は **案件票の表示のまま** 入れ、`taxBasis` で
-   `incl`（税込表示）/ `excl`（税抜表示）を宣言する。×1.1 は自分で計算しない。
-   会社の公式サイトが分かれば任意の `companyUrl` に入れる（`companies` 表に 1 社 1 行で入り、会社名の表示すべてにリンクが付く）
-2. `rawText` には案件票の原文をそのまま入れる（要約しない）
-3. `npm run add-case -- --file=<json> --remote --dry-run` → 検証が通ったら `--dry-run` を外して実行
-4. 「同じ案件が既にあります」と出たら、表示された id を確認し、上書きなら `--update=<id>`。
-   `--update` は案件票の列だけを書き換える（status・次の一手・期日・軸・メモは保たれ、
-   経緯に取込行が残る）
-5. 結果の URL を伝える。JSON と原文は会話に貼り直さない
+1. Read the case sheet and write JSON matching `caseInputSchema` in `src/lib/caseInput.ts` to the **scratchpad** (outside the repo).
+   See `CASE_JSON_EXAMPLE` (same file) for an example. Enter amounts **exactly as shown on the case sheet** and declare
+   `incl` (shown tax included) / `excl` (shown tax excluded) in `taxBasis`. Do not compute ×1.1 yourself.
+   If the company's official site is known, put it in the optional `companyUrl` (it goes into the `companies` table, one row per
+   company, and links every place the company name is displayed)
+2. Put the case sheet's raw text in `rawText` as is (do not summarize)
+3. `npm run add-case -- --file=<json> --remote --dry-run` → once validation passes, run again without `--dry-run`
+4. If it says "同じ案件が既にあります" (the same case already exists), check the id shown; to overwrite, use `--update=<id>`.
+   `--update` rewrites only the case-sheet columns (status, next step, due date, axes, and memo are kept, and an
+   import row is added to the history)
+5. Share the resulting URL. Do not paste the JSON or raw text back into the conversation
 
-税抜/税込の取り違えが実害になったことがある。`taxBasis` を必ず案件票の表記から決める。
+Mixing up tax-excluded and tax-included has caused real damage before. Always decide `taxBasis` from the case sheet's notation.
 
-## スキーマを変えたら
+## After changing the schema
 
 ```bash
 npm run db:generate
@@ -59,11 +61,11 @@ npm run db:migrate:local
 npm run cf-typegen
 ```
 
-## 完了の基準
+## Definition of done
 
-`npm run format:check` `typecheck` `test:coverage` `test:server` `test:scripts` `build` `check:pii` がすべて green。
-認証に触れたら拒否側（JWT なし／署名不正／allowlist 外／本番での dev 経路）で 403 を確認する。
+`npm run format:check` `typecheck` `test:coverage` `test:server` `test:scripts` `build` `check:pii` are all green.
+If you touch authentication, confirm 403 on the deny paths (no JWT / invalid signature / not in allowlist / dev path in production).
 
-## 参照
+## References
 
-仕様: `docs/superpowers/specs/2026-09-16-freelance-pipeline-design.md`
+Spec: `docs/superpowers/specs/2026-09-16-freelance-pipeline-design.md`

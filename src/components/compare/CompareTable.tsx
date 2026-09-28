@@ -44,7 +44,7 @@ export function CompareTable({
               <Table.Th scope="row">{r.label}</Table.Th>
               {r.cells.map((cell) => (
                 <Table.Td key={cell.caseId} className={cell.bad ? 'cell-bad' : undefined}>
-                  {/* 色だけに頼らない: 下回るセルは記号と読み上げ用の文言も付ける */}
+                  {/* Do not rely on color alone: cells below the threshold also get a symbol and screen-reader text */}
                   {cell.bad ? (
                     <Text size="xs" fw={700} component="span" mr={4}>
                       <span aria-hidden>▼</span>

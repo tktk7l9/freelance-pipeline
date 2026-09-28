@@ -11,8 +11,8 @@ import { marketData } from '../server/market'
 import { getSettingsData } from '../server/settings'
 
 /**
- * 比較: 「案件」＝進行中の案件どうし、「市場」＝レバテックの市場データと自分の位置。
- * どちらも「比べる」なので 1 つのタブに置き、切り替えは URL に持つ（戻る・共有で再現）。
+ * Compare: "Cases" = in-progress cases side by side, "Market" = Levtech market data and my position.
+ * Both are about "comparing", so they share one tab, and the switch lives in the URL (reproducible via back and sharing).
  */
 const search = z.object({
   view: z.enum(['cases', 'market']).optional(),
@@ -38,7 +38,7 @@ function Page() {
   const { view = 'cases', ids, skill } = Route.useSearch()
   const navigate = useNavigate({ from: '/compare' })
   const candidates = cases.filter((c) => c.group === 'active' || c.group === 'onhold')
-  // ids が undefined（クエリ自体が無い）のときだけ既定に落とす。'' は「全部外した」で空。
+  // Fall back to the default only when ids is undefined (no query at all). '' means "all removed" and stays empty.
   const selected =
     ids !== undefined
       ? ids.split(',').filter(Boolean)

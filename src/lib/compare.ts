@@ -1,7 +1,7 @@
 import { REMOTE_LABEL, type RemoteType, type Route } from './enums'
 import { baseHours, formatHourlyLines, formatRateLines, hourlyExcl } from './rate'
 
-/** 判断基準。値は D1 の settings にだけ入る。ここは形と既定（全部 null=判定しない）だけ */
+/** Decision criteria. Values live only in D1 settings. This holds only the shape and defaults (all null = no judgment) */
 export type Thresholds = {
   minMonthlyIncl: number | null
   minHourlyExcl: number | null
@@ -73,7 +73,7 @@ export type CompareCase = {
 export type CompareCell = { caseId: string; text: string; sub?: string; bad: boolean }
 export type CompareRow = { key: string; label: string; cells: CompareCell[] }
 
-/** full=0、onsite=∞、partial は「月N回」を読めた時だけ N。読めなければ null（判定しない） */
+/** full=0, onsite=∞, partial is N only when "月N回" (N times a month) can be parsed. Otherwise null (no judgment) */
 export function onsitePerMonth(remoteType: RemoteType, onsiteNote: string | null): number | null {
   if (remoteType === 'full') return 0
   if (remoteType === 'onsite') return Number.POSITIVE_INFINITY
@@ -82,7 +82,7 @@ export function onsitePerMonth(remoteType: RemoteType, onsiteNote: string | null
 }
 
 export function fitMark(score: number | null | undefined): string {
-  // ○△× は文化で意味が変わる記号なので文字にする（SHIG 70・96）
+  // ○△× are symbols whose meaning varies by culture, so use words (SHIG 70, 96)
   if (score === 2) return '合う'
   if (score === 1) return '一部'
   if (score === 0) return '合わない'

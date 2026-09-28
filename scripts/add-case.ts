@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * Claude Code が書いた案件票 JSON を検証して D1 へ入れる。
+ * Validates a case-sheet JSON written by Claude Code and inserts it into D1.
  *
  *   npm run add-case -- --file=<json> --remote|--local [--dry-run] [--update=<id>]
  *
- * 1. src/lib/caseInput.ts の zod で検証（/import フォームと同じ 1 本）
- * 2. taxBasis が excl なら税込に正規化（toCaseRow）
- * 3. 重複照会（sourceUrl か company+title）。あれば中断。--update=<id> で上書き
- * 4. INSERT（cases + case_log）を一時 SQL に書いて wrangler d1 execute --file
- * 5. 一時ファイル削除。cases.local.json（gitignore・check-pii の照合元）に企業名/案件名を控える
+ * 1. Validate with the zod schema in src/lib/caseInput.ts (the same one the /import form uses)
+ * 2. If taxBasis is excl, normalize to tax-included (toCaseRow)
+ * 3. Duplicate lookup (sourceUrl, or company+title). Abort if found. --update=<id> overwrites
+ * 4. Write the INSERT (cases + case_log) to a temp SQL file and run wrangler d1 execute --file
+ * 5. Delete the temp file. Record company/case names in cases.local.json (gitignored; a check-pii source)
  *
- * 秘密は増えない（wrangler の OAuth のみ）。原文・企業名は標準出力に出さない。
+ * Adds no secrets (only wrangler's OAuth). Never prints the raw text or company names to stdout.
  */
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -107,7 +107,7 @@ const statements = updateId
       }),
     ]
   : insertCaseStatements({ id, row, at, importNote: 'add-case', logId: crypto.randomUUID() })
-// 会社の公式サイトは案件の列ではなく companies 表へ（同名なら上書き）
+// The company's official site goes into the companies table, not a case column (overwrite if the name matches)
 if (parsed.input.companyUrl) {
   statements.push(upsertCompanyStatement(row.company, parsed.input.companyUrl))
 }
@@ -128,7 +128,7 @@ try {
   rmSync(dir, { recursive: true, force: true })
 }
 
-// check-pii の照合元。原文は入れない（企業名・案件名・エージェント名だけ）
+// Source list for check-pii. No raw text here (only company, case, and agent names)
 const ledger: Array<{ company: string; title: string; agentName: string | null }> = existsSync(
   LOCAL_LEDGER,
 )

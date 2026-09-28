@@ -10,9 +10,9 @@ import { changeCaseStatus, undoStatusChange } from '../../server/cases'
 import { showUndo } from '../undoNotification'
 
 /**
- * ステータス変更。いちばん多い「次へ進める」は 1 タップ、残り（飛び級・保留・辞退・見送り）は
- * メニューに畳む（選択肢を並べ切らない＝ヒックの法則）。確認ダイアログは出さず、
- * 変えたあと通知の「取り消す」で戻せる。
+ * Status change. The most common action, "advance to next", is one tap; the rest (skip ahead, on hold,
+ * declined, passed) fold into a menu (do not list every option = Hick's law). No confirm dialog;
+ * after changing, "Undo" in the notification reverts it.
  */
 export function StatusChanger({ id, status }: { id: string; status: CaseStatus }) {
   const router = useRouter()

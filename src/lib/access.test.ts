@@ -19,7 +19,7 @@ const ALLOWLIST = ['owner@example.com']
 
 let signingKey: CryptoKey
 let keySet: JWTVerifyGetKey
-/** 正規の鍵セットには含まれない鍵。署名不正のケースを作るのに使う。 */
+/** A key not in the legitimate key set. Used to build invalid-signature cases. */
 let foreignKey: CryptoKey
 
 beforeAll(async () => {

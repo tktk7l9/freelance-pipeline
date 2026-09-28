@@ -1,4 +1,4 @@
-/** 経路・税基準・リモート種別・ログ種別。schema.ts と lib の両方がここを参照する（import なし） */
+/** Routes, tax basis, remote type, log kind. Both schema.ts and lib reference this (no imports) */
 export const ROUTES = ['levtech', 'findy', 'direct', 'other'] as const
 export type Route = (typeof ROUTES)[number]
 export const ROUTE_LABEL: Record<Route, string> = {
@@ -23,7 +23,7 @@ export const REMOTE_LABEL: Record<RemoteType, string> = {
 export const LOG_KINDS = ['status', 'memo', 'import'] as const
 export type LogKind = (typeof LOG_KINDS)[number]
 
-/** 予定の種別（カレンダー）。案件に紐づく出来事＋自分の都合 */
+/** Event kinds (calendar). Events tied to cases + my own plans */
 export const EVENT_KINDS = ['meeting', 'interview', 'deadline', 'join', 'other'] as const
 export type EventKind = (typeof EVENT_KINDS)[number]
 export const EVENT_KIND_LABEL: Record<EventKind, string> = {
@@ -35,8 +35,8 @@ export const EVENT_KIND_LABEL: Record<EventKind, string> = {
 }
 
 /**
- * 収支台帳の種別。収入（売上・役員報酬・その他）と、そこから引かれるもの
- * （税・社会保険・経費・その他）を 1 つの表に同居させ、種別で分ける。
+ * Ledger kinds. Income (revenue, officer compensation, other) and what is deducted from it
+ * (tax, social insurance, expenses, other) share one table, split by kind.
  */
 export const LEDGER_KINDS = [
   'freelance',

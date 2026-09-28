@@ -1,6 +1,6 @@
 export type DueState = 'overdue' | 'today' | 'soon' | 'later'
 
-/** 期限状態 → Mantine の色。カード・表・ホームで共有する */
+/** Deadline state → Mantine color. Shared by cards, tables, and home */
 export const DUE_COLOR: Record<DueState, string> = {
   overdue: 'red',
   today: 'orange',
@@ -8,12 +8,12 @@ export const DUE_COLOR: Record<DueState, string> = {
   later: 'gray',
 }
 
-/** 'YYYY-MM-DD' 同士の差（日）。文字列比較で足りるが、soon の判定に日数が要る */
+/** Difference in days between two 'YYYY-MM-DD' values. String comparison would do, but "soon" needs a day count */
 function daysBetween(from: string, to: string): number {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000)
 }
 
-/** today は呼び出し側が JST で決めて渡す（lib は時計を持たない） */
+/** The caller decides today in JST and passes it in (lib has no clock) */
 export function dueState(due: string, today: string): DueState {
   const d = daysBetween(today, due)
   if (d < 0) return 'overdue'
@@ -30,7 +30,7 @@ export function withDue<T extends { nextActionDue: string | null }>(
     .sort((a, b) => a.nextActionDue.localeCompare(b.nextActionDue))
 }
 
-/** 同じ期日の案件を日付見出しの下にまとめる。日付昇順・グループ内は入力順を保つ */
+/** Groups cases with the same due date under a date heading. Dates ascending; input order kept within a group */
 export function groupByDue<T extends { nextActionDue: string }>(
   items: T[],
 ): { date: string; items: T[] }[] {
@@ -46,8 +46,8 @@ export function groupByDue<T extends { nextActionDue: string }>(
 }
 
 /**
- * 期日バッジに添える文字。色だけで緊急度を伝えない（色覚・グレースケールでも読めるように）。
- * 期限切れ／今日／あと N 日（3 日以内）。それより先は null＝日付だけ出す。
+ * Text added to the due badge. Urgency is not conveyed by color alone (readable with color vision deficiency or in grayscale).
+ * Overdue / today / N days left (within 3 days). Later than that is null = show only the date.
  */
 export function dueLabel(due: string, today: string): string | null {
   const d = daysBetween(today, due)

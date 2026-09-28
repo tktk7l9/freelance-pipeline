@@ -5,8 +5,8 @@ import { EVENT_KINDS } from '../lib/enums'
 import { dateField, idField, nullableText, timeField } from './zod'
 
 /**
- * 予定フォームの入力。events.ts（createServerFn のラッパー）から分離しているのは
- * 素の workers テストから import できるようにするため（cases.schema.ts と同じ理由）。
+ * Input of the event form. Split out from events.ts (the createServerFn wrapper)
+ * so plain workers tests can import it (same reason as cases.schema.ts).
  */
 export const eventInput = z
   .object({

@@ -3,7 +3,7 @@ import type { ScheduleEventData } from '@mantine/schedule'
 import { addDays, dateKey, splitStartsAt } from './calendar'
 import type { EventKind } from './enums'
 
-/** カレンダーに載せる自分の予定（DB の events 行のうち描画に要る列） */
+/** My own events shown on the calendar (the columns of a DB events row needed for rendering) */
 export type CalendarEventRow = {
   id: string
   title: string
@@ -13,7 +13,7 @@ export type CalendarEventRow = {
   allDay: boolean
 }
 
-/** 情報レイヤー: 案件の「次の一手」の期日 */
+/** Info layer: due dates of cases' "next step" */
 export type DueCaseRow = {
   id: string
   company: string
@@ -33,19 +33,19 @@ export const KIND_COLOR: Record<EventKind, string> = {
   other: 'gray',
 }
 
-/** 終わった予定の色。種別の色を捨ててグレーに落とし、これからの予定と見分ける */
+/** Color for finished events. Drops the kind color for gray to tell them apart from upcoming ones */
 export const PAST_EVENT_COLOR = 'gray'
 
 /**
- * 「今」（'YYYY-MM-DDTHH:MM:SS+09:00' または 'YYYY-MM-DD'）を Schedule と同じ
- * 'YYYY-MM-DD HH:mm:ss' に揃える。どちらも JST の壁時計なので文字列比較で前後が決まる。
+ * Normalizes "now" ('YYYY-MM-DDTHH:MM:SS+09:00' or 'YYYY-MM-DD') to the same
+ * 'YYYY-MM-DD HH:mm:ss' as Schedule. Both are JST wall-clock times, so string comparison decides order.
  */
 export function toScheduleStamp(nowIso: string): string {
   const date = dateKey(nowIso)
   return `${date} ${nowIso.length > 10 ? nowIso.slice(11, 19) : '00:00:00'}`
 }
 
-/** 'HH:MM' に 60 分足す。日をまたいだら date も翌日にする */
+/** Adds 60 minutes to 'HH:MM'. If it crosses midnight, date moves to the next day too */
 function plusOneHour(date: string, time: string): { date: string; time: string } {
   const [hour, minute] = time.split(':').map(Number)
   const total = hour * 60 + minute + 60
@@ -57,10 +57,10 @@ function plusOneHour(date: string, time: string): { date: string; time: string }
 }
 
 /**
- * 予定を @mantine/schedule の ScheduleEventData に変換する（純粋関数）。
- * 終日（allDay、または startsAt が日付のみ）は 'YYYY-MM-DD 00:00:00' 〜 翌日 00:00:00。
- * 時刻ありは startsAt/endsAt をそのまま使い、endsAt が無ければ開始の 60 分後にする。
- * `nowIso` を渡すと終わった予定（終了が「今」より前）をグレーにし payload.past を立てる。
+ * Converts events to @mantine/schedule ScheduleEventData (pure function).
+ * All-day (allDay, or startsAt is date-only) spans 'YYYY-MM-DD 00:00:00' to the next day 00:00:00.
+ * Timed events use startsAt/endsAt as is; without endsAt the end is 60 minutes after the start.
+ * Passing `nowIso` grays out finished events (ending before "now") and sets payload.past.
  */
 export function toScheduleEvents(
   events: readonly CalendarEventRow[],
@@ -98,8 +98,8 @@ export function toScheduleEvents(
 }
 
 /**
- * 案件の「次の一手」の期日を情報レイヤーとして描く（終日・枠線だけ・クリックで案件へ）。
- * id は自分の予定と衝突しないよう `due-` を前置する。`todayKey` より前の期日は past。
+ * Draws due dates of cases' "next step" as an info layer (all-day, outline only, click goes to the case).
+ * ids are prefixed with `due-` so they never collide with my own events. Due dates before `todayKey` are past.
  */
 export function dueToScheduleEvents(
   items: readonly DueCaseRow[],

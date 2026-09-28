@@ -46,7 +46,7 @@ export function LedgerForm({
   onSaved,
 }: {
   entry: LedgerRow | null
-  /** 新規の既定値（直近の行に合わせる＝よいデフォルト） */
+  /** Defaults for a new entry (match the most recent row = good defaults) */
   defaults?: Partial<Pick<Values, 'yearMonth' | 'kind' | 'party' | 'amount'>>
   caseOptions: CaseOption[]
   onSaved: (id: string) => void

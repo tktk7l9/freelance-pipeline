@@ -5,9 +5,9 @@ import { EVENT_KINDS, LEDGER_KINDS, LOG_KINDS, REMOTE_TYPES, ROUTES, TAX_BASES }
 import { CASE_STATUSES } from '../lib/status'
 
 /**
- * 方針: 日付は TEXT の ISO-8601（日付のみ 'YYYY-MM-DD'、月のみ 'YYYY-MM'）、
- * 金額は円の整数、id は text（crypto.randomUUID()）。
- * createdAt / updatedAt は両方 datetime('now')（1 列 2 書式にしない）。
+ * Policy: dates are ISO-8601 TEXT (date only 'YYYY-MM-DD', month only 'YYYY-MM'),
+ * amounts are integer yen, ids are text (crypto.randomUUID()).
+ * createdAt / updatedAt both use datetime('now') (never two formats in one column).
  */
 export const timestamps = {
   createdAt: text('created_at')
@@ -25,7 +25,7 @@ const jsonList = (name: string) =>
     .notNull()
     .default(sql`'[]'`)
 
-/** 判断基準（thresholds / axes）はここにだけ置く。コードに書かない */
+/** Decision criteria (thresholds / axes) live only here. Never in code */
 export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),
@@ -33,8 +33,8 @@ export const settings = sqliteTable('settings', {
 })
 
 /**
- * 会社の公式サイト。会社名（cases.company の文字列そのもの）をキーにして 1 社 1 行。
- * 案件ごとに持たないのは、同じ会社の案件が複数あっても 1 回設定すれば全部に効かせるため。
+ * The company's official site. One row per company, keyed by company name (the exact cases.company string).
+ * Not stored per case so that setting it once applies to every case of the same company.
  */
 export const companies = sqliteTable('companies', {
   name: text('name').primaryKey(),
@@ -42,7 +42,7 @@ export const companies = sqliteTable('companies', {
   updatedAt: timestamps.updatedAt,
 })
 
-/** 1 行 = 1 案件。選考中も過去案件も同じ表 */
+/** One row = one case. In-progress and past cases share the same table */
 export const cases = sqliteTable(
   'cases',
   {
@@ -50,18 +50,18 @@ export const cases = sqliteTable(
     company: text('company').notNull(),
     title: text('title').notNull(),
     route: text('route', { enum: ROUTES }).notNull(),
-    /** 担当エージェント名（誰に聞くか） */
+    /** Agent in charge (who to ask) */
     agentName: text('agent_name'),
-    /** 単価上限・税込（円）。列名に Incl を入れて取り違えを型で防ぐ */
+    /** Rate cap, tax included (yen). Incl in the column name lets the type prevent mix-ups */
     monthlyMaxIncl: integer('monthly_max_incl').notNull(),
     monthlyMinIncl: integer('monthly_min_incl'),
-    /** 案件票の表示がどちらだったか。×1.1 は src/lib/rate.ts の toIncl が行う */
+    /** Which way the case sheet displayed it. The ×1.1 is done by toIncl in src/lib/rate.ts */
     sourceTaxBasis: text('source_tax_basis', { enum: TAX_BASES }).notNull(),
     settlementMinH: integer('settlement_min_h'),
     settlementMaxH: integer('settlement_max_h'),
     remoteType: text('remote_type', { enum: REMOTE_TYPES }).notNull(),
     onsiteNote: text('onsite_note'),
-    /** 'YYYY-MM-DD' または 'YYYY-MM' */
+    /** 'YYYY-MM-DD' or 'YYYY-MM' */
     startDate: text('start_date').notNull(),
     endDate: text('end_date'),
     daysPerWeek: text('days_per_week'),
@@ -71,14 +71,14 @@ export const cases = sqliteTable(
     sourceUrl: text('source_url'),
     mustSkills: jsonList('must_skills'),
     niceSkills: jsonList('nice_skills'),
-    /** 案件票の原文そのまま */
+    /** The case sheet's raw text as is */
     rawText: text('raw_text').notNull(),
     status: text('status', { enum: CASE_STATUSES }).notNull().default('saved'),
     nextAction: text('next_action'),
     nextActionDue: text('next_action_due'),
-    /** settings.axes に対応する 0〜2。比較ビューで ○△× */
+    /** 0–2 per settings.axes. Shown as ○△× in the compare view */
     fitScores: text('fit_scores', { mode: 'json' }).$type<number[]>(),
-    /** 過去案件の実単価・税込 */
+    /** Actual rate of a past case, tax included */
     actualMonthlyIncl: integer('actual_monthly_incl'),
     note: text('note'),
     ...timestamps,
@@ -90,7 +90,7 @@ export const cases = sqliteTable(
   ],
 )
 
-/** 経緯。ステータス変更は自動で 1 行、メモは日付つきで手で足す */
+/** History. Status changes add a row automatically; memos are added by hand with a date */
 export const caseLog = sqliteTable(
   'case_log',
   {
@@ -98,7 +98,7 @@ export const caseLog = sqliteTable(
     caseId: text('case_id')
       .notNull()
       .references(() => cases.id, { onDelete: 'cascade' }),
-    /** ISO-8601 日時 */
+    /** ISO-8601 datetime */
     at: text('at').notNull(),
     kind: text('kind', { enum: LOG_KINDS }).notNull(),
     fromStatus: text('from_status'),
@@ -110,8 +110,8 @@ export const caseLog = sqliteTable(
 )
 
 /**
- * 予定（カレンダー）。終日なら startsAt は 'YYYY-MM-DD'、それ以外は ISO-8601（+09:00）。
- * 案件に紐づけられる（案件が消えたら予定は残して紐づけだけ外す）。
+ * Events (calendar). For all-day events startsAt is 'YYYY-MM-DD'; otherwise ISO-8601 (+09:00).
+ * Can be linked to a case (if the case is deleted, the event stays and only the link is removed).
  */
 export const events = sqliteTable(
   'events',
@@ -130,9 +130,9 @@ export const events = sqliteTable(
 )
 
 /**
- * 収支台帳。1 行 = 1 件の請求・入金・納付（年月単位）。収入も支出も同じ表で、種別で分ける。
- * 金額は円の整数。売上は税込のまま入れる（税抜は表示側で ÷1.1）。経費は MF クラウドの
- * 月計・年計をまとめて 1 行で入れる想定（レシート単位の記帳はしない）。
+ * Income/expense ledger. One row = one invoice, receipt, or payment (per year-month). Income and expenses share
+ * the same table, split by kind. Amounts are integer yen. Revenue is stored tax included (tax-excluded is ÷1.1 on display).
+ * Expenses are expected as one row summing the monthly/yearly totals from MF Cloud (no per-receipt bookkeeping).
  */
 export const ledger = sqliteTable(
   'ledger',
@@ -141,7 +141,7 @@ export const ledger = sqliteTable(
     /** 'YYYY-MM' */
     yearMonth: text('year_month').notNull(),
     kind: text('kind', { enum: LEDGER_KINDS }).notNull(),
-    /** 支払元／支払先（レバテック・斉藤興産・税務署 など） */
+    /** Payer / payee (e.g. Levtech, Saito Kousan, the tax office) */
     party: text('party'),
     caseId: text('case_id').references(() => cases.id, { onDelete: 'set null' }),
     amount: integer('amount').notNull(),
@@ -152,9 +152,9 @@ export const ledger = sqliteTable(
 )
 
 /**
- * 市場データのスナップショット（レバテックプラットフォームの案件データ・人材データ）。
- * スキル × 取得日で 1 行。中身は JSON（形は src/lib/market.ts の marketDataSchema）。
- * スクショからの書き起こしなので、同じ日に同じスキルを入れ直せば上書き。
+ * Snapshot of market data (case data and talent data from the Levtech platform).
+ * One row per skill × capture date. The body is JSON (shape: marketDataSchema in src/lib/market.ts).
+ * Transcribed from screenshots, so re-entering the same skill on the same day overwrites it.
  */
 export const marketSnapshots = sqliteTable(
   'market_snapshots',

@@ -14,7 +14,7 @@ const ICONS: Record<NavIcon, typeof House> = {
   settings: Settings,
 }
 
-/** スマホ: 上に小さなヘッダ、下にタブバー。デスクトップ(sm 以上): 左ナビ。 */
+/** Phone: a small header on top and a tab bar at the bottom. Desktop (sm and up): left nav. */
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation()
   return (

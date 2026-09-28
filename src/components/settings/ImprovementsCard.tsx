@@ -9,7 +9,7 @@ import { extractErrorMessage } from '../../lib/formError'
 import { linesToImprovements } from '../../lib/improvements'
 import { saveImprovements } from '../../server/settings'
 
-/** ホームに出す「改善したいこと」。Textarea で 1 行 1 項目 */
+/** "Things to improve" shown on home. One item per line in a Textarea */
 export function ImprovementsCard({
   value,
   editing,

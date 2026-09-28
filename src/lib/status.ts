@@ -1,6 +1,6 @@
 /**
- * 案件のステータス。進行は一方向、別枠はどこからでも。
- * スクリプトからも読むので lib 内の import は持たない。
+ * Case status. Progress moves one way; the side states can be reached from anywhere.
+ * Scripts read this too, so it has no imports within lib.
  */
 export const PROGRESS_STATUSES = [
   'saved',
@@ -41,7 +41,7 @@ export const STATUS_COLOR: Record<CaseStatus, string> = {
   onhold: 'yellow',
 }
 
-/** 一覧のチップ。active=進行中 / onhold=保留 / closed=辞退・見送り / history=参画・終了 */
+/** List chips. active = in progress / onhold = on hold / closed = declined, passed / history = joined, ended */
 export const STATUS_GROUPS = ['active', 'onhold', 'closed', 'history'] as const
 export type StatusGroup = (typeof STATUS_GROUPS)[number]
 export const STATUS_GROUP_LABEL: Record<StatusGroup, string> = {
@@ -62,7 +62,7 @@ export function isTerminal(status: CaseStatus): boolean {
   return status === 'declined' || status === 'rejected'
 }
 
-/** 進行の順位。別枠は -1 */
+/** Progress rank. Side states are -1 */
 export function progressRank(status: CaseStatus): number {
   return (PROGRESS_STATUSES as readonly string[]).indexOf(status)
 }
@@ -75,7 +75,7 @@ export function canTransition(from: CaseStatus, to: CaseStatus): boolean {
   return progressRank(to) > progressRank(from)
 }
 
-/** 次に進む状態（進行の 1 つ先）。終端や別枠・進めない状態なら null */
+/** The next state (one step ahead in progress). null for terminal states, side states, or states that cannot advance */
 export function nextProgress(status: CaseStatus): CaseStatus | null {
   if (status === 'onhold') return null
   const rank = progressRank(status)
@@ -85,8 +85,8 @@ export function nextProgress(status: CaseStatus): CaseStatus | null {
 }
 
 /**
- * ステータス変更ボタンの構成。primary＝1 タップで進める「次の状態」、
- * others＝メニューに畳む残り（飛び級の進行と別枠）。選択肢を並べ切らないため（ヒックの法則）。
+ * Layout of the status change buttons. primary = the "next state" advanced with one tap,
+ * others = the rest folded into a menu (skip-ahead progress and side states). So not every option is listed (Hick's law).
  */
 export function transitionOptions(status: CaseStatus): {
   primary: CaseStatus | null

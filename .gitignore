@@ -10,23 +10,23 @@ __unconfig*
 coverage
 /backups/
 
-# 秘密・個人情報（Keyway が書き出す .env.* も含めて塞ぐ）
+# Secrets and personal data (also blocks the .env.* files Keyway writes)
 .dev.vars*
 !.dev.vars.example
 .env
 .env.*
 !.env*.example
 
-# 実データ（案件票・過去案件）はコミットしない。check-pii の照合元でもある
+# Real data (case sheets, past cases) is never committed. Also the source for check-pii
 *.local.json
 !history.local.example.json
 
-# サブエージェント駆動の作業ファイル
+# Working files from subagent-driven development
 .superpowers/
 
 # git worktree（superpowers:using-git-worktrees）
 .worktrees/
 .claude/
 
-# Playwright MCP のスクリーンショット出力
+# Screenshot output from Playwright MCP
 .playwright-mcp/

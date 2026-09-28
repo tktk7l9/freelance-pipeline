@@ -1,7 +1,7 @@
 import { Drawer } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 
-/** スマホでは下から全画面、デスクトップでは右から幅 480 の Drawer */
+/** Full-screen from the bottom on phones; a 480-wide Drawer from the right on desktop */
 export function FormDrawer({
   opened,
   onClose,
@@ -13,7 +13,7 @@ export function FormDrawer({
   onClose: () => void
   title: string
   children: React.ReactNode
-  /** 既定は Mantine の modal 既定値（200）。他の要素の上に出したいページから明示的に渡す */
+  /** Defaults to Mantine's modal default (200). Pages that need it above other elements pass it explicitly */
   zIndex?: number
 }) {
   const isMobile = useMediaQuery('(max-width: 48em)', true)

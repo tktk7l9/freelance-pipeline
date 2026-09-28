@@ -1,6 +1,6 @@
 /**
- * 案件行を D1 の SQL 文へ変換する純粋な部分。I/O はここに書かない。
- * add-case（INSERT / UPDATE）と import-history（INSERT OR REPLACE）が共有する。
+ * Pure part that turns case rows into D1 SQL statements. No I/O here.
+ * Shared by add-case (INSERT / UPDATE) and import-history (INSERT OR REPLACE).
  */
 import { createHash } from 'node:crypto'
 
@@ -13,7 +13,7 @@ export function sqlLiteral(value: unknown): string {
   return `'${String(value).replaceAll("'", "''")}'`
 }
 
-/** camelCase → snake_case（schema.ts の列名と一致させる） */
+/** camelCase → snake_case (must match the column names in schema.ts) */
 function snake(key: string): string {
   return key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`)
 }
@@ -21,9 +21,9 @@ function snake(key: string): string {
 const JSON_COLUMNS = new Set(['mustSkills', 'niceSkills', 'fitScores'])
 
 /**
- * 案件票（Claude Code が書く JSON）に含まれる列だけ。`--update` はこれ以外の列
- * （status・nextAction・nextActionDue・fitScores・actualMonthlyIncl・note）を
- * 触らない。案件票の再構成でパイプラインの進行状態を巻き戻さないため。
+ * Only the columns contained in a case sheet (the JSON Claude Code writes). `--update` does not
+ * touch any other column (status, nextAction, nextActionDue, fitScores, actualMonthlyIncl, note),
+ * so re-importing a case sheet never rolls back the pipeline progress.
  */
 export const SHEET_COLUMNS = [
   'company',
@@ -82,7 +82,7 @@ export function insertCaseStatements(p: {
   ]
 }
 
-/** 案件票の列だけを上書きする（SHEET_COLUMNS）。status 等の進行状態は保つ */
+/** Overwrite only the case-sheet columns (SHEET_COLUMNS). Progress such as status is kept */
 export function updateCaseStatement(id: string, row: CaseRowValues): string {
   const cols = caseColumns(row)
   const sets = SHEET_COLUMNS.map((k) => `${snake(k)} = ${sqlLiteral(cols[snake(k)])}`)
@@ -90,7 +90,7 @@ export function updateCaseStatement(id: string, row: CaseRowValues): string {
   return `UPDATE cases SET ${sets.join(', ')} WHERE id = ${sqlLiteral(id)};`
 }
 
-/** `--update` が案件票を取り込んだ経緯を case_log に残す（status 変更と紛れないよう kind: 'import'） */
+/** Record in case_log that `--update` imported a case sheet (kind: 'import', so it is not mistaken for a status change) */
 export function updateLogStatement(p: {
   id: string
   caseId: string
@@ -104,7 +104,7 @@ export function updateLogStatement(p: {
   )
 }
 
-/** 会社の公式サイトを 1 社 1 行で置く（同名なら URL を上書き） */
+/** Store the company's official site as one row per company (overwrite the URL if the name matches) */
 export function upsertCompanyStatement(name: string, url: string): string {
   return `INSERT INTO companies (name, url) VALUES (${sqlLiteral(name)}, ${sqlLiteral(url)}) ON CONFLICT(name) DO UPDATE SET url = excluded.url, updated_at = (datetime('now'));`
 }
@@ -119,7 +119,7 @@ export function duplicateQuery(q: {
   return `SELECT id, company, title, status FROM cases WHERE ${where} LIMIT 5;`
 }
 
-/** slug から決定的に UUID 形の id を作る（import-history の冪等性） */
+/** Build a deterministic UUID-shaped id from the slug (idempotency for import-history) */
 export function slugToId(slug: string): string {
   const hex = createHash('sha256').update(`freelance-pipeline:${slug}`).digest('hex').slice(0, 32)
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`

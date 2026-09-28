@@ -1,5 +1,5 @@
 /**
- * ナビゲーションの選択状態。'/' だけは前方一致だと常に一致してしまうため完全一致にする。
+ * Navigation selection state. '/' alone would always match as a prefix, so it uses an exact match.
  */
 export function isNavItemActive(pathname: string, to: string): boolean {
   if (to === '/') return pathname === '/'
@@ -7,7 +7,7 @@ export function isNavItemActive(pathname: string, to: string): boolean {
 }
 
 /**
- * 下タブ（スマホ）と左ナビ（デスクトップ）で共有するタブ定義。
+ * Tab definitions shared by the bottom tabs (phone) and the left nav (desktop).
  */
 export const NAV_ITEMS = [
   { to: '/', label: 'ホーム', icon: 'home' },
