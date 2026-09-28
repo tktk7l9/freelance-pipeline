@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { quickDueOptions } from '../../lib/deadlines'
 import { extractErrorMessage } from '../../lib/formError'
-import { nextActionSuggestions, pendingFocus, type FocusRequest } from '../../lib/nextAction'
+import { focusAfterSave, isFreshSignal, nextActionSuggestions } from '../../lib/nextAction'
 import type { CaseStatus } from '../../lib/status'
 import { saveNextAction } from '../../server/cases'
 
@@ -18,25 +18,23 @@ export function NextActionEditor({
   nextAction,
   nextActionDue,
   today,
-  focusRequest = { n: 0, target: 'field' },
-  onSaved,
+  focusSignal = 0,
 }: {
   id: string
   status: CaseStatus
   nextAction: string | null
   nextActionDue: string | null
   today: string
-  /** Bumped by the parent. After the status advances it asks for the field so the next step gets
-   * reviewed (SHIG 41, 77); after saving it asks for the save button so focus stays put (SHIG 94) */
-  focusRequest?: FocusRequest
-  /** Called after a successful save; the parent answers with a 'save' focus request */
-  onSaved?: () => void
+  /** Bumped by the parent after the status advances: focus the field so the next step gets reviewed (SHIG 41, 77) */
+  focusSignal?: number
 }) {
   const router = useRouter()
   const save = useServerFn(saveNextAction)
   const [saving, setSaving] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const saveRef = useRef<HTMLButtonElement>(null)
+  // The element that had focus when a save started; handed back once the save settles (SHIG 94)
+  const focusBeforeSave = useRef<Element | null>(null)
   // Mantine 9.6's DateInput handles values as 'YYYY-MM-DD' strings
   const form = useForm({
     initialValues: { nextAction: nextAction ?? '', nextActionDue: nextActionDue ?? '' },
@@ -53,32 +51,41 @@ export function NextActionEditor({
     // `form` is left out of the deps on purpose: it is a new object on every render
   }, [nextAction, nextActionDue])
 
-  // Start from the current request so a remount does not replay an old bump (focus + phone keyboard)
-  const handled = useRef(focusRequest.n)
-  // Runs after `saving` settles too: the button is disabled while loading and cannot take focus until then
+  // Start from the current signal so a remount does not replay an old bump (focus + phone keyboard)
+  const handledSignal = useRef(focusSignal)
   useEffect(() => {
-    if (saving) return
-    const target = pendingFocus(handled.current, focusRequest)
-    if (!target) return
-    handled.current = focusRequest.n
-    if (target === 'save') {
-      saveRef.current?.focus()
-      return
-    }
+    if (!isFreshSignal(handledSignal.current, focusSignal)) return
+    handledSignal.current = focusSignal
     const input = inputRef.current
     if (!input) return
     input.scrollIntoView({ block: 'center', behavior: 'smooth' })
     input.focus({ preventScroll: true })
-  }, [focusRequest, saving])
+  }, [focusSignal])
+
+  // Once a save settles (saved or failed), hand focus back if the disabled loading button dropped it
+  // to the page. Runs after `saving` is false because a disabled button cannot take focus (SHIG 94)
+  useEffect(() => {
+    if (saving || !focusBeforeSave.current) return
+    const before = focusBeforeSave.current
+    focusBeforeSave.current = null
+    const target = focusAfterSave<Element>({
+      active: document.activeElement,
+      body: document.body,
+      before,
+      beforeUsable: before.isConnected,
+      fallback: saveRef.current,
+    })
+    if (target instanceof HTMLElement) target.focus()
+  }, [saving])
 
   async function submit(v: { nextAction: string; nextActionDue: string }) {
+    focusBeforeSave.current = document.activeElement
     setSaving(true)
     try {
       await save({ data: { id, nextAction: v.nextAction, nextActionDue: v.nextActionDue || null } })
       await router.invalidate()
       form.resetDirty(v)
       notifications.show({ message: '次の一手を保存しました' })
-      onSaved?.()
     } catch (e) {
       notifications.show({ message: extractErrorMessage(e), color: 'red' })
     } finally {

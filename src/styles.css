@@ -384,9 +384,17 @@ body {
 /* Month-view event chips are drawn 22px tall. On touch screens, extend the tappable area upward
    (into the day cell, which is itself only "select this day") without changing how the chip looks, so
    it reaches about 7mm (SHIG 78). Not downward: the "+N" link sits right below the chip.
+   - Only chips in a cell's first row (Mantine positions them with an inline `top: calc(0% + 1px)`).
+     A chip in a lower row would reach 4px into the chip above it, and each chip is its own stacking
+     context, so a tap on the bottom of the upper event would open the lower one.
+   - Not on chips that continue into the next week: Mantine draws that marker with ::after.
    The extension hangs off the chip button, not its inner box, because the inner box clips overflow */
 @media (pointer: coarse) {
-  .mantine-MonthView-monthViewEvents .mantine-ScheduleEvent-event::after {
+  .mantine-MonthView-monthViewEvents
+    .mantine-ScheduleEvent-event:is(
+      [style*='top: calc(0% + 1px)'],
+      [style*='top:calc(0% + 1px)']
+    ):is([data-hanging='none'], [data-hanging='start'])::after {
     content: '';
     position: absolute;
     inset: -6px 0 0;

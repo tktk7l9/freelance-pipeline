@@ -30,21 +30,28 @@ export function isFreshSignal(handled: number, signal: number): boolean {
   return signal > handled
 }
 
-/** Where the next-step editor should put focus when the parent asks */
-export type FocusTarget = 'field' | 'save'
-
-/** A counter-style request from the parent: bump `n` to ask again */
-export interface FocusRequest {
-  n: number
-  target: FocusTarget
-}
-
 /**
- * Which element to focus for a request, or null when there is nothing new to do.
- * After a status change the field takes focus (SHIG 41); after saving, the save button does, because
- * saving disables the button and remounts the editor, which would otherwise drop focus to the page
- * and send keyboard and screen-reader users back to the top (SHIG 94).
+ * Where focus should go once a save of the next step settles, or null to leave it alone.
+ * Saving shows the save button as loading, which disables it; if it had focus, the browser drops
+ * focus to <body> and keyboard / screen-reader users are sent back to the top of the page. Put focus
+ * back where it was before saving (the field after Enter, the button after a click), or on
+ * `fallback` when that element is gone. If focus is already on something else, the owner moved on
+ * while the save was in flight (e.g. kept typing), so do not steal it (SHIG 94).
  */
-export function pendingFocus(handled: number, request: FocusRequest): FocusTarget | null {
-  return isFreshSignal(handled, request.n) ? request.target : null
+export function focusAfterSave<T>({
+  active,
+  body,
+  before,
+  beforeUsable,
+  fallback,
+}: {
+  active: T | null
+  body: T | null
+  before: T | null
+  beforeUsable: boolean
+  fallback: T | null
+}): T | null {
+  if (active !== null && active !== body) return null
+  if (before !== null && before !== body && beforeUsable) return before
+  return fallback
 }
