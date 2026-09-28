@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { quickDueOptions } from '../../lib/deadlines'
 import { extractErrorMessage } from '../../lib/formError'
-import { nextActionSuggestions } from '../../lib/nextAction'
+import { isFreshSignal, nextActionSuggestions } from '../../lib/nextAction'
 import type { CaseStatus } from '../../lib/status'
 import { saveNextAction } from '../../server/cases'
 
@@ -37,8 +37,12 @@ export function NextActionEditor({
     initialValues: { nextAction: nextAction ?? '', nextActionDue: nextActionDue ?? '' },
   })
 
+  // The editor is keyed on its saved values and remounts after every save. Start from the current
+  // signal so a remount does not replay an old bump (focus + phone keyboard after pressing Save)
+  const handledSignal = useRef(focusSignal)
   useEffect(() => {
-    if (focusSignal === 0) return
+    if (!isFreshSignal(handledSignal.current, focusSignal)) return
+    handledSignal.current = focusSignal
     const input = inputRef.current
     if (!input) return
     input.scrollIntoView({ block: 'center', behavior: 'smooth' })

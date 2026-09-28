@@ -20,3 +20,12 @@ const SUGGESTIONS: Record<CaseStatus, readonly string[]> = {
 export function nextActionSuggestions(status: CaseStatus): string[] {
   return [...SUGGESTIONS[status]]
 }
+
+/**
+ * Whether a counter-style "focus now" signal from the parent is a bump this component has not
+ * handled yet. A child that remounts starts with `handled` at the current value, so an old bump is
+ * not replayed (e.g. after saving, which remounts the editor, the phone keyboard would pop up again).
+ */
+export function isFreshSignal(handled: number, signal: number): boolean {
+  return signal > handled
+}
