@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { quickDueOptions } from '../../lib/deadlines'
 import { extractErrorMessage } from '../../lib/formError'
-import { isFreshSignal, nextActionSuggestions } from '../../lib/nextAction'
+import { nextActionSuggestions, pendingFocus, type FocusRequest } from '../../lib/nextAction'
 import type { CaseStatus } from '../../lib/status'
 import { saveNextAction } from '../../server/cases'
 
@@ -18,36 +18,58 @@ export function NextActionEditor({
   nextAction,
   nextActionDue,
   today,
-  focusSignal = 0,
+  focusRequest = { n: 0, target: 'field' },
+  onSaved,
 }: {
   id: string
   status: CaseStatus
   nextAction: string | null
   nextActionDue: string | null
   today: string
-  /** Bumped by the parent after the status advances: focus the field so the next step gets reviewed (SHIG 41, 77) */
-  focusSignal?: number
+  /** Bumped by the parent. After the status advances it asks for the field so the next step gets
+   * reviewed (SHIG 41, 77); after saving it asks for the save button so focus stays put (SHIG 94) */
+  focusRequest?: FocusRequest
+  /** Called after a successful save; the parent answers with a 'save' focus request */
+  onSaved?: () => void
 }) {
   const router = useRouter()
   const save = useServerFn(saveNextAction)
   const [saving, setSaving] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const saveRef = useRef<HTMLButtonElement>(null)
   // Mantine 9.6's DateInput handles values as 'YYYY-MM-DD' strings
   const form = useForm({
     initialValues: { nextAction: nextAction ?? '', nextActionDue: nextActionDue ?? '' },
   })
 
-  // The editor is keyed on its saved values and remounts after every save. Start from the current
-  // signal so a remount does not replay an old bump (focus + phone keyboard after pressing Save)
-  const handledSignal = useRef(focusSignal)
+  // Follow the saved values when they change from outside (e.g. postponed elsewhere) unless the owner
+  // is typing. The editor used to be remounted through a key instead, but a remount after every save
+  // threw away the focused save button and dropped focus to the page (SHIG 94)
   useEffect(() => {
-    if (!isFreshSignal(handledSignal.current, focusSignal)) return
-    handledSignal.current = focusSignal
+    if (form.isDirty()) return
+    const saved = { nextAction: nextAction ?? '', nextActionDue: nextActionDue ?? '' }
+    form.setValues(saved)
+    form.resetDirty(saved)
+    // `form` is left out of the deps on purpose: it is a new object on every render
+  }, [nextAction, nextActionDue])
+
+  // Start from the current request so a remount does not replay an old bump (focus + phone keyboard)
+  const handled = useRef(focusRequest.n)
+  // Runs after `saving` settles too: the button is disabled while loading and cannot take focus until then
+  useEffect(() => {
+    if (saving) return
+    const target = pendingFocus(handled.current, focusRequest)
+    if (!target) return
+    handled.current = focusRequest.n
+    if (target === 'save') {
+      saveRef.current?.focus()
+      return
+    }
     const input = inputRef.current
     if (!input) return
     input.scrollIntoView({ block: 'center', behavior: 'smooth' })
     input.focus({ preventScroll: true })
-  }, [focusSignal])
+  }, [focusRequest, saving])
 
   async function submit(v: { nextAction: string; nextActionDue: string }) {
     setSaving(true)
@@ -56,6 +78,7 @@ export function NextActionEditor({
       await router.invalidate()
       form.resetDirty(v)
       notifications.show({ message: '次の一手を保存しました' })
+      onSaved?.()
     } catch (e) {
       notifications.show({ message: extractErrorMessage(e), color: 'red' })
     } finally {
@@ -86,7 +109,7 @@ export function NextActionEditor({
             value={form.values.nextActionDue || null}
             onChange={(v) => form.setFieldValue('nextActionDue', v ?? '')}
           />
-          <Button type="submit" loading={saving}>
+          <Button type="submit" loading={saving} ref={saveRef}>
             保存
           </Button>
         </Group>

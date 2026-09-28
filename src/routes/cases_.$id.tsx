@@ -20,6 +20,7 @@ import { StatusChanger } from '../components/cases/StatusChanger'
 import { ROUTE_LABEL, TAX_BASIS_LABEL } from '../lib/enums'
 import { fitMark } from '../lib/compare'
 import { formatDateSlash, remoteSummary } from '../lib/format'
+import type { FocusRequest } from '../lib/nextAction'
 import { formatHourlyLines, formatRateLines } from '../lib/rate'
 import { deleteCaseFn, getCaseDetail } from '../server/cases'
 import { getSettingsData } from '../server/settings'
@@ -40,8 +41,11 @@ function Page() {
   const navigate = useNavigate()
   const remove = useServerFn(deleteCaseFn)
   const [editing, setEditing] = useState(false)
-  // Bumped when the status changes so the next-step field takes focus (SHIG 41)
-  const [focusNext, setFocusNext] = useState(0)
+  // Bumped when the status changes (next-step field takes focus, SHIG 41) and after the next step is
+  // saved (its save button keeps focus instead of dropping to the page, SHIG 94)
+  const [focusRequest, setFocusRequest] = useState<FocusRequest>({ n: 0, target: 'field' })
+  const requestFocus = (target: FocusRequest['target']) =>
+    setFocusRequest((r) => ({ n: r.n + 1, target }))
   const rateLines = formatRateLines(item.monthlyMaxIncl, item.monthlyMinIncl)
 
   async function handleDelete() {
@@ -84,18 +88,18 @@ function Page() {
       <Card withBorder padding="md">
         <Stack gap="md">
           <NextActionEditor
-            key={`${item.nextAction ?? ''}|${item.nextActionDue ?? ''}`}
             id={item.id}
             status={item.status}
             nextAction={item.nextAction}
             nextActionDue={item.nextActionDue}
             today={today}
-            focusSignal={focusNext}
+            focusRequest={focusRequest}
+            onSaved={() => requestFocus('save')}
           />
           <StatusChanger
             id={item.id}
             status={item.status}
-            onChanged={() => setFocusNext((n) => n + 1)}
+            onChanged={() => requestFocus('field')}
           />
         </Stack>
       </Card>

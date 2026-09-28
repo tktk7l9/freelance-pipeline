@@ -29,3 +29,22 @@ export function nextActionSuggestions(status: CaseStatus): string[] {
 export function isFreshSignal(handled: number, signal: number): boolean {
   return signal > handled
 }
+
+/** Where the next-step editor should put focus when the parent asks */
+export type FocusTarget = 'field' | 'save'
+
+/** A counter-style request from the parent: bump `n` to ask again */
+export interface FocusRequest {
+  n: number
+  target: FocusTarget
+}
+
+/**
+ * Which element to focus for a request, or null when there is nothing new to do.
+ * After a status change the field takes focus (SHIG 41); after saving, the save button does, because
+ * saving disables the button and remounts the editor, which would otherwise drop focus to the page
+ * and send keyboard and screen-reader users back to the top (SHIG 94).
+ */
+export function pendingFocus(handled: number, request: FocusRequest): FocusTarget | null {
+  return isFreshSignal(handled, request.n) ? request.target : null
+}
