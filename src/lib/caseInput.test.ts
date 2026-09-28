@@ -156,6 +156,16 @@ describe('parseCaseJson', () => {
       describeCaseIssue({ code: 'invalid_value', path: ['remoteType'], message: '', values: [1] }),
     ).toEqual({ path: 'remoteType', label: 'リモート', message: 'リモートは 1 のどれか' })
     expect(describeCaseIssue({ code: 'too_small', path: [], message: '' }).label).toBe('JSON')
+    expect(describeCaseIssue({ code: 'invalid_type', path: ['note'], message: '' }).message).toBe(
+      '判断メモの形が違います',
+    )
+    expect(
+      describeCaseIssue({ code: 'invalid_value', path: ['note'], message: '', values: ['a'] })
+        .message,
+    ).toBe('判断メモは a のどれか')
+    expect(describeCaseIssue({ code: 'invalid_value', path: ['route'], message: '' }).message).toBe(
+      '経路は  のどれか',
+    )
     expect(
       describeCaseIssue({ code: 'invalid_format', path: ['sourceUrl'], message: '' }).message,
     ).toBe('案件 URLの形が違います')
