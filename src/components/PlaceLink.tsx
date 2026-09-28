@@ -42,6 +42,7 @@ export function PlaceLink({
         size={size}
         underline="always"
         style={style}
+        className="hotspot"
         onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
@@ -67,6 +68,7 @@ export function PlaceLink({
       size={size}
       underline="always"
       style={style}
+      className="hotspot"
     >
       {icon}
       <span>{address}</span>

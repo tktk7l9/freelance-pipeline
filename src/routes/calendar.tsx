@@ -1,10 +1,21 @@
-import { Button, Group, Stack, Text } from '@mantine/core'
+import {
+  Badge,
+  Button,
+  Card,
+  Divider,
+  Group,
+  Stack,
+  Text,
+  Title,
+  UnstyledButton,
+} from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { Schedule } from '@mantine/schedule'
 import type { ScheduleEventData, ScheduleViewLevel } from '@mantine/schedule'
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
+import { Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { z } from 'zod'
 
@@ -12,10 +23,25 @@ import { EventForm } from '../components/calendar/EventForm'
 import { Fab } from '../components/Fab'
 import { FormDrawer } from '../components/FormDrawer'
 import { PageShell } from '../components/PageShell'
-import { dateKey, formatDateWithWeekday, toJstIso, visibleRange } from '../lib/calendar'
+import {
+  dateKey,
+  formatDateJa,
+  formatDateWithWeekday,
+  toJstIso,
+  visibleRange,
+} from '../lib/calendar'
+import { EVENT_KINDS, EVENT_KIND_LABEL } from '../lib/enums'
 import { formatDateSlash } from '../lib/format'
 import { holidayName } from '../lib/holidays'
-import { dueToScheduleEvents, toScheduleEvents, type CalendarPayload } from '../lib/scheduleEvents'
+import {
+  KIND_COLOR,
+  PAST_EVENT_COLOR,
+  dayListTimeLabel,
+  dueToScheduleEvents,
+  eventsOnDay,
+  toScheduleEvents,
+  type CalendarPayload,
+} from '../lib/scheduleEvents'
 import { SCHEDULE_LABELS_JA } from '../lib/scheduleLabels'
 import { deleteEvent, listEventsBetween, saveEvent } from '../server/events'
 import { splitStartsAt } from '../lib/calendar'
@@ -135,14 +161,38 @@ function Page() {
     )
   }
 
+  /** Day buttons are read as '2026年9月1日' instead of Mantine's English order (SHIG 94) */
   function dayProps(key: string) {
     const name = holidayName(key)
-    return name ? { style: { color: 'var(--mantine-color-red-6)' }, title: name } : {}
+    const label = formatDateJa(key)
+    return name
+      ? {
+          style: { color: 'var(--mantine-color-red-6)' },
+          title: name,
+          'aria-label': `${label} ${name}`,
+        }
+      : { 'aria-label': label }
   }
+
+  function goToday() {
+    navigate({
+      search: (s) => ({ ...s, m: todayKey.slice(0, 7), d: todayKey }),
+      replace: true,
+    })
+  }
+
+  // On phones a month cell fits one short title, so list the selected day's events below (SHIG 82, 28)
+  const dayEvents = eventsOnDay(scheduleEvents, selected)
 
   return (
     <PageShell title="予定" fab>
       <Stack gap="md">
+        {/* The Schedule header hides its "today" button on narrow screens; keep a way back (SHIG 60) */}
+        <Group hiddenFrom="sm" justify="flex-end">
+          <Button variant="default" size="xs" onClick={goToday}>
+            今日
+          </Button>
+        </Group>
         <Schedule
           date={date}
           onDateChange={(next) => {
@@ -180,10 +230,65 @@ function Page() {
             headerFormat: (d) => formatDateWithWeekday(dateKey(d)),
           }}
         />
-        <Group gap="sm" wrap="wrap">
-          <Legend color="var(--mantine-color-indigo-6)" label="自分の予定" />
-          <Legend color="var(--mantine-color-gray-5)" label="終わった予定" />
-          <Legend border label="案件の期日（クリックで案件へ）" />
+        {isMobile && view === 'month' ? (
+          <Card withBorder padding="sm">
+            <Stack gap="xs">
+              <Group justify="space-between" wrap="nowrap">
+                <Title order={2} size="h5">
+                  {formatDateWithWeekday(selected)}
+                </Title>
+                <Button variant="subtle" size="xs" onClick={() => setCreating(true)}>
+                  この日に追加
+                </Button>
+              </Group>
+              {dayEvents.length === 0 ? (
+                <Text size="sm" c="dimmed">
+                  予定はありません。日付を押すとその日の予定が出ます。
+                </Text>
+              ) : (
+                dayEvents.map((ev) => (
+                  <UnstyledButton
+                    key={String(ev.id)}
+                    onClick={() => handleEventClick(ev)}
+                    className="day-event"
+                  >
+                    <Group gap="xs" wrap="nowrap">
+                      <Badge
+                        variant={
+                          (ev.payload as CalendarPayload).kind === 'due' ? 'outline' : 'light'
+                        }
+                        color={ev.color ?? 'gray'}
+                        style={{ flexShrink: 0 }}
+                      >
+                        {dayListTimeLabel(ev)}
+                      </Badge>
+                      <Text
+                        size="sm"
+                        lineClamp={2}
+                        c={(ev.payload as CalendarPayload).past ? 'dimmed' : undefined}
+                      >
+                        {ev.title}
+                      </Text>
+                    </Group>
+                  </UnstyledButton>
+                ))
+              )}
+            </Stack>
+          </Card>
+        ) : null}
+        {/* The legend matches how events are actually colored: one color per kind (SHIG 96, 31) */}
+        <Group gap="xs" wrap="wrap" aria-label="色の見方">
+          {EVENT_KINDS.map((k) => (
+            <Badge key={k} variant="light" color={KIND_COLOR[k]} size="sm">
+              {EVENT_KIND_LABEL[k]}
+            </Badge>
+          ))}
+          <Badge variant="light" color={PAST_EVENT_COLOR} size="sm">
+            終わった予定
+          </Badge>
+          <Badge variant="outline" color="gray" size="sm">
+            案件の期日（押すと案件へ）
+          </Badge>
         </Group>
       </Stack>
 
@@ -200,33 +305,22 @@ function Page() {
         {editing ? (
           <Stack gap="md">
             <EventForm event={editing} caseOptions={caseOptions} onSaved={() => setEditing(null)} />
-            <Button color="red" variant="light" fullWidth onClick={() => handleDelete(editing)}>
-              削除
-            </Button>
+            {/* Kept away from "Save" behind a divider, and quiet: it can be undone (SHIG 16, 13, 54) */}
+            <Divider mt="xl" />
+            <Group justify="center">
+              <Button
+                color="red"
+                variant="subtle"
+                size="xs"
+                leftSection={<Trash2 size={14} aria-hidden />}
+                onClick={() => handleDelete(editing)}
+              >
+                この予定を削除
+              </Button>
+            </Group>
           </Stack>
         ) : null}
       </FormDrawer>
     </PageShell>
-  )
-}
-
-function Legend({ color, border, label }: { color?: string; border?: boolean; label: string }) {
-  return (
-    <Group gap={6} wrap="nowrap">
-      <span
-        aria-hidden
-        style={{
-          width: 10,
-          height: 10,
-          borderRadius: 2,
-          display: 'inline-block',
-          backgroundColor: color,
-          border: border ? '1px solid var(--mantine-color-gray-6)' : undefined,
-        }}
-      />
-      <Text size="xs" c="dimmed">
-        {label}
-      </Text>
-    </Group>
   )
 }

@@ -1,8 +1,15 @@
 import { z } from 'zod'
 
-import { REMOTE_TYPES, ROUTES, TAX_BASES } from './enums.ts'
+import {
+  REMOTE_LABEL,
+  REMOTE_TYPES,
+  ROUTE_LABEL,
+  ROUTES,
+  TAX_BASES,
+  TAX_BASIS_LABEL,
+} from './enums.ts'
 import { toIncl } from './rate.ts'
-import { CASE_STATUSES } from './status.ts'
+import { CASE_STATUSES, STATUS_LABEL } from './status.ts'
 
 /**
  * Contract for the JSON Claude Code writes. scripts/add-case.ts and the /import form use the same one.
@@ -124,7 +131,114 @@ export function toCaseRow(input: CaseInput): CaseRowValues {
   }
 }
 
-export type CaseJsonIssue = { path: string; message: string }
+/** `path` is the raw key path (for scripts); `label` and `message` are for people (Japanese) */
+export type CaseJsonIssue = { path: string; label: string; message: string }
+
+/** Japanese names of the JSON keys, matching the labels of the case form */
+const FIELD_LABEL: Record<string, string> = {
+  company: '企業名',
+  companyUrl: '会社の公式サイト',
+  title: '案件名',
+  route: '経路',
+  agentName: '担当エージェント',
+  monthlyMax: '単価上限',
+  monthlyMin: '単価下限',
+  taxBasis: '税込/税抜',
+  settlementMinH: '精算 下限',
+  settlementMaxH: '精算 上限',
+  remoteType: 'リモート',
+  onsiteNote: '出社の実態',
+  startDate: '開始',
+  endDate: '終了',
+  daysPerWeek: '稼働',
+  workLocation: '作業場所',
+  supplyChain: '商流',
+  paymentSiteDays: '支払サイト',
+  sourceUrl: '案件 URL',
+  mustSkills: '必須スキル',
+  niceSkills: '歓迎スキル',
+  rawText: '原文',
+  status: '状態',
+  nextAction: '次の一手',
+  nextActionDue: '期日',
+  fitScores: '軸の点数',
+  actualMonthlyIncl: '実単価',
+  note: '判断メモ',
+}
+
+/** Labels for enum values, so "one of" can name the choices in both the JSON form and words */
+const VALUE_LABEL: Record<string, Record<string, string>> = {
+  route: ROUTE_LABEL,
+  taxBasis: TAX_BASIS_LABEL,
+  remoteType: REMOTE_LABEL,
+  status: STATUS_LABEL,
+}
+
+const DATE_FORMAT_HINT: Record<string, string> = {
+  startDate: '2030-11 か 2030-11-16',
+  endDate: '2030-11 か 2030-11-16',
+  nextActionDue: '2030-11-16',
+}
+
+const EXPECTED_HINT: Record<string, string> = {
+  number: '数値で入れる',
+  string: '文字で入れる',
+  array: '配列で入れる',
+}
+
+const JAPANESE_CHAR = /[぀-ヿ㐀-鿿]/
+
+/** The subset of a zod issue this reads (zod's default messages are English and not shown) */
+export type RawCaseIssue = {
+  code: string
+  path: readonly PropertyKey[]
+  message: string
+  expected?: string
+  values?: readonly unknown[]
+  origin?: string
+  minimum?: number | bigint
+  maximum?: number | bigint
+}
+
+/**
+ * Turns a zod issue into a Japanese sentence that says which field and how to fix it
+ * (SHIG 55: constructive errors, 11: the user's words).
+ */
+export function describeCaseIssue(issue: RawCaseIssue): CaseJsonIssue {
+  const path = issue.path.map(String).join('.')
+  const key = issue.path.length > 0 ? String(issue.path[0]) : ''
+  const label = key === '' ? 'JSON' : (FIELD_LABEL[key] ?? key)
+  const say = (message: string) => ({ path, label, message })
+  if (JAPANESE_CHAR.test(issue.message)) return say(issue.message)
+  switch (issue.code) {
+    case 'invalid_type': {
+      if (/received undefined/.test(issue.message)) return say(`${label}がありません`)
+      const hint = issue.expected ? EXPECTED_HINT[issue.expected] : undefined
+      return say(hint ? `${label}の形が違います（${hint}）` : `${label}の形が違います`)
+    }
+    case 'invalid_value': {
+      const names = VALUE_LABEL[key] ?? {}
+      const choices = (issue.values ?? []).map((v) => {
+        const name = typeof v === 'string' ? names[v] : undefined
+        return name ? `${String(v)}（${name}）` : String(v)
+      })
+      return say(`${label}は ${choices.join('／')} のどれか`)
+    }
+    case 'too_small':
+      if (issue.origin === 'string') return say(`${label}が空です`)
+      if (issue.minimum !== undefined) return say(`${label}は ${issue.minimum} 以上`)
+      break
+    case 'too_big':
+      if (issue.origin === 'string') return say(`${label}が長すぎます（${issue.maximum} 文字まで）`)
+      if (issue.origin === 'array') return say(`${label}が多すぎます（${issue.maximum} 個まで）`)
+      return say(`${label}は ${issue.maximum} 以下`)
+    case 'invalid_format': {
+      const hint = DATE_FORMAT_HINT[key]
+      return say(hint ? `${label}は ${hint} の形で` : `${label}の形が違います`)
+    }
+  }
+  return say(`${label}: 内容を確認してください`)
+}
 
 export function parseCaseJson(
   text: string,
@@ -133,13 +247,13 @@ export function parseCaseJson(
   try {
     json = JSON.parse(text)
   } catch {
-    return { ok: false, issues: [{ path: '', message: 'JSON として読めません' }] }
+    return { ok: false, issues: [{ path: '', label: 'JSON', message: 'JSON として読めません' }] }
   }
   const result = caseInputSchema.safeParse(json)
   if (result.success) return { ok: true, input: result.data }
   return {
     ok: false,
-    issues: result.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+    issues: result.error.issues.map((i) => describeCaseIssue(i as RawCaseIssue)),
   }
 }
 

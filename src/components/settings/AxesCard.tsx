@@ -71,7 +71,7 @@ export function AxesCard({
           <Group gap="xs">
             {value.length === 0 ? (
               <Text size="sm" c="dimmed">
-                —
+                未設定
               </Text>
             ) : (
               value.map((a) => (

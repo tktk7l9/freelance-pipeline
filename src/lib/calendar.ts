@@ -80,3 +80,10 @@ export function formatEventTime(e: {
   const end = e.endsAt ? splitStartsAt(e.endsAt).time : null
   return end ? `${start}–${end}` : start
 }
+
+/** '2026-09-01' (or a 'YYYY-MM-DD HH:mm:ss' stamp) → '2026年9月1日' for screen readers. Unreadable strings are returned as is */
+export function formatDateJa(key: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(key)
+  if (!m) return key
+  return `${Number(m[1])}年${Number(m[2])}月${Number(m[3])}日`
+}

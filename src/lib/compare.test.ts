@@ -103,7 +103,10 @@ describe('compare', () => {
     expect(row('hourly').cells[1].bad).toBe(true)
     expect(row('start').cells.map((c) => c.bad)).toEqual([false, true])
     expect(row('onsite').cells.map((c) => c.bad)).toEqual([false, true])
-    expect(row('axis:0').cells.map((c) => c.text)).toEqual(['合う', '—'])
+    // Unscored axes stay empty instead of a dash (SHIG 1)
+    expect(row('axis:0').cells.map((c) => c.text)).toEqual(['合う', ''])
+    // Dates use the same slash format as the rest of the app (SHIG 6)
+    expect(row('start').cells[0].text).toBe(a.startDate.replace(/-/g, '/'))
     expect(rows.map((r) => r.key)).toEqual([
       'rate',
       'hourly',
@@ -139,7 +142,7 @@ describe('compare', () => {
     const row = (key: string) => rows.find((r) => r.key === key)!
     expect(row('rate').cells[0].text).toBe('120万〜132万')
     expect(row('paymentSite').cells[0].text).toBe('30日')
-    expect(row('must').cells[0].text).toBe('—')
+    expect(row('must').cells[0].text).toBe('')
     expect(row('nice').cells[0].text).toBe('React')
   })
 
@@ -150,6 +153,26 @@ describe('compare', () => {
     }
     const rows = buildCompareRows([c], DEFAULT_THRESHOLDS, [])
     const row = (key: string) => rows.find((r) => r.key === key)!
-    expect(row('onsite').cells[0].text).toBe('—')
+    expect(row('onsite').cells[0].text).toBe('')
+    expect(row('days').cells[0].text).toBe(c.daysPerWeek ?? '')
+  })
+
+  it('空の項目は空のセル（— を並べない, SHIG 1）', () => {
+    const c: CompareCase = {
+      ...a,
+      settlementMinH: null,
+      settlementMaxH: null,
+      daysPerWeek: null,
+      supplyChain: null,
+      paymentSiteDays: null,
+    }
+    const rows = buildCompareRows([c], DEFAULT_THRESHOLDS, [])
+    const text = (key: string) => rows.find((r) => r.key === key)!.cells[0].text
+    expect(text('settlement')).toBe('')
+    expect(text('days')).toBe('')
+    expect(text('supplyChain')).toBe('')
+    expect(text('paymentSite')).toBe('')
+    const half = buildCompareRows([{ ...c, settlementMinH: 140 }], DEFAULT_THRESHOLDS, [])
+    expect(half.find((r) => r.key === 'settlement')!.cells[0].text).toBe('140〜h')
   })
 })

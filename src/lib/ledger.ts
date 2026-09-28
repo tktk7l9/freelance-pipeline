@@ -1,4 +1,5 @@
-import { LEDGER_DIRECTION, type LedgerKind } from './enums'
+import { LEDGER_DIRECTION, LEDGER_KIND_LABEL, type LedgerKind } from './enums'
+import { formatDateSlash } from './format'
 import { toExcl } from './rate'
 
 /** One ledger row (only the columns needed for aggregation) */
@@ -124,6 +125,22 @@ export function monthlyBreakdown(
       forecastOfficer: forecast?.get(key)?.officer ?? 0,
     }
   })
+}
+
+/**
+ * Drops the empty months before the first month with a record or a forecast. A year that starts in
+ * July would otherwise open with six rows of dashes (SHIG 1, 28). Returns [] if every month is empty.
+ */
+export function trimLeadingEmptyMonths(months: readonly MonthRow[]): MonthRow[] {
+  const first = months.findIndex(
+    (m) => m.income > 0 || m.outgo > 0 || m.forecastFreelance > 0 || m.forecastOfficer > 0,
+  )
+  return first < 0 ? [] : months.slice(first)
+}
+
+/** '2026/08 社会保険料': names one ledger row, e.g. in the edit drawer's title (SHIG 59) */
+export function ledgerEntryName(entry: { yearMonth: string; kind: LedgerKind }): string {
+  return `${formatDateSlash(entry.yearMonth)} ${LEDGER_KIND_LABEL[entry.kind]}`
 }
 
 /** Year over year (%). null if the previous year is 0 */

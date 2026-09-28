@@ -12,6 +12,7 @@ import { splitStartsAt } from '../../lib/calendar'
 import { extractErrorMessage } from '../../lib/formError'
 import { EVENT_KINDS, EVENT_KIND_LABEL } from '../../lib/enums'
 import { saveEvent, type EventInput } from '../../server/events'
+import { useReportDirty } from '../FormDrawer'
 
 type Values = Omit<EventInput, 'id'>
 export type CaseOption = { id: string; label: string }
@@ -58,6 +59,9 @@ export function EventForm({
       startTime: (v, values) => (!values.allDay && !v ? '開始時刻を入れてください' : null),
     },
   })
+
+  // Closing the drawer with unsaved input asks first (SHIG 38)
+  useReportDirty(form.isDirty())
 
   async function submit(values: Values) {
     setSaving(true)

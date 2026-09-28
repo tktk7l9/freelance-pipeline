@@ -1,7 +1,8 @@
-import { Button, Chip, Group, Stack } from '@mantine/core'
+import { Button, Chip, Divider, Group, Stack } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
+import { Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
 
@@ -18,12 +19,14 @@ import { showUndo } from '../components/undoNotification'
 import type { LedgerRow } from '../db/schema'
 import {
   forecastMonths,
+  ledgerEntryName,
   forecastYear,
   latestOfficerMonthly,
   monthlyBreakdown,
   rateChanges,
   rateHistory,
   summarizeYear,
+  trimLeadingEmptyMonths,
   yearOf,
   yearsOf,
 } from '../lib/ledger'
@@ -60,8 +63,9 @@ function Page() {
         : new Map<string, never>(),
     [rows, year, thisYear, todayYm, joined, officerMonthly],
   )
+  // Months before the first record or forecast are left out instead of a column of dashes (SHIG 1, 28)
   const months = useMemo(
-    () => monthlyBreakdown(rows, year, forecastByMonth),
+    () => trimLeadingEmptyMonths(monthlyBreakdown(rows, year, forecastByMonth)),
     [rows, year, forecastByMonth],
   )
   const forecast =
@@ -105,23 +109,26 @@ function Page() {
   return (
     <PageShell title="収入" fab>
       <Stack gap="lg">
-        <Chip.Group
-          value={String(year)}
-          onChange={(v) => navigate({ search: { y: Number(v) }, replace: true })}
-        >
-          <Group gap="xs">
-            {years.map((yr) => (
-              <Chip key={yr} value={String(yr)}>
-                {yr}年
-              </Chip>
-            ))}
-          </Group>
-        </Chip.Group>
+        {/* A single year is not a choice; show the switch only when there is one (SHIG 1, 36) */}
+        {years.length >= 2 ? (
+          <Chip.Group
+            value={String(year)}
+            onChange={(v) => navigate({ search: { y: Number(v) }, replace: true })}
+          >
+            <Group gap="xs">
+              {years.map((yr) => (
+                <Chip key={yr} value={String(yr)}>
+                  {yr}年
+                </Chip>
+              ))}
+            </Group>
+          </Chip.Group>
+        ) : null}
         {inYear.length === 0 ? (
           <EmptyState
             emoji="💴"
             title={`${year}年の記録はまだありません`}
-            description="右下の「収入を追加」から、請求・入金・納付を年月ごとに入れます。"
+            description="右下の「記録を追加」から、請求・入金・納付を年月ごとに入れます。"
           />
         ) : (
           <>
@@ -138,7 +145,8 @@ function Page() {
         )}
       </Stack>
 
-      <Fab label="収入を追加" onClick={() => setCreating(true)} />
+      {/* Income, taxes and expenses all go in here, so the button says "record", matching the drawer (SHIG 11, 6) */}
+      <Fab label="記録を追加" onClick={() => setCreating(true)} />
       <FormDrawer opened={creating} onClose={() => setCreating(false)} title="収入・支出を追加">
         <LedgerForm
           entry={null}
@@ -147,7 +155,11 @@ function Page() {
           onSaved={() => setCreating(false)}
         />
       </FormDrawer>
-      <FormDrawer opened={editing !== null} onClose={() => setEditing(null)} title="編集">
+      <FormDrawer
+        opened={editing !== null}
+        onClose={() => setEditing(null)}
+        title={editing ? `${ledgerEntryName(editing)} を編集` : '編集'}
+      >
         {editing ? (
           <Stack gap="md">
             <LedgerForm
@@ -155,9 +167,19 @@ function Page() {
               caseOptions={caseOptions}
               onSaved={() => setEditing(null)}
             />
-            <Button color="red" variant="subtle" fullWidth onClick={() => handleDelete(editing)}>
-              この行を削除
-            </Button>
+            {/* Kept away from "Save" behind a divider (SHIG 16, 13); it can be undone (54) */}
+            <Divider mt="xl" />
+            <Group justify="center">
+              <Button
+                color="red"
+                variant="subtle"
+                size="xs"
+                leftSection={<Trash2 size={14} aria-hidden />}
+                onClick={() => handleDelete(editing)}
+              >
+                この行を削除
+              </Button>
+            </Group>
           </Stack>
         ) : null}
       </FormDrawer>

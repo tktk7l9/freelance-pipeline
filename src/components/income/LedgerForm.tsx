@@ -11,6 +11,7 @@ import { LEDGER_DIRECTION, LEDGER_KINDS, LEDGER_KIND_LABEL, type LedgerKind } fr
 import { extractErrorMessage } from '../../lib/formError'
 import { saveLedgerEntry } from '../../server/ledger'
 import type { CaseOption } from '../calendar/EventForm'
+import { useReportDirty } from '../FormDrawer'
 
 type Num = number | ''
 type Values = {
@@ -77,6 +78,9 @@ export function LedgerForm({
       amount: (v) => (v === '' ? '金額を入れてください' : null),
     },
   })
+
+  // Closing the drawer with unsaved input asks first (SHIG 38)
+  useReportDirty(form.isDirty())
 
   async function submit(v: Values) {
     setSaving(true)

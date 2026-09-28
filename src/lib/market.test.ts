@@ -4,6 +4,7 @@ import {
   ageBandOf,
   ageOn,
   binColor,
+  binTextColor,
   binFor,
   binLabel,
   marketDataSchema,
@@ -102,6 +103,18 @@ describe('binLabel / binColor / schema', () => {
     expect(binLabel(1_200_000)).toBe('〜120万')
     expect(binColor(900_000)).toContain('indigo')
     expect(binColor(1_300_000)).toContain('gray-4')
+  })
+  it('色は 1 色の濃淡で、単価が上がるほど濃い（順序が色で読める, SHIG 96）', () => {
+    expect(binColor(200_000)).toBe('var(--mantine-color-indigo-0)')
+    expect(binColor(700_000)).toBe('var(--mantine-color-indigo-5)')
+    expect(binColor(1_100_000)).toBe('var(--mantine-color-indigo-9)')
+    expect(binColor(1_200_000)).toBe('var(--mantine-color-violet-9)')
+  })
+  it('文字色は薄い帯では暗く、濃い帯では白', () => {
+    expect(binTextColor(200_000)).toBe('var(--mantine-color-dark-9)')
+    expect(binTextColor(600_000)).toBe('var(--mantine-color-dark-9)')
+    expect(binTextColor(700_000)).toBe('#fff')
+    expect(binTextColor(1_300_000)).toBe('var(--mantine-color-dark-9)')
   })
   it('スキーマは形の崩れた JSON を弾く', () => {
     const ok = marketDataSchema.safeParse({

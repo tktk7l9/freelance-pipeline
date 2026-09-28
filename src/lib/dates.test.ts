@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { parseDateInput, parseMonthOrDateInput } from './dates'
+import { parseDateInput, parseMonthInput, parseMonthOrDateInput } from './dates'
 
 describe('parseDateInput', () => {
   it('保存する形はそのまま通す', () => {
@@ -83,5 +83,19 @@ describe('parseMonthOrDateInput', () => {
     expect(parseMonthOrDateInput('来月')).toBeNull()
     expect(parseMonthOrDateInput('')).toBeNull()
     expect(parseMonthOrDateInput(null)).toBeNull()
+  })
+})
+
+describe('parseMonthInput', () => {
+  it('年月を / でも - でも全角でも受け、YYYY-MM にそろえる（SHIG 50）', () => {
+    expect(parseMonthInput('2030/11')).toBe('2030-11')
+    expect(parseMonthInput('２０３０／１１')).toBe('2030-11')
+    expect(parseMonthInput('2030-11')).toBe('2030-11')
+    expect(parseMonthInput('2030年1月')).toBe('2030-01')
+  })
+  it('日付まで入れたら月に丸める・読めなければ null', () => {
+    expect(parseMonthInput('2030/11/16')).toBe('2030-11')
+    expect(parseMonthInput('来月')).toBeNull()
+    expect(parseMonthInput('')).toBeNull()
   })
 })

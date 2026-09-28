@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   forecastMonths,
+  ledgerEntryName,
+  trimLeadingEmptyMonths,
   forecastYear,
   joinedMonthlyFor,
   latestOfficerMonthly,
@@ -181,5 +183,32 @@ describe('rateHistory / rateChanges', () => {
       { id: 'b', yearMonth: '2030-02', kind: 'freelance', amount: 900 },
     ])
     expect(h.every((p) => !p.partial)).toBe(true)
+  })
+})
+
+describe('trimLeadingEmptyMonths', () => {
+  it('最初に記録か見込みのある月より前の空の月を落とす（SHIG 1, 28）', () => {
+    const rows = [{ id: 'a', yearMonth: '2030-07', kind: 'freelance' as const, amount: 100 }]
+    const months = monthlyBreakdown(rows, 2030)
+    expect(trimLeadingEmptyMonths(months).map((m) => m.month)).toEqual([7, 8, 9, 10, 11, 12])
+    const withForecast = monthlyBreakdown(
+      rows,
+      2030,
+      new Map([['2030-05', { freelance: 10, officer: 0 }]]),
+    )
+    expect(trimLeadingEmptyMonths(withForecast)[0].month).toBe(5)
+  })
+  it('支出だけの月も記録のある月とみなす・全部空なら空配列', () => {
+    const rows = [{ id: 'a', yearMonth: '2030-03', kind: 'income_tax' as const, amount: 5 }]
+    expect(trimLeadingEmptyMonths(monthlyBreakdown(rows, 2030))[0].month).toBe(3)
+    expect(trimLeadingEmptyMonths(monthlyBreakdown([], 2030))).toEqual([])
+  })
+})
+
+describe('ledgerEntryName', () => {
+  it('「年月 種別」でどの行かを言う（SHIG 59）', () => {
+    expect(ledgerEntryName({ yearMonth: '2030-08', kind: 'social_insurance' })).toBe(
+      '2030/08 社会保険料',
+    )
   })
 })

@@ -37,6 +37,23 @@ a:focus-visible {
   border-radius: inherit;
 }
 
+/* Small inline links (company name, map, "open") keep their layout but get a larger invisible hit
+   area around them, so the target reaches about 7mm (SHIG 78, 93) */
+.hotspot {
+  position: relative;
+}
+.hotspot::after {
+  content: '';
+  position: absolute;
+  inset: -6px -4px;
+}
+/* A one-line link that should be tappable across its row */
+.row-link {
+  display: inline-block;
+  padding-block: 4px;
+  min-height: 28px;
+}
+
 /* Keep long URLs and raw text from breaking out of their frame */
 .breakable {
   overflow-wrap: anywhere;
@@ -85,6 +102,10 @@ a:focus-visible {
 .case-table :where(th, td):first-child,
 .case-table :where(th, td):last-child {
   white-space: normal;
+}
+/* The case name gets the room it needs instead of being cut at "テスト案件B（バック…" (SHIG 28) */
+.case-table :where(th, td):first-child {
+  min-width: 260px;
 }
 
 /* Compare table: pin the first column */
@@ -269,7 +290,8 @@ body {
 }
 
 /*
- * "Rate share by age" in Compare › Market. Read via per-band colors plus numbers (8% and up) and an outline on my band.
+ * "Rate share by age" in Compare › Market. One hue, darker for higher bands, plus numbers (8% and up), an
+ * outline on my band, and my age band's breakdown in text. The text color comes from binTextColor.
  */
 .market-bar {
   display: flex;
@@ -283,12 +305,10 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #fff;
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
-  text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
 }
 .market-bar > span.is-mine {
   outline: 3px solid var(--mantine-color-yellow-4);
@@ -324,4 +344,26 @@ body {
     var(--mantine-color-indigo-3) 0 3px,
     var(--mantine-color-gray-1) 3px 6px
   );
+}
+
+/* Notifications sit at the bottom. On phones, lift them above the tab bar (56px) and the FAB so the
+   "Undo" button stays near where the thumb already is (SHIG 66) */
+@media (max-width: 47.99em) {
+  /* Only the bottom container: Mantine renders one per position, and moving the top ones' bottom edge
+     would stretch them into an invisible layer over the page */
+  .fp-notifications[data-position='bottom-center'] {
+    bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Rows of the selected day's events on phones: the whole row is the target, at least 7mm tall (SHIG 78, 93) */
+.day-event {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 0;
+  border-radius: var(--mantine-radius-sm);
+}
+.day-event:hover {
+  background: var(--mantine-color-default-hover);
 }

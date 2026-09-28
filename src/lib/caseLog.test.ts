@@ -16,10 +16,19 @@ describe('caseLog', () => {
       }),
     ).toBe('応募 → 商談')
   })
-  it('取込・メモは本文', () => {
-    expect(
-      describeLog({ ...base, at: '2030-01-01T00:00:00Z', kind: 'import', body: 'add-case' }),
-    ).toBe('取込: add-case')
+  it('取込は実装の語（add-case など）を出さず、何が起きたかを 1 文で言う（SHIG 1, 11）', () => {
+    const imp = (body: string) =>
+      describeLog({ ...base, at: '2030-01-01T00:00:00Z', kind: 'import', body })
+    expect(imp('add-case')).toBe('案件票を取り込んだ')
+    expect(imp('取込')).toBe('案件票を取り込んだ')
+    expect(imp('取込フォーム')).toBe('案件票を取り込んだ')
+    expect(imp('')).toBe('案件票を取り込んだ')
+    expect(imp('add-case --update')).toBe('案件票を取り込み直した')
+    expect(imp('フォーム')).toBe('案件を登録した')
+    expect(imp('import-history')).toBe('過去の記録から取り込んだ')
+    expect(imp('手入力の補足')).toBe('案件票を取り込んだ（手入力の補足）')
+  })
+  it('メモは本文', () => {
     expect(
       describeLog({ ...base, at: '2030-01-01T00:00:00Z', kind: 'memo', body: '面談日程' }),
     ).toBe('面談日程')

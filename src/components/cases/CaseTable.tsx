@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 
 import { DUE_COLOR, dueLabel, dueState } from '../../lib/deadlines'
 import { REMOTE_LABEL, ROUTE_LABEL } from '../../lib/enums'
-import { formatDateSlash } from '../../lib/format'
+import { distinctOnsiteNote, formatDateSlash } from '../../lib/format'
 import { formatHourlyLines, formatRateLines } from '../../lib/rate'
 import type { CaseListItem } from '../../server/cases'
 import { RateLines } from './RateLines'
@@ -40,7 +40,7 @@ export function CaseTable({
             <Table.Tr key={c.id}>
               <Table.Td>
                 <Link to="/cases/$id" params={{ id: c.id }}>
-                  <Text fw={600} lineClamp={1}>
+                  <Text fw={600} lineClamp={2}>
                     {c.title}
                   </Text>
                 </Link>
@@ -57,9 +57,9 @@ export function CaseTable({
               </Table.Td>
               <Table.Td>
                 {REMOTE_LABEL[c.remoteType]}
-                {c.onsiteNote ? (
+                {distinctOnsiteNote(c.remoteType, c.onsiteNote) ? (
                   <Text size="xs" c="dimmed">
-                    {c.onsiteNote}
+                    {distinctOnsiteNote(c.remoteType, c.onsiteNote)}
                   </Text>
                 ) : null}
               </Table.Td>

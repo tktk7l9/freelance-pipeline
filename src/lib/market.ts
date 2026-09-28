@@ -148,20 +148,32 @@ export function binLabel(bin: number): string {
   return `〜${(bin / 10_000).toLocaleString('ja-JP')}万`
 }
 
-/** Color of a rate band (fixed by the band's upper bound = the same band has the same color across skills) */
+/**
+ * Shade of a rate band on one hue: light for low bands, dark for high ones, so the order reads from
+ * the color itself (SHIG 96). Fixed by the band's upper bound = the same band has the same color across skills.
+ */
+const BIN_SHADE: Record<number, string> = {
+  200_000: 'indigo-0',
+  300_000: 'indigo-1',
+  400_000: 'indigo-2',
+  500_000: 'indigo-3',
+  600_000: 'indigo-4',
+  700_000: 'indigo-5',
+  800_000: 'indigo-6',
+  900_000: 'indigo-7',
+  1_000_000: 'indigo-8',
+  1_100_000: 'indigo-9',
+  1_200_000: 'violet-9',
+}
+
 export function binColor(bin: number): string {
-  const table: Record<number, string> = {
-    200_000: 'var(--mantine-color-red-3)',
-    300_000: 'var(--mantine-color-red-6)',
-    400_000: 'var(--mantine-color-orange-6)',
-    500_000: 'var(--mantine-color-yellow-6)',
-    600_000: 'var(--mantine-color-lime-6)',
-    700_000: 'var(--mantine-color-teal-5)',
-    800_000: 'var(--mantine-color-teal-9)',
-    900_000: 'var(--mantine-color-indigo-7)',
-    1_000_000: 'var(--mantine-color-violet-6)',
-    1_100_000: 'var(--mantine-color-gray-6)',
-    1_200_000: 'var(--mantine-color-blue-2)',
-  }
-  return table[bin] ?? 'var(--mantine-color-gray-4)'
+  const shade = BIN_SHADE[bin]
+  return shade ? `var(--mantine-color-${shade})` : 'var(--mantine-color-gray-4)'
+}
+
+/** Text color that stays readable on binColor(bin): dark on the light shades (0–4), white on the rest */
+export function binTextColor(bin: number): string {
+  const shade = BIN_SHADE[bin]
+  const level = shade ? Number(shade.slice(-1)) : 0
+  return level >= 5 ? '#fff' : 'var(--mantine-color-dark-9)'
 }

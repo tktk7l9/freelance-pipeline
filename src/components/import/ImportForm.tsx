@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Code, Stack, Text, Textarea } from '@mantine/core'
+import { Alert, Button, Card, Stack, Text, Textarea } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { Link } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
@@ -7,8 +7,8 @@ import { useMemo, useState } from 'react'
 import { Row } from '../DetailRow'
 import { RateLines } from '../cases/RateLines'
 import { CASE_JSON_EXAMPLE, parseCaseJson, toCaseRow } from '../../lib/caseInput'
-import { REMOTE_LABEL, ROUTE_LABEL } from '../../lib/enums'
-import { formatDateSlash } from '../../lib/format'
+import { ROUTE_LABEL } from '../../lib/enums'
+import { formatDateSlash, remoteSummary } from '../../lib/format'
 import { formatRateLines } from '../../lib/rate'
 import { importCase } from '../../server/cases'
 
@@ -60,11 +60,12 @@ export function ImportForm({ onSaved }: { onSaved: (id: string) => void }) {
         onChange={(e) => setJson(e.currentTarget.value)}
       />
       {parsed && !parsed.ok ? (
-        <Alert color="red" title="検証エラー">
+        <Alert color="red" title="直すところがあります">
+          {/* Field names in Japanese and how to fix them, not zod's English (SHIG 55, 11) */}
           <Stack gap={2}>
             {parsed.issues.map((i, n) => (
               <Text key={n} size="sm">
-                <Code>{i.path || '(root)'}</Code> {i.message}
+                {i.message}
               </Text>
             ))}
           </Stack>
@@ -87,12 +88,9 @@ export function ImportForm({ onSaved }: { onSaved: (id: string) => void }) {
                 ) : null
               }
             />
-            <Row
-              label="リモート"
-              value={`${REMOTE_LABEL[preview.remoteType]}${preview.onsiteNote ? `（${preview.onsiteNote}）` : ''}`}
-            />
+            <Row label="リモート" value={remoteSummary(preview.remoteType, preview.onsiteNote)} />
             <Row label="開始" value={formatDateSlash(preview.startDate)} />
-            <Row label="必須" value={preview.mustSkills.join('、') || '—'} />
+            <Row label="必須" value={preview.mustSkills.join('、')} />
             <Row label="原文" value={`${preview.rawText.length.toLocaleString('ja-JP')} 文字`} />
           </Stack>
         </Card>

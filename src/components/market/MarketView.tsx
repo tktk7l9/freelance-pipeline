@@ -7,6 +7,7 @@ import {
   ageBandOf,
   ageOn,
   binColor,
+  binTextColor,
   binFor,
   binLabel,
   positionInBand,
@@ -231,8 +232,8 @@ function AgeRateBars({
       <Stack gap="sm">
         <Title order={3}>年齢別の単価割合</Title>
         <Text size="xs" c="dimmed">
-          各年齢帯の技術者を単価 10 万円ごとに分けた割合。自分の帯は ▼ と太字。数字の無い細い帯は
-          元の画面で読めなかったぶん。
+          各年齢帯の技術者を単価 10 万円ごとに分けた割合。色は単価が高いほど濃い。自分の年齢帯は ▼
+          と太字で、内訳を文字でも出す。
         </Text>
         <Stack gap={10}>
           {rows.map((row) => {
@@ -260,13 +261,24 @@ function AgeRateBars({
                     <span
                       key={c.bin}
                       className={mine && c.bin === myBin ? 'is-mine' : undefined}
-                      style={{ width: `${(c.pct / total) * 100}%`, background: binColor(c.bin) }}
+                      style={{
+                        width: `${(c.pct / total) * 100}%`,
+                        background: binColor(c.bin),
+                        color: binTextColor(c.bin),
+                      }}
                       title={`${binLabel(c.bin)} ${c.pct}%`}
                     >
                       {c.pct >= 8 ? `${c.pct}%` : ''}
                     </span>
                   ))}
                 </div>
+                {/* My band is also spelled out in text: thin bands have no number, and a
+                    title tooltip does not show on phones (SHIG 96) */}
+                {mine ? (
+                  <Text size="xs">
+                    {row.cells.map((c) => `${binLabel(c.bin)} ${c.pct}%`).join('・')}
+                  </Text>
+                ) : null}
               </Stack>
             )
           })}

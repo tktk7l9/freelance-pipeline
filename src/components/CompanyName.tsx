@@ -43,6 +43,7 @@ export function CompanyName({
         c={c}
         underline="always"
         style={style}
+        className="hotspot"
         onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
@@ -69,6 +70,7 @@ export function CompanyName({
       c={c}
       underline="always"
       style={style}
+      className="hotspot"
       onClick={(e) => e.stopPropagation()}
     >
       {name}

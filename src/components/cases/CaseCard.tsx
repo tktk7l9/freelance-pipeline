@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 
 import { DUE_COLOR, dueLabel, dueState } from '../../lib/deadlines'
 import { REMOTE_LABEL, ROUTE_LABEL } from '../../lib/enums'
-import { formatDateSlash } from '../../lib/format'
+import { distinctOnsiteNote, formatDateSlash } from '../../lib/format'
 import { formatHourlyLines, formatRateLines } from '../../lib/rate'
 import type { CaseListItem } from '../../server/cases'
 import { RateLines } from './RateLines'
@@ -40,7 +40,12 @@ export function CaseCard({
           </Group>
           <Group gap="xs">
             <Badge variant="default">{REMOTE_LABEL[item.remoteType]}</Badge>
-            {item.onsiteNote ? <Badge variant="default">{item.onsiteNote}</Badge> : null}
+            {/* Skip the note when it only repeats the remote label (常駐 常駐, SHIG 1) */}
+            {distinctOnsiteNote(item.remoteType, item.onsiteNote) ? (
+              <Badge variant="default">
+                {distinctOnsiteNote(item.remoteType, item.onsiteNote)}
+              </Badge>
+            ) : null}
             <Badge variant="default">開始 {formatDateSlash(item.startDate)}</Badge>
             {item.daysPerWeek ? <Badge variant="default">{item.daysPerWeek}</Badge> : null}
           </Group>
