@@ -37,6 +37,23 @@ a:focus-visible {
   border-radius: inherit;
 }
 
+/* Small inline links (company name, map, "open") keep their layout but get a larger invisible hit
+   area around them, so the target reaches about 7mm (SHIG 78, 93) */
+.hotspot {
+  position: relative;
+}
+.hotspot::after {
+  content: '';
+  position: absolute;
+  inset: -6px -4px;
+}
+/* A one-line link that should be tappable across its row */
+.row-link {
+  display: inline-block;
+  padding-block: 4px;
+  min-height: 28px;
+}
+
 /* Keep long URLs and raw text from breaking out of their frame */
 .breakable {
   overflow-wrap: anywhere;

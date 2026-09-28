@@ -155,7 +155,12 @@ function Page() {
             <Row
               label="案件ページ"
               value={
-                <Anchor href={item.sourceUrl} target="_blank" rel="noopener noreferrer">
+                <Anchor
+                  href={item.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hotspot"
+                >
                   <ExternalLink size={14} aria-hidden /> 開く
                 </Anchor>
               }

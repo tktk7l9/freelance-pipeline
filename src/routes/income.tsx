@@ -128,7 +128,7 @@ function Page() {
           <EmptyState
             emoji="💴"
             title={`${year}年の記録はまだありません`}
-            description="右下の「収入を追加」から、請求・入金・納付を年月ごとに入れます。"
+            description="右下の「記録を追加」から、請求・入金・納付を年月ごとに入れます。"
           />
         ) : (
           <>
@@ -145,7 +145,8 @@ function Page() {
         )}
       </Stack>
 
-      <Fab label="収入を追加" onClick={() => setCreating(true)} />
+      {/* Income, taxes and expenses all go in here, so the button says "record", matching the drawer (SHIG 11, 6) */}
+      <Fab label="記録を追加" onClick={() => setCreating(true)} />
       <FormDrawer opened={creating} onClose={() => setCreating(false)} title="収入・支出を追加">
         <LedgerForm
           entry={null}

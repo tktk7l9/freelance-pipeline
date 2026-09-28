@@ -91,21 +91,23 @@ export function CaseLogList({
           </Timeline.Item>
         ))}
       </Timeline>
-      <Group align="flex-end" gap="xs" wrap="nowrap">
-        <DateInput
-          label="日付"
-          valueFormat="YYYY/MM/DD"
-          value={date}
-          onChange={(v) => setDate(v ?? today)}
-        />
-      </Group>
+      {/* Write first, then (rarely) change the date: the order people fill it in (SHIG 40). A visible label names the field (94) */}
       <Textarea
+        label="メモ"
         placeholder="例: 書類通過。面談日程の候補を返した"
         autosize
         minRows={2}
         value={body}
         onChange={(e) => setBody(e.currentTarget.value)}
         maxLength={4000}
+      />
+      <DateInput
+        label="日付"
+        description="既定は今日"
+        valueFormat="YYYY/MM/DD"
+        value={date}
+        onChange={(v) => setDate(v ?? today)}
+        style={{ maxWidth: 220 }}
       />
       <Button onClick={submit} loading={saving} disabled={!body.trim()} fullWidth>
         メモを追加
