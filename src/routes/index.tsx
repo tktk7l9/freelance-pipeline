@@ -16,10 +16,11 @@ function Home() {
     Route.useLoaderData()
   return (
     <PageShell title="ホーム">
+      {/* The major task (find what is due, then update it) comes first; the rest follows (SHIG 20, 77) */}
+      <DueList items={due} sites={sites} today={today} />
       <CurrentCase items={current} sites={sites} today={today} />
       <Improvements items={improvements} />
       <PipelineStats activeCount={activeCount} medianIncl={medianIncl} byRoute={byRoute} />
-      <DueList items={due} sites={sites} today={today} />
       {recent.length === 0 ? (
         <EmptyState
           emoji="📋"

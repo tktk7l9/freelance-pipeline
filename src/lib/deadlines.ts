@@ -1,3 +1,5 @@
+import { addDays } from './calendar'
+
 export type DueState = 'overdue' | 'today' | 'soon' | 'later'
 
 /** Deadline state → Mantine color. Shared by cards, tables, and home */
@@ -55,4 +57,21 @@ export function dueLabel(due: string, today: string): string | null {
   if (d === 0) return '今日'
   if (d <= 3) return `あと${d}日`
   return null
+}
+
+/**
+ * Pushes a due date back by `days`. Counted from the due date when it is still ahead, or from today
+ * when it has already passed (moving an overdue date by one day would leave it overdue).
+ */
+export function postponeDue(due: string, today: string, days: number): string {
+  return addDays(due > today ? due : today, days)
+}
+
+/** Ready-made due dates to pick instead of typing one (SHIG 45: choose the result) */
+export function quickDueOptions(today: string): { label: string; date: string }[] {
+  return [
+    { label: '明日', date: addDays(today, 1) },
+    { label: '3日後', date: addDays(today, 3) },
+    { label: '1週間後', date: addDays(today, 7) },
+  ]
 }

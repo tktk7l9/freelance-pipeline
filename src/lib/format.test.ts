@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatDateSlash, formatYen, mapsUrl } from './format'
+import { distinctOnsiteNote, formatDateSlash, formatYen, mapsUrl, remoteSummary } from './format'
 
 describe('formatYen', () => {
   it('万円単位に丸め、1万円未満は円、null は「—」', () => {
@@ -38,5 +38,19 @@ describe('mapsUrl', () => {
     )
     expect(mapsUrl('  ')).toBeNull()
     expect(mapsUrl(null)).toBeNull()
+  })
+})
+
+describe('remoteSummary / distinctOnsiteNote', () => {
+  it('出社の実態が種別と同じ語なら重ねて出さない（SHIG 1）', () => {
+    expect(remoteSummary('onsite', '常駐')).toBe('常駐')
+    expect(remoteSummary('onsite', ' 常駐 ')).toBe('常駐')
+    expect(distinctOnsiteNote('onsite', '常駐')).toBeNull()
+  })
+  it('違う語なら括弧で添える・空なら種別だけ', () => {
+    expect(remoteSummary('partial', '月4回出社')).toBe('一部出社（月4回出社）')
+    expect(distinctOnsiteNote('partial', '月4回出社')).toBe('月4回出社')
+    expect(remoteSummary('full', null)).toBe('フルリモート')
+    expect(distinctOnsiteNote('full', '')).toBeNull()
   })
 })

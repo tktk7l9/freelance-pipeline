@@ -1,3 +1,5 @@
+import { REMOTE_LABEL, type RemoteType } from './enums'
+
 /** Formatter for displaying rates. Takes integer yen and shows it rounded to units of 10,000 yen (万円) */
 
 export function formatYen(value: number | null | undefined): string {
@@ -31,4 +33,23 @@ export function mapsUrl(address: string | null | undefined): string | null {
   if (!trimmed) return null
   const query = trimmed.replace(/[（(].*$/, '').trim() || trimmed
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+}
+
+/** The on-site note, or null when it is empty or only repeats the remote label (e.g. 常駐 + 常駐) */
+export function distinctOnsiteNote(
+  remoteType: RemoteType,
+  onsiteNote: string | null | undefined,
+): string | null {
+  const note = onsiteNote?.trim()
+  if (!note || note === REMOTE_LABEL[remoteType]) return null
+  return note
+}
+
+/** 'フルリモート' / '一部出社（月4回出社）'. Does not repeat the same word twice (SHIG 1) */
+export function remoteSummary(
+  remoteType: RemoteType,
+  onsiteNote: string | null | undefined,
+): string {
+  const note = distinctOnsiteNote(remoteType, onsiteNote)
+  return note ? `${REMOTE_LABEL[remoteType]}（${note}）` : REMOTE_LABEL[remoteType]
 }

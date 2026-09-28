@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
-import { DUE_COLOR, dueLabel, dueState, groupByDue, type DueState, withDue } from './deadlines'
+import {
+  DUE_COLOR,
+  dueLabel,
+  dueState,
+  groupByDue,
+  postponeDue,
+  quickDueOptions,
+  type DueState,
+  withDue,
+} from './deadlines'
 
 describe('deadlines', () => {
   it('期限状態', () => {
@@ -49,5 +58,24 @@ describe('dueLabel', () => {
     expect(dueLabel('2030-01-07', '2030-01-05')).toBe('あと2日')
     expect(dueLabel('2030-01-08', '2030-01-05')).toBe('あと3日')
     expect(dueLabel('2030-01-09', '2030-01-05')).toBeNull()
+  })
+})
+
+describe('postponeDue', () => {
+  it('期日が先ならその日から、期限切れなら今日から N 日後にずらす', () => {
+    expect(postponeDue('2030-01-10', '2030-01-05', 1)).toBe('2030-01-11')
+    expect(postponeDue('2030-01-01', '2030-01-05', 1)).toBe('2030-01-06')
+    expect(postponeDue('2030-01-05', '2030-01-05', 7)).toBe('2030-01-12')
+    expect(postponeDue('2030-01-31', '2030-01-05', 1)).toBe('2030-02-01')
+  })
+})
+
+describe('quickDueOptions', () => {
+  it('明日・3日後・1週間後を today から計算して返す（値を入れさせず結果を選ばせる, SHIG 45）', () => {
+    expect(quickDueOptions('2030-12-30')).toEqual([
+      { label: '明日', date: '2030-12-31' },
+      { label: '3日後', date: '2031-01-02' },
+      { label: '1週間後', date: '2031-01-06' },
+    ])
   })
 })
