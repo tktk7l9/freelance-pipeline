@@ -332,7 +332,9 @@ body {
 /* Notifications sit at the bottom. On phones, lift them above the tab bar (56px) and the FAB so the
    "Undo" button stays near where the thumb already is (SHIG 66) */
 @media (max-width: 47.99em) {
-  .fp-notifications {
+  /* Only the bottom container: Mantine renders one per position, and moving the top ones' bottom edge
+     would stretch them into an invisible layer over the page */
+  .fp-notifications[data-position='bottom-center'] {
     bottom: calc(132px + env(safe-area-inset-bottom, 0px));
   }
 }
