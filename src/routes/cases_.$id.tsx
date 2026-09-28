@@ -84,7 +84,6 @@ function Page() {
       <Card withBorder padding="md">
         <Stack gap="md">
           <NextActionEditor
-            key={`${item.nextAction ?? ''}|${item.nextActionDue ?? ''}`}
             id={item.id}
             status={item.status}
             nextAction={item.nextAction}

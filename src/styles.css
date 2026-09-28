@@ -47,6 +47,19 @@ a:focus-visible {
   position: absolute;
   inset: -6px -4px;
 }
+/* "← 案件" at the top of deep pages. The text stays small, but the link box itself is at least 7mm
+   tall and a little wider; negative margins give the extra height back so the layout does not move
+   (SHIG 82, 78) */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  min-height: 40px;
+  margin-block: -9px;
+  padding-inline-end: 12px;
+}
+
 /* A one-line link that should be tappable across its row */
 .row-link {
   display: inline-block;
@@ -366,4 +379,25 @@ body {
 }
 .day-event:hover {
   background: var(--mantine-color-default-hover);
+}
+
+/* Month-view event chips are drawn 22px tall. On touch screens, extend the tappable area upward
+   (into the day cell, which is itself only "select this day") without changing how the chip looks, so
+   it reaches about 7mm (SHIG 78). Not downward: the "+N" link sits right below the chip.
+   - Only chips in a cell's first row (Mantine positions them with an inline `top: calc(0% + 1px)`).
+     A chip in a lower row would reach 4px into the chip above it, and each chip is its own stacking
+     context, so a tap on the bottom of the upper event would open the lower one.
+   - Not on chips that continue into the next week: Mantine draws that marker with ::after.
+   The extension hangs off the chip button, not its inner box, because the inner box clips overflow */
+@media (pointer: coarse) {
+  .mantine-MonthView-monthViewEvents
+    .mantine-ScheduleEvent-event:is(
+      [style*='top: calc(0% + 1px)'],
+      [style*='top:calc(0% + 1px)']
+    ):is([data-hanging='none'], [data-hanging='start'])::after {
+    content: '';
+    position: absolute;
+    inset: -6px 0 0;
+    pointer-events: auto;
+  }
 }

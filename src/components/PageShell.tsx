@@ -45,12 +45,7 @@ export function PageShell({
             size="sm"
             c="dimmed"
             underline="never"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              alignSelf: 'flex-start',
-            }}
+            className="back-link"
           >
             <ArrowLeft size={16} aria-hidden />
             {back.label}

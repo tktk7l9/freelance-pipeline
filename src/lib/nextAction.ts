@@ -29,3 +29,29 @@ export function nextActionSuggestions(status: CaseStatus): string[] {
 export function isFreshSignal(handled: number, signal: number): boolean {
   return signal > handled
 }
+
+/**
+ * Where focus should go once a save of the next step settles, or null to leave it alone.
+ * Saving shows the save button as loading, which disables it; if it had focus, the browser drops
+ * focus to <body> and keyboard / screen-reader users are sent back to the top of the page. Put focus
+ * back where it was before saving (the field after Enter, the button after a click), or on
+ * `fallback` when that element is gone. If focus is already on something else, the owner moved on
+ * while the save was in flight (e.g. kept typing), so do not steal it (SHIG 94).
+ */
+export function focusAfterSave<T>({
+  active,
+  body,
+  before,
+  beforeUsable,
+  fallback,
+}: {
+  active: T | null
+  body: T | null
+  before: T | null
+  beforeUsable: boolean
+  fallback: T | null
+}): T | null {
+  if (active !== null && active !== body) return null
+  if (before !== null && before !== body && beforeUsable) return before
+  return fallback
+}

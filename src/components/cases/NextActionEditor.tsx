@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { quickDueOptions } from '../../lib/deadlines'
 import { extractErrorMessage } from '../../lib/formError'
-import { isFreshSignal, nextActionSuggestions } from '../../lib/nextAction'
+import { focusAfterSave, isFreshSignal, nextActionSuggestions } from '../../lib/nextAction'
 import type { CaseStatus } from '../../lib/status'
 import { saveNextAction } from '../../server/cases'
 
@@ -32,13 +32,26 @@ export function NextActionEditor({
   const save = useServerFn(saveNextAction)
   const [saving, setSaving] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const saveRef = useRef<HTMLButtonElement>(null)
+  // The element that had focus when a save started; handed back once the save settles (SHIG 94)
+  const focusBeforeSave = useRef<Element | null>(null)
   // Mantine 9.6's DateInput handles values as 'YYYY-MM-DD' strings
   const form = useForm({
     initialValues: { nextAction: nextAction ?? '', nextActionDue: nextActionDue ?? '' },
   })
 
-  // The editor is keyed on its saved values and remounts after every save. Start from the current
-  // signal so a remount does not replay an old bump (focus + phone keyboard after pressing Save)
+  // Follow the saved values when they change from outside (e.g. postponed elsewhere) unless the owner
+  // is typing. The editor used to be remounted through a key instead, but a remount after every save
+  // threw away the focused save button and dropped focus to the page (SHIG 94)
+  useEffect(() => {
+    if (form.isDirty()) return
+    const saved = { nextAction: nextAction ?? '', nextActionDue: nextActionDue ?? '' }
+    form.setValues(saved)
+    form.resetDirty(saved)
+    // `form` is left out of the deps on purpose: it is a new object on every render
+  }, [nextAction, nextActionDue])
+
+  // Start from the current signal so a remount does not replay an old bump (focus + phone keyboard)
   const handledSignal = useRef(focusSignal)
   useEffect(() => {
     if (!isFreshSignal(handledSignal.current, focusSignal)) return
@@ -49,7 +62,24 @@ export function NextActionEditor({
     input.focus({ preventScroll: true })
   }, [focusSignal])
 
+  // Once a save settles (saved or failed), hand focus back if the disabled loading button dropped it
+  // to the page. Runs after `saving` is false because a disabled button cannot take focus (SHIG 94)
+  useEffect(() => {
+    if (saving || !focusBeforeSave.current) return
+    const before = focusBeforeSave.current
+    focusBeforeSave.current = null
+    const target = focusAfterSave<Element>({
+      active: document.activeElement,
+      body: document.body,
+      before,
+      beforeUsable: before.isConnected,
+      fallback: saveRef.current,
+    })
+    if (target instanceof HTMLElement) target.focus()
+  }, [saving])
+
   async function submit(v: { nextAction: string; nextActionDue: string }) {
+    focusBeforeSave.current = document.activeElement
     setSaving(true)
     try {
       await save({ data: { id, nextAction: v.nextAction, nextActionDue: v.nextActionDue || null } })
@@ -86,7 +116,7 @@ export function NextActionEditor({
             value={form.values.nextActionDue || null}
             onChange={(v) => form.setFieldValue('nextActionDue', v ?? '')}
           />
-          <Button type="submit" loading={saving}>
+          <Button type="submit" loading={saving} ref={saveRef}>
             保存
           </Button>
         </Group>
