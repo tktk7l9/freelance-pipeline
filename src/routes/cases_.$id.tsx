@@ -17,9 +17,9 @@ import { RateLines } from '../components/cases/RateLines'
 import { RawTextPanel } from '../components/cases/RawTextPanel'
 import { StatusBadge } from '../components/cases/StatusBadge'
 import { StatusChanger } from '../components/cases/StatusChanger'
-import { REMOTE_LABEL, ROUTE_LABEL, TAX_BASIS_LABEL } from '../lib/enums'
+import { ROUTE_LABEL, TAX_BASIS_LABEL } from '../lib/enums'
 import { fitMark } from '../lib/compare'
-import { formatDateSlash } from '../lib/format'
+import { formatDateSlash, remoteSummary } from '../lib/format'
 import { formatHourlyLines, formatRateLines } from '../lib/rate'
 import { deleteCaseFn, getCaseDetail } from '../server/cases'
 import { getSettingsData } from '../server/settings'
@@ -122,14 +122,11 @@ function Page() {
             label="精算幅"
             value={
               item.settlementMinH || item.settlementMaxH
-                ? `${item.settlementMinH ?? '—'}〜${item.settlementMaxH ?? '—'}h`
-                : '—'
+                ? `${item.settlementMinH ?? ''}〜${item.settlementMaxH ?? ''}h`
+                : null
             }
           />
-          <Row
-            label="リモート"
-            value={`${REMOTE_LABEL[item.remoteType]}${item.onsiteNote ? `（${item.onsiteNote}）` : ''}`}
-          />
+          <Row label="リモート" value={remoteSummary(item.remoteType, item.onsiteNote)} />
           <Row
             label="開始"
             value={
@@ -139,11 +136,14 @@ function Page() {
             }
           />
           <Row label="稼働" value={item.daysPerWeek} />
-          <Row label="作業場所" value={<PlaceLink address={item.workLocation} />} />
+          <Row
+            label="作業場所"
+            value={item.workLocation ? <PlaceLink address={item.workLocation} /> : null}
+          />
           <Row label="商流" value={item.supplyChain} />
           <Row
             label="支払サイト"
-            value={item.paymentSiteDays === null ? '—' : `${item.paymentSiteDays}日`}
+            value={item.paymentSiteDays === null ? null : `${item.paymentSiteDays}日`}
           />
           {item.actualMonthlyIncl ? (
             <Row
@@ -184,13 +184,16 @@ function Page() {
               </Text>
             ) : null}
           </Group>
-          {axes.length > 0 ? (
+          {/* Only scored axes; unscored ones would be a row of dashes (SHIG 1) */}
+          {axes.some((_, i) => item.fitScores?.[i] !== undefined) ? (
             <Group gap="sm">
-              {axes.map((axis, i) => (
-                <Text key={axis} size="sm">
-                  {axis}: {fitMark(item.fitScores?.[i])}
-                </Text>
-              ))}
+              {axes.map((axis, i) =>
+                item.fitScores?.[i] === undefined ? null : (
+                  <Text key={axis} size="sm">
+                    {axis}: {fitMark(item.fitScores[i])}
+                  </Text>
+                ),
+              )}
             </Group>
           ) : null}
         </Stack>

@@ -7,8 +7,8 @@ import { useMemo, useState } from 'react'
 import { Row } from '../DetailRow'
 import { RateLines } from '../cases/RateLines'
 import { CASE_JSON_EXAMPLE, parseCaseJson, toCaseRow } from '../../lib/caseInput'
-import { REMOTE_LABEL, ROUTE_LABEL } from '../../lib/enums'
-import { formatDateSlash } from '../../lib/format'
+import { ROUTE_LABEL } from '../../lib/enums'
+import { formatDateSlash, remoteSummary } from '../../lib/format'
 import { formatRateLines } from '../../lib/rate'
 import { importCase } from '../../server/cases'
 
@@ -88,12 +88,9 @@ export function ImportForm({ onSaved }: { onSaved: (id: string) => void }) {
                 ) : null
               }
             />
-            <Row
-              label="リモート"
-              value={`${REMOTE_LABEL[preview.remoteType]}${preview.onsiteNote ? `（${preview.onsiteNote}）` : ''}`}
-            />
+            <Row label="リモート" value={remoteSummary(preview.remoteType, preview.onsiteNote)} />
             <Row label="開始" value={formatDateSlash(preview.startDate)} />
-            <Row label="必須" value={preview.mustSkills.join('、') || '—'} />
+            <Row label="必須" value={preview.mustSkills.join('、')} />
             <Row label="原文" value={`${preview.rawText.length.toLocaleString('ja-JP')} 文字`} />
           </Stack>
         </Card>

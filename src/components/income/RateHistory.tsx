@@ -21,16 +21,26 @@ export function RateHistory({ history, changes }: { history: RatePoint[]; change
       <Stack gap="sm">
         <Group justify="space-between" align="baseline" wrap="wrap">
           <Title order={3}>単価の推移（月額・税込）</Title>
-          <Text size="sm">
-            {formatDateSlash(first.yearMonth)} {formatMan(first.rate)} →{' '}
-            {formatDateSlash(last.yearMonth)}{' '}
-            <Text span fw={700}>
-              {formatMan(last.rate)}
+          {/* No revision: one plain sentence instead of "+0万・+0%・改定 0 回" (SHIG 1) */}
+          {changes.length === 0 ? (
+            <Text size="sm">
+              <Text span fw={700}>
+                {formatMan(last.rate)}
+              </Text>{' '}
+              のまま（{formatDateSlash(first.yearMonth)}〜）
             </Text>
-            （{diff >= 0 ? '+' : ''}
-            {formatMan(diff)}・{pct >= 0 ? '+' : ''}
-            {pct}%・改定 {changes.length} 回）
-          </Text>
+          ) : (
+            <Text size="sm">
+              {formatDateSlash(first.yearMonth)} {formatMan(first.rate)} →{' '}
+              {formatDateSlash(last.yearMonth)}{' '}
+              <Text span fw={700}>
+                {formatMan(last.rate)}
+              </Text>
+              （{diff >= 0 ? '+' : ''}
+              {formatMan(diff)}・{pct >= 0 ? '+' : ''}
+              {pct}%・改定 {changes.length} 回）
+            </Text>
+          )}
         </Group>
         <div
           className="rate-bars"
@@ -71,11 +81,7 @@ export function RateHistory({ history, changes }: { history: RatePoint[]; change
               </Text>
             ))}
           </Stack>
-        ) : (
-          <Text size="sm" c="dimmed">
-            改定はまだありません。
-          </Text>
-        )}
+        ) : null}
         <Text size="xs" c="dimmed">
           月ごとにフリーランス売上の最大の行を主契約の月額とみなす。前後より低い月（斜線）は日割りとして改定の判定から外す。
         </Text>

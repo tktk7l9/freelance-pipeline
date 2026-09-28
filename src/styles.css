@@ -86,6 +86,10 @@ a:focus-visible {
 .case-table :where(th, td):last-child {
   white-space: normal;
 }
+/* The case name gets the room it needs instead of being cut at "テスト案件B（バック…" (SHIG 28) */
+.case-table :where(th, td):first-child {
+  min-width: 260px;
+}
 
 /* Compare table: pin the first column */
 .compare-table th:first-child,

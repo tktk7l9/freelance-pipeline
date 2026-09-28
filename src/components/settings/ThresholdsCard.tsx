@@ -105,7 +105,11 @@ export function ThresholdsCard({
         <Text size="sm" c="dimmed">
           比較表で、この条件を下回る案件に ▼ を付けて赤くする。空欄は判定しない。
         </Text>
-        {!editing ? (
+        {!editing && Object.values(value).every((v) => v === null) ? (
+          <Text size="sm" c="dimmed">
+            未設定
+          </Text>
+        ) : !editing ? (
           <Stack gap="xs">
             <Row
               label="単価下限（税込）"

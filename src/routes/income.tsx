@@ -26,6 +26,7 @@ import {
   rateChanges,
   rateHistory,
   summarizeYear,
+  trimLeadingEmptyMonths,
   yearOf,
   yearsOf,
 } from '../lib/ledger'
@@ -62,8 +63,9 @@ function Page() {
         : new Map<string, never>(),
     [rows, year, thisYear, todayYm, joined, officerMonthly],
   )
+  // Months before the first record or forecast are left out instead of a column of dashes (SHIG 1, 28)
   const months = useMemo(
-    () => monthlyBreakdown(rows, year, forecastByMonth),
+    () => trimLeadingEmptyMonths(monthlyBreakdown(rows, year, forecastByMonth)),
     [rows, year, forecastByMonth],
   )
   const forecast =
@@ -107,18 +109,21 @@ function Page() {
   return (
     <PageShell title="収入" fab>
       <Stack gap="lg">
-        <Chip.Group
-          value={String(year)}
-          onChange={(v) => navigate({ search: { y: Number(v) }, replace: true })}
-        >
-          <Group gap="xs">
-            {years.map((yr) => (
-              <Chip key={yr} value={String(yr)}>
-                {yr}年
-              </Chip>
-            ))}
-          </Group>
-        </Chip.Group>
+        {/* A single year is not a choice; show the switch only when there is one (SHIG 1, 36) */}
+        {years.length >= 2 ? (
+          <Chip.Group
+            value={String(year)}
+            onChange={(v) => navigate({ search: { y: Number(v) }, replace: true })}
+          >
+            <Group gap="xs">
+              {years.map((yr) => (
+                <Chip key={yr} value={String(yr)}>
+                  {yr}年
+                </Chip>
+              ))}
+            </Group>
+          </Chip.Group>
+        ) : null}
         {inYear.length === 0 ? (
           <EmptyState
             emoji="💴"
