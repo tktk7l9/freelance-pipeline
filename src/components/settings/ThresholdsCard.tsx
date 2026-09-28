@@ -9,7 +9,9 @@ import { useState } from 'react'
 import { Row } from '../DetailRow'
 import { RateLines } from '../cases/RateLines'
 import { n } from './formValues'
+import { parseMonthInput } from '../../lib/dates'
 import { extractErrorMessage } from '../../lib/formError'
+import { formatDateSlash } from '../../lib/format'
 import { formatRateLines } from '../../lib/rate'
 import type { Thresholds } from '../../lib/compare'
 import { saveThresholds } from '../../server/settings'
@@ -26,7 +28,7 @@ type ThresholdsValues = {
 const toThresholdsValues = (t: Thresholds): ThresholdsValues => ({
   minMonthlyIncl: t.minMonthlyIncl ?? '',
   minHourlyExcl: t.minHourlyExcl ?? '',
-  targetStart: t.targetStart ?? '',
+  targetStart: formatDateSlash(t.targetStart),
   maxOnsitePerMonth: t.maxOnsitePerMonth ?? '',
 })
 
@@ -44,7 +46,14 @@ export function ThresholdsCard({
   const router = useRouter()
   const save = useServerFn(saveThresholds)
   const [saving, setSaving] = useState(false)
-  const form = useForm<ThresholdsValues>({ initialValues: toThresholdsValues(value) })
+  const form = useForm<ThresholdsValues>({
+    initialValues: toThresholdsValues(value),
+    // Accept 2030/11, 2030-11, 2030年11月, full width, or a full date; say the shape when unreadable (SHIG 50, 55)
+    validate: {
+      targetStart: (v) =>
+        v.trim() === '' || parseMonthInput(v) ? null : '2030/11 のように年と月を入れてください',
+    },
+  })
 
   function startEdit() {
     form.setValues(toThresholdsValues(value))
@@ -63,7 +72,7 @@ export function ThresholdsCard({
         data: {
           minMonthlyIncl: n(v.minMonthlyIncl),
           minHourlyExcl: n(v.minHourlyExcl),
-          targetStart: v.targetStart.trim() || null,
+          targetStart: parseMonthInput(v.targetStart),
           maxOnsitePerMonth: n(v.maxOnsitePerMonth),
         },
       })
@@ -94,7 +103,7 @@ export function ThresholdsCard({
           ) : null}
         </Group>
         <Text size="sm" c="dimmed">
-          比較ビューで下回るセルを赤くする。空欄は判定しない。
+          比較表で、この条件を下回る案件に ▼ を付けて赤くする。空欄は判定しない。
         </Text>
         {!editing ? (
           <Stack gap="xs">
@@ -114,7 +123,7 @@ export function ThresholdsCard({
                   : null
               }
             />
-            <Row label="希望開始" value={value.targetStart} />
+            <Row label="希望開始" value={formatDateSlash(value.targetStart) || null} />
             <Row
               label="出社の上限"
               value={value.maxOnsitePerMonth !== null ? `${value.maxOnsitePerMonth}回/月` : null}
@@ -136,7 +145,9 @@ export function ThresholdsCard({
                 {...form.getInputProps('minHourlyExcl')}
               />
               <TextInput
-                label="希望開始（YYYY-MM）これより後は赤"
+                label="希望開始"
+                description="これより後に始まる案件に ▼ を付ける"
+                placeholder="2030/11"
                 {...form.getInputProps('targetStart')}
               />
               <NumberInput

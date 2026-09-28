@@ -1,4 +1,5 @@
 import { REMOTE_LABEL, type RemoteType, type Route } from './enums'
+import { formatDateSlash } from './format'
 import { baseHours, formatHourlyLines, formatRateLines, hourlyExcl } from './rate'
 
 /** Decision criteria. Values live only in D1 settings. This holds only the shape and defaults (all null = no judgment) */
@@ -89,8 +90,9 @@ export function fitMark(score: number | null | undefined): string {
   return '—'
 }
 
-const dash = (v: string | number | null | undefined) =>
-  v === null || v === undefined ? '—' : String(v)
+/** Empty values stay empty cells rather than a column of dashes (SHIG 1) */
+const text = (v: string | number | null | undefined) =>
+  v === null || v === undefined ? '' : String(v)
 
 export function buildCompareRows(
   cases: CompareCase[],
@@ -127,8 +129,8 @@ export function buildCompareRows(
       caseId: c.id,
       text:
         c.settlementMinH || c.settlementMaxH
-          ? `${dash(c.settlementMinH)}〜${dash(c.settlementMaxH)}h`
-          : '—',
+          ? `${text(c.settlementMinH)}〜${text(c.settlementMaxH)}h`
+          : '',
       bad: false,
     })),
     row('remote', 'リモート', (c) => ({
@@ -140,30 +142,30 @@ export function buildCompareRows(
       const n = onsitePerMonth(c.remoteType, c.onsiteNote)
       return {
         caseId: c.id,
-        text: c.onsiteNote ?? (c.remoteType === 'full' ? 'なし' : '—'),
+        text: c.onsiteNote ?? (c.remoteType === 'full' ? 'なし' : ''),
         bad: t.maxOnsitePerMonth !== null && n !== null && n > t.maxOnsitePerMonth,
       }
     }),
     row('start', '開始', (c) => ({
       caseId: c.id,
-      text: c.startDate,
+      text: formatDateSlash(c.startDate),
       bad: t.targetStart !== null && c.startDate.slice(0, 7) > t.targetStart,
     })),
-    row('days', '稼働', (c) => ({ caseId: c.id, text: dash(c.daysPerWeek), bad: false })),
-    row('supplyChain', '商流', (c) => ({ caseId: c.id, text: dash(c.supplyChain), bad: false })),
+    row('days', '稼働', (c) => ({ caseId: c.id, text: text(c.daysPerWeek), bad: false })),
+    row('supplyChain', '商流', (c) => ({ caseId: c.id, text: text(c.supplyChain), bad: false })),
     row('paymentSite', '支払サイト', (c) => ({
       caseId: c.id,
-      text: c.paymentSiteDays === null ? '—' : `${c.paymentSiteDays}日`,
+      text: c.paymentSiteDays === null ? '' : `${c.paymentSiteDays}日`,
       bad: false,
     })),
     row('must', '必須', (c) => ({
       caseId: c.id,
-      text: c.mustSkills.join('、') || '—',
+      text: c.mustSkills.join('、'),
       bad: false,
     })),
     row('nice', '歓迎', (c) => ({
       caseId: c.id,
-      text: c.niceSkills.join('、') || '—',
+      text: c.niceSkills.join('、'),
       bad: false,
     })),
   ]
@@ -171,7 +173,7 @@ export function buildCompareRows(
     rows.push(
       row(`axis:${i}`, axis, (c) => ({
         caseId: c.id,
-        text: fitMark(c.fitScores?.[i]),
+        text: c.fitScores?.[i] === undefined ? '' : fitMark(c.fitScores[i]),
         bad: false,
       })),
     )

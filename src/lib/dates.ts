@@ -81,3 +81,8 @@ export function parseMonthOrDateInput(value: string | null | undefined): string 
   }
   return null
 }
+
+/** Year-month only ('YYYY-MM'). A full date is accepted and rounded to its month. Null if unreadable */
+export function parseMonthInput(value: string | null | undefined): string | null {
+  return parseMonthOrDateInput(value)?.slice(0, 7) ?? null
+}

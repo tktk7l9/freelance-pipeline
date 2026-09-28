@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Code, Stack, Text, Textarea } from '@mantine/core'
+import { Alert, Button, Card, Stack, Text, Textarea } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { Link } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
@@ -60,11 +60,12 @@ export function ImportForm({ onSaved }: { onSaved: (id: string) => void }) {
         onChange={(e) => setJson(e.currentTarget.value)}
       />
       {parsed && !parsed.ok ? (
-        <Alert color="red" title="検証エラー">
+        <Alert color="red" title="直すところがあります">
+          {/* Field names in Japanese and how to fix them, not zod's English (SHIG 55, 11) */}
           <Stack gap={2}>
             {parsed.issues.map((i, n) => (
               <Text key={n} size="sm">
-                <Code>{i.path || '(root)'}</Code> {i.message}
+                {i.message}
               </Text>
             ))}
           </Stack>
