@@ -5,7 +5,7 @@ import * as schema from '../../db/schema'
 
 export const db = drizzle(env.DB, { schema })
 
-/** 全テーブルを空にする。db/schema.ts の全テーブルを網羅すること */
+/** Empties every table. Must cover all tables in db/schema.ts */
 export async function reset() {
   for (const t of [
     'market_snapshots',
@@ -20,7 +20,7 @@ export async function reset() {
   }
 }
 
-/** テスト用の最小の案件行（架空値） */
+/** Minimal case row for tests (fictitious values) */
 export function fakeCase(overrides: Partial<schema.NewCase> = {}): schema.NewCase {
   return {
     id: crypto.randomUUID(),

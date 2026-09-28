@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 /**
- * 実データがコミット対象に紛れ込んでいないか調べる。
+ * Checks whether real data has slipped into what gets committed.
  *
- *   node scripts/check-pii.mjs            # 作業ツリーの追跡ファイル
- *   node scripts/check-pii.mjs --staged   # コミットしようとしている内容だけ
+ *   node scripts/check-pii.mjs            # tracked files in the working tree
+ *   node scripts/check-pii.mjs --staged   # only what is about to be committed
  *
- * AGENTS.md の1番目に「PII をコミットしない」と書いてあっても、書いてあるだけでは
- * 守られない。人が気をつける代わりに機械が見る。
+ * Writing "do not commit PII" as rule #1 in AGENTS.md does not enforce it on its own.
+ * Instead of relying on people being careful, a machine checks.
  *
- * 探す語は **`.dev.vars`** と **`*.local.json`（実データの台帳）** から取り出す。
- * 自分のメールや企業名がそこにしか無いので、禁止語の一覧を別に作って
- * コミットする必要がない（一覧そのものが PII になってしまう、という堂々巡りを避ける）。
+ * The words to look for are taken from **`.dev.vars`** and **`*.local.json` (the real-data ledgers)**.
+ * My email and company names only live there, so there is no need to build and commit
+ * a separate list of forbidden words (avoiding the loop where the list itself becomes PII).
  *
- * どちらも無い環境（CI の clone 直後など）では、照合する材料が無いだけなので
- * 黙って成功させる。CI で本当に守りたいなら、実データを持っている手元で
- * 走らせるか、pre-commit に入れる。
+ * In an environment with neither (e.g. right after a CI clone) there is simply nothing
+ * to match against, so succeed silently. To really enforce this in CI, run it locally
+ * where the real data lives, or put it in pre-commit.
  */
 
 import { execFileSync } from 'node:child_process'
@@ -26,12 +26,12 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const devVarsPath = resolve(root, '.dev.vars')
 
 /**
- * 照合する語は .dev.vars から取り出す。自分のメールがそこにしか無いので、
- * 禁止語の一覧を別に作ってコミットする必要がない。
+ * Words to match are taken from .dev.vars. My email only lives there, so there is
+ * no need to build and commit a separate list of forbidden words.
  *   ACCESS_ALLOWED_EMAILS=a@x   → a@x
  *
- * .dev.vars が無い環境（CI の clone 直後など）でも、*.local.json の実データ
- * 台帳は見られるよう、無ければ空のまま続行する。
+ * Even without .dev.vars (e.g. right after a CI clone), continue with an empty list
+ * so the *.local.json real-data ledgers can still be checked.
  */
 function unquote(v) {
   return v.length >= 2 && v[0] === v[v.length - 1] && (v[0] === '"' || v[0] === "'")
@@ -60,10 +60,10 @@ if (vars.DEV_IDENTITY_EMAIL && !vars.DEV_IDENTITY_EMAIL.endsWith('@example.com')
 }
 
 /**
- * 架空値の除外リスト。実データ（cases.local.json / history.local.json）に、
- * ドキュメント・サンプル・テストで使う架空値と同じ文字列がたまたま入っていても
- * 誤検知にしない。手書きの一覧に加えて、コミット対象の history.local.example.json
- * （サンプル・gitignore 対象外）に出てくる文字列も再帰的に拾う。
+ * Allowlist of fictitious values. If the real data (cases.local.json / history.local.json)
+ * happens to contain the same string as a fictitious value used in docs, samples, or tests,
+ * do not flag it. On top of the hand-written list, strings appearing in the committed
+ * history.local.example.json (a sample, not gitignored) are collected recursively.
  */
 const FICTIONAL_LITERALS = [
   '甲社',
@@ -93,20 +93,21 @@ if (existsSync(examplePath)) {
   try {
     collectStrings(JSON.parse(readFileSync(examplePath, 'utf8')), fictional)
   } catch {
-    // 読めなければ手書きの一覧だけで続行
+    // If unreadable, continue with just the hand-written list
   }
 }
 
 /**
- * 実データの台帳（gitignore 済み）からも語を拾う。
- *   cases.local.json   … add-case が書く { company, title, agentName }[]
- *   history.local.json … 過去案件 { cases: [{ company, title, agentName, rawText, ... }] }
- * 企業名は「株式会社」等を外した中核でも照合する（略称に効かせる）。中核が ASCII だけ
- * だと短い（3 文字など）語が無関係なコード（例: `POSITIVE_INFINITY` 中の `INF`）に
- * 誤爆しやすいので、ASCII のみの中核は 4 文字以上・単語境界一致にする。非 ASCII の
- * 中核も 4 文字以上・部分一致（日本語に単語境界は無く、3 文字のカタカナは長い一般語の
- * 断片に必ず現れる。実例: 3 文字の中核が「インボイス」に一致してテストを止めた、2026-09-25）。
- * 中核が 3 文字以下の企業は「株式会社」付きの正式名（3 文字以上）でだけ照合する。
+ * Also collect words from the real-data ledgers (gitignored).
+ *   cases.local.json   … { company, title, agentName }[] written by add-case
+ *   history.local.json … past cases { cases: [{ company, title, agentName, rawText, ... }] }
+ * Company names are also matched by their core with "株式会社" etc. removed (to catch abbreviations).
+ * An ASCII-only core that is short (e.g. 3 chars) easily misfires on unrelated code (e.g. `INF`
+ * in `POSITIVE_INFINITY`), so ASCII-only cores need 4+ chars and a word-boundary match. Non-ASCII
+ * cores also need 4+ chars, with a substring match (Japanese has no word boundaries, and a
+ * 3-char katakana word always shows up as a fragment of longer common words. Real case: a
+ * 3-char core matched "インボイス" and blocked the tests, 2026-09-25).
+ * Companies whose core is 3 chars or fewer are matched only by the formal name with "株式会社" (3+ chars).
  */
 const CORP_WORDS =
   /(株式会社|有限会社|合同会社|合資会社|一般社団法人|\(株\)|\(有\)|（株）|（有）|Inc\.?|Corp\.?|Co\.,? ?Ltd\.?|LLC)/g
@@ -114,7 +115,7 @@ const ASCII_ONLY = /^[\x20-\x7E]*$/
 function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
-/** ASCII の中核だけ単語境界一致（`\b<core>\b`）で照合する */
+/** Match only ASCII cores with word boundaries (`\b<core>\b`) */
 const boundarySecrets = new Set()
 function addName(value) {
   if (typeof value !== 'string') return
@@ -129,7 +130,7 @@ function addName(value) {
     secrets.add(core)
   }
 }
-/** rawText は要約せず原文まるごと入るので、行単位（20 文字以上）でだけ照合する（塊は入れない） */
+/** rawText holds the whole raw text unsummarized, so match only line by line (20+ chars), never the whole block */
 function addRawTextLines(value) {
   if (typeof value !== 'string') return
   for (const rawLine of value.split('\n')) {
@@ -159,7 +160,7 @@ const secretList = [...secrets]
 
 const staged = process.argv.includes('--staged')
 
-/** 生成物と、そもそも実データが入る前提のものは除く */
+/** Exclude generated files and those expected to contain real data in the first place */
 const SKIP = /^(worker-configuration\.d\.ts|src\/routeTree\.gen\.ts)$/
 
 function git(args) {
@@ -167,12 +168,11 @@ function git(args) {
 }
 
 /**
- * 見るファイルの一覧。
+ * List of files to check.
  *
- * --staged では **インデックスの内容** を読む。作業ツリーを読むと、
- * 汚れたファイルを stage せずに置いてあるときに止まってしまうし、
- * 逆に PII を stage したあと手元で消すと素通りしてしまう。
- * コミットに入るのはインデックスの中身なので、そちらを見る。
+ * With --staged, read **the index contents**. Reading the working tree would block
+ * when dirty files are left unstaged, and conversely would let PII through if it was
+ * staged and then deleted locally. What goes into the commit is the index, so check that.
  */
 const files = (
   staged ? git(['diff', '--cached', '--name-only', '--diff-filter=ACMR']) : git(['ls-files'])
@@ -187,7 +187,7 @@ for (const file of files) {
   try {
     content = staged ? git(['show', `:${file}`]) : readFileSync(resolve(root, file), 'utf8')
   } catch {
-    continue // バイナリや読めないものは飛ばす
+    continue // Skip binaries and unreadable files
   }
   for (const secret of secretList) {
     if (!content.includes(secret)) continue
@@ -212,7 +212,7 @@ if (hits.length === 0) {
 
 console.error('コミット対象に実データが混ざっています（AGENTS.md 1）:')
 for (const hit of hits) {
-  // 見つけた語そのものは出さない。出力がログに残ると、それも漏洩になる
+  // Never print the matched word itself. If the output stays in logs, that is a leak too
   const masked = `${hit.secret.slice(0, 1)}…（${hit.secret.length}文字）`
   console.error(`  ${hit.file}:${hit.line}  ${masked}`)
 }

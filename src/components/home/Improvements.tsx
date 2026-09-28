@@ -1,7 +1,7 @@
 import { Anchor, Card, List, Stack, Text, Title } from '@mantine/core'
 import { Link } from '@tanstack/react-router'
 
-/** ホームの「改善したいこと」。設定で 1 行 1 項目で書く。無ければ出さない */
+/** "Things to improve" on home. Written in settings, one item per line. Hidden if empty */
 export function Improvements({ items }: { items: string[] }) {
   if (items.length === 0) return null
   return (

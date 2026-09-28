@@ -23,12 +23,12 @@ import { showUndo } from '../components/undoNotification'
 import type { EventRow } from '../db/schema'
 
 const search = z.object({
-  // 表示中の月 'YYYY-MM'。無ければ今月
+  // Displayed month 'YYYY-MM'. Defaults to this month
   m: z
     .string()
     .regex(/^\d{4}-\d{2}$/)
     .optional(),
-  // 選択日 'YYYY-MM-DD'
+  // Selected date 'YYYY-MM-DD'
   d: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -57,9 +57,9 @@ function Page() {
   const restore = useServerFn(saveEvent)
   const [editing, setEditing] = useState<EventRow | null>(null)
   const [creating, setCreating] = useState(false)
-  // 'year' は URL に持たせない。ヘッダーから選ばれても表示だけローカルで切り替える
+  // 'year' is not kept in the URL. Even if chosen from the header, only the local display switches
   const [view, setView] = useState<ScheduleViewLevel>(v ?? 'month')
-  // スマホは 1 日あたりの表示件数を 1 にしてセルの高さを詰める（Mantine が高さを連動させる）
+  // On phones, show 1 event per day to tighten the cell height (Mantine ties the height to it)
   const isMobile = useMediaQuery('(max-width: 47.99em)', true)
 
   useEffect(() => {
@@ -73,7 +73,7 @@ function Page() {
   const selected = d ?? date
 
   function navigateToDay(next: string) {
-    // Schedule のコールバックは 'YYYY-MM-DD HH:mm:ss' で来るため日付部分だけ取り出す
+    // Schedule callbacks come as 'YYYY-MM-DD HH:mm:ss', so take only the date part
     navigate({ search: (s) => ({ ...s, d: dateKey(next) }), replace: true })
   }
 
@@ -95,7 +95,7 @@ function Page() {
     navigate({ to: '/cases/$id', params: { id: payload.caseId } })
   }
 
-  /** 確認は出さず、消したあと「取り消す」で同じ内容を入れ直せるようにする */
+  /** No confirmation; after deleting, "Undo" re-adds the same content */
   async function handleDelete(e: EventRow) {
     try {
       await remove({ data: { id: e.id } })
@@ -125,7 +125,7 @@ function Page() {
     }
   }
 
-  /** 終わったものは文字色を落とす。期日レイヤーは枠線だけで描く */
+  /** Finished items get dimmer text. The due-date layer is drawn as outlines only */
   function renderEventBody(event: ScheduleEventData) {
     const payload = event.payload as CalendarPayload | undefined
     return (

@@ -1,18 +1,18 @@
 export type FilingType = 'blue' | 'white'
 
 export type BusinessInfo = {
-  /** 生年月日 YYYY-MM-DD。市場データで自分の年齢帯を出すのに使う */
+  /** Date of birth YYYY-MM-DD. Used to find my age band in market data */
   birthDate: string | null
-  openedOn: string | null // 開業日 YYYY-MM-DD
-  occupation: string | null // 職業
-  description: string | null // 事業概要
-  filingType: FilingType | null // 申告区分（青色/白色）
-  taxOffice: string | null // 所轄税務署
-  taxAddress: string | null // 納税地の住所
-  invoiceNumber: string | null // 適格請求書発行事業者登録番号 T+13桁
-  invoiceRegisteredOn: string | null // 登録年月日 YYYY-MM-DD
-  etaxUserId: string | null // e-Tax 利用者識別番号 16桁
-  businessNumber: string | null // 事業者番号
+  openedOn: string | null // Business start date YYYY-MM-DD
+  occupation: string | null // Occupation
+  description: string | null // Business summary
+  filingType: FilingType | null // Filing type (blue/white return)
+  taxOffice: string | null // Competent tax office
+  taxAddress: string | null // Address of the place for tax payment
+  invoiceNumber: string | null // Qualified invoice issuer registration number, T + 13 digits
+  invoiceRegisteredOn: string | null // Registration date YYYY-MM-DD
+  etaxUserId: string | null // e-Tax user ID, 16 digits
+  businessNumber: string | null // Business number
 }
 
 export const EMPTY_BUSINESS: BusinessInfo = {
@@ -46,7 +46,7 @@ function filingTypeOrNull(v: unknown): FilingType | null {
   return v === 'blue' || v === 'white' ? v : null
 }
 
-/** business 設定を JSON から復元。壊れた JSON / 型違いは項目ごとに null にする */
+/** Restores the business settings from JSON. Broken JSON / wrong types become null per field */
 export function parseBusiness(raw: string | null): BusinessInfo {
   if (!raw) return EMPTY_BUSINESS
   try {

@@ -3,20 +3,20 @@
 }
 
 /*
- * 面の段: 地 → カード → 沈めた面（.sunken）。影ではなく段と罫線で組み立てる。
- * 影を落とすのはこのアプリで唯一「浮いている」FAB だけ（.lifted）。
+ * Surface levels: base → card → sunken surface (.sunken). Built from levels and rules, not shadows.
+ * The only thing that casts a shadow is the FAB, the one element that "floats" in this app (.lifted).
  */
-/* Mantine の色変数そのものの差し替えは src/theme.ts の cssVariablesResolver 側。
-   ここに置くと MantineProvider が後から書き出す <style> に負ける。配色はダークのみ */
+/* Overriding Mantine's color variables themselves is done in cssVariablesResolver in src/theme.ts.
+   Putting it here loses to the <style> MantineProvider writes later. The color scheme is dark only */
 :root {
   --fp-sunken: var(--mantine-color-dark-8);
   --fp-sunken-edge: rgba(0, 0, 0, 0.5);
-  /* filled（indigo-5）だと地と 3.55:1。リングは indigo-3 で 6.68:1 まで上げる */
+  /* filled (indigo-5) is 3.55:1 against the base. The ring uses indigo-3 to reach 6.68:1 */
   --fp-focus: var(--mantine-color-indigo-3);
   --fp-lift: 0 6px 18px -6px rgba(0, 0, 0, 0.7);
 }
 
-/* 台帳なので数字は桁を揃える。1,232,000 と 920,000 が列で揃って初めて比べられる */
+/* It is a ledger, so digits are aligned. 1,232,000 and 920,000 can only be compared once they line up in a column */
 body {
   font-variant-numeric: tabular-nums;
 }
@@ -25,8 +25,8 @@ a {
   color: inherit;
 }
 
-/* 焦点リングは面によらず見えること。Mantine の既定は primary の filled 色で、
-   夜だと地との差が足りない（3.55:1）ので --fp-focus に差し替える */
+/* The focus ring must be visible on any surface. Mantine's default is the primary filled color,
+   which lacks contrast against the base at night (3.55:1), so swap in --fp-focus */
 .mantine-focus-auto:focus-visible,
 .mantine-focus-always:focus,
 a:focus-visible {
@@ -37,24 +37,24 @@ a:focus-visible {
   border-radius: inherit;
 }
 
-/* 長い URL・原文が枠を突き破らないように */
+/* Keep long URLs and raw text from breaking out of their frame */
 .breakable {
   overflow-wrap: anywhere;
 }
 
-/* ヘッダ・下タブは面の色に */
+/* Header and bottom tabs use the surface color */
 .appbar,
 .tabbar {
   background: var(--mantine-color-default);
 }
-/* 下タブはホームインジケータの分だけ下に余白を足す */
+/* Bottom tabs get extra bottom padding for the home indicator */
 .tabbar {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .app-main {
   padding-bottom: calc(var(--mantine-spacing-md) + env(safe-area-inset-bottom, 0px));
 }
-/* FAB のあるページは最後のカードが隠れないよう下に余白 */
+/* Pages with a FAB get bottom padding so the last card is not hidden */
 .fab-clearance {
   padding-bottom: 96px;
 }
@@ -62,23 +62,23 @@ a:focus-visible {
   box-shadow: var(--fp-lift);
 }
 
-/* 何も無いときの枠（EmptyState）。カードが「持ち上がる」のに対して、これは一段沈める。
-   地との明度差は小さいので、内側の罫線で縁を立てて輪郭が分かるようにする */
+/* Frame shown when there is nothing (EmptyState). Where cards "lift", this sinks one level.
+   The lightness difference from the base is small, so an inner border gives it a visible outline */
 .sunken {
   background-color: var(--fp-sunken);
   box-shadow: inset 0 1px 2px var(--fp-sunken-edge);
 }
 
-/* 原文はモノスペースで折り返す */
+/* Raw text wraps in monospace */
 .rawtext {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: var(--mantine-font-size-sm);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-/* 一覧の表: 単価・開始・状態は途中で折り返さない（「2030-01」が 2 行になったり、
-   チップが「商..」と省略されたりするのを防ぐ）。案件名と次の一手だけ折り返す。
-   はみ出す分は Table.ScrollContainer が横スクロールで受ける */
+/* List table: rate, start, and status never wrap mid-cell (prevents "2030-01" from taking 2 lines
+   or a chip being truncated to "商.."). Only the case name and next step wrap.
+   Overflow is handled by Table.ScrollContainer with horizontal scrolling */
 .case-table :where(th, td) {
   white-space: nowrap;
 }
@@ -87,7 +87,7 @@ a:focus-visible {
   white-space: normal;
 }
 
-/* 比較表: 先頭列を固定 */
+/* Compare table: pin the first column */
 .compare-table th:first-child,
 .compare-table td:first-child {
   position: sticky;
@@ -101,9 +101,9 @@ a:focus-visible {
 }
 
 /*
- * モバイル（主に iOS Safari）で最下部を超えてスクロールしたときのバウンスを止める。
- * 固定の下タブがバウンス中に一緒にずれて見えるのと、ブラウザ標準の引っ張り更新と
- * 自前の PullToRefresh が二重に発火するのを防ぐ（sumai-log と同じ対策）。
+ * Stops the bounce when scrolling past the bottom on mobile (mainly iOS Safari).
+ * Prevents the fixed bottom tabs from appearing to shift during the bounce, and the browser's built-in
+ * pull-to-refresh firing together with our own PullToRefresh (same fix as sumai-log).
  */
 html,
 body {
@@ -111,10 +111,10 @@ body {
 }
 
 /*
- * 引っ張って更新（PullToRefresh）。iOS 標準の UIRefreshControl と同じ見せ方で、
- * 本文の先頭に引いたぶんの空き（.ptr-space）を作り、その中央に放射状 12 本のスピナーを置く。
- * 引いている間（data-pulling）は指に追従させるので height の transition を切り、離した後は
- * 空きが縮むアニメーションで戻る。更新中（data-spinning）は 12 本を順に濃くして回す。
+ * Pull to refresh (PullToRefresh). Same presentation as iOS's UIRefreshControl:
+ * a gap as tall as the pull (.ptr-space) opens at the top of the content, with a 12-spoke radial spinner in its center.
+ * While pulling (data-pulling) it follows the finger, so the height transition is off; after release
+ * the gap shrinks back with an animation. While refreshing (data-spinning) the 12 spokes darken in turn to spin.
  */
 .ptr-space {
   position: relative;
@@ -208,10 +208,10 @@ body {
 }
 
 /*
- * `/calendar` の月表示（@mantine/schedule の MonthView）。既定は 1 セルの最小幅が 84px
- * （7 列で 588px）あり、390px 幅のスマホでは 7 列が収まらず横スクロールになる。sm 未満だけ
- * `--min-day-width` を下げ、日付の丸バッジも小さくする（sumai-log と同じ対策）。
- * 1 セルの高さは calendar.tsx 側の maxEventsPerDay で揃える（CSS 変数を直接触らない）。
+ * Month view of `/calendar` (@mantine/schedule's MonthView). By default a cell's minimum width is 84px
+ * (588px for 7 columns), so on a 390px-wide phone the 7 columns do not fit and scroll horizontally. Below sm only,
+ * lower `--min-day-width` and shrink the round date badge too (same fix as sumai-log).
+ * Cell height is aligned by maxEventsPerDay in calendar.tsx (the CSS variable is not touched directly).
  */
 @media (max-width: 47.99em) {
   .mantine-MonthView-monthView {
@@ -224,8 +224,8 @@ body {
 }
 
 /*
- * 収入タブの月別の棒。ライブラリを足さず CSS だけで描く。色に加えて数字を必ず添える
- * （SHIG 96 色に依存させない）。幅はその年の最大月を 100% にした割合を inline style で渡す。
+ * Monthly bars on the income tab. Drawn with CSS only, no extra library. Numbers always accompany the color
+ * (SHIG 96: do not rely on color). The width is the ratio to the year's largest month as 100%, passed via inline style.
  */
 .income-bar {
   display: flex;
@@ -259,7 +259,7 @@ body {
   background: var(--mantine-color-default-hover);
 }
 
-/* 見込み（まだ記録の無い月を参画中案件と役員報酬で埋めた値）は斜線で、実績と見分ける */
+/* Forecasts (months without records yet, filled from active cases and officer compensation) are hatched to tell them apart from actuals */
 .income-bar .seg-forecast {
   background: repeating-linear-gradient(
     135deg,
@@ -269,7 +269,7 @@ body {
 }
 
 /*
- * 比較 › 市場の「年齢別の単価割合」。帯ごとの色に加え、数字（8% 以上）と自分の帯の枠線で読む。
+ * "Rate share by age" in Compare › Market. Read via per-band colors plus numbers (8% and up) and an outline on my band.
  */
 .market-bar {
   display: flex;
@@ -295,7 +295,7 @@ body {
   outline-offset: -3px;
 }
 
-/* 収入 › 単価の推移。月ごとの縦棒。改定した月は濃く、日割りの月は斜線 */
+/* Income › Rate history. One vertical bar per month. Months with a rate change are darker; prorated months are hatched */
 .rate-bars {
   display: flex;
   align-items: flex-end;

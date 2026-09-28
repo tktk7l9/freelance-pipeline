@@ -17,7 +17,7 @@ export const homeData = createServerFn().handler(async () => {
     readImprovements(db),
   ])
   const active = rows.filter((c) => statusGroup(c.status) === 'active')
-  // 参画中＝いまの案件。複数なら開始日の新しい順
+  // Joined = the current case. If several, newest start date first
   const current = rows
     .filter((c) => c.status === 'joined')
     .sort((a, b) => b.startDate.localeCompare(a.startDate))

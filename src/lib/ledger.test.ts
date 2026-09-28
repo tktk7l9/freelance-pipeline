@@ -108,7 +108,7 @@ describe('joinedMonthlyFor', () => {
     expect(joinedMonthlyFor([open], '2029-12')).toBe(0)
     expect(joinedMonthlyFor([open], '2030-01')).toBe(100_000)
     expect(joinedMonthlyFor([open, dmm], '2030-11')).toBe(1_000_000)
-    // 終了が年月だけなら終了月は満額（日割りしない）
+    // If the end is year-month only, the end month is paid in full (not prorated)
     expect(
       joinedMonthlyFor([{ monthly: 100_000, startDate: '2030-01', endDate: '2030-03' }], '2030-03'),
     ).toBe(100_000)
@@ -152,12 +152,12 @@ describe('forecastMonths / forecastYear', () => {
 describe('rateHistory / rateChanges', () => {
   const rows: LedgerLike[] = [
     { id: '1', yearMonth: '2030-01', kind: 'freelance', amount: 780_000 },
-    { id: '2', yearMonth: '2030-01', kind: 'freelance', amount: 50_000 }, // 単発は無視
+    { id: '2', yearMonth: '2030-01', kind: 'freelance', amount: 50_000 }, // One-off entries are ignored
     { id: '3', yearMonth: '2030-02', kind: 'freelance', amount: 780_000 },
-    { id: '4', yearMonth: '2030-03', kind: 'freelance', amount: 300_000 }, // 日割り
+    { id: '4', yearMonth: '2030-03', kind: 'freelance', amount: 300_000 }, // Prorated
     { id: '5', yearMonth: '2030-04', kind: 'freelance', amount: 830_000 },
     { id: '6', yearMonth: '2030-05', kind: 'freelance', amount: 830_000 },
-    { id: '7', yearMonth: '2030-05', kind: 'officer', amount: 300_000 }, // 別種別は無視
+    { id: '7', yearMonth: '2030-05', kind: 'officer', amount: 300_000 }, // Other kinds are ignored
   ]
   it('月ごとの最大行を並べ、前後より低い月は日割りにする', () => {
     const h = rateHistory(rows)

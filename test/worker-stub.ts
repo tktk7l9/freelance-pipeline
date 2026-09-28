@@ -1,9 +1,9 @@
 /**
- * サーバー層テスト用の空の Worker。
+ * Empty Worker for server-layer tests.
  *
- * wrangler.jsonc の main は TanStack Start のパッケージ内エントリを指しており、
- * テストランナーからは解決できない。テストで必要なのは D1 などのバインディングだけで
- * アプリ本体は要らないため、ここを入口に差し替える。
+ * main in wrangler.jsonc points to an entry inside the TanStack Start package, which the
+ * test runner cannot resolve. Tests only need bindings such as D1, not the app itself,
+ * so this replaces the entry point.
  */
 export default {
   fetch(): Response {

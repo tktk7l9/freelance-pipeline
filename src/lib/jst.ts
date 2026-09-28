@@ -1,21 +1,21 @@
 /**
- * 台帳に流れ込む時刻表現を JST で表示する。
+ * Displays the time representations flowing into the ledger in JST.
  *
- * D1 の datetime('now') は 'YYYY-MM-DD HH:MM:SS'（UTC、オフセット無し）。
- * それ以外の入力元は ISO 8601（'Z' や '+09:00' などのオフセット付き、
- * またはオフセット無し）で来ることがある。オフセットが無ければ UTC とみなす。
- * ISO 8601 は小数点以下の秒（'.333' 等）を含むことがあるため、秒の小数部も受ける。
- * Date.now() は使わない（呼び出し時刻に依存しない純粋関数にするため）。
+ * D1's datetime('now') is 'YYYY-MM-DD HH:MM:SS' (UTC, no offset).
+ * Other sources may send ISO 8601 (with an offset such as 'Z' or '+09:00',
+ * or without one). Without an offset, it is treated as UTC.
+ * ISO 8601 may include fractional seconds ('.333' etc.), so those are accepted too.
+ * Date.now() is not used (to keep it a pure function independent of call time).
  */
 
 const DATE_TIME_PATTERN =
   /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/
 
 /**
- * UTC ミリ秒に直す。D1 の 'YYYY-MM-DD HH:MM:SS'（オフセット無し=UTC）と
- * ISO 8601（'Z' / '+09:00' のようなオフセット付き、またはオフセット無し=UTC。
- * 秒の小数部があってもなくてもよい）を受ける。この正規表現の形に合わない文字列は
- * null（呼び出し側で「読めない＝元の文字列のまま」などのフォールバックに使う）。
+ * Converts to UTC milliseconds. Accepts D1's 'YYYY-MM-DD HH:MM:SS' (no offset = UTC) and
+ * ISO 8601 (with an offset like 'Z' / '+09:00', or without = UTC; fractional seconds
+ * optional). Strings that do not match this regex give null (the caller uses it for
+ * fallbacks such as "unreadable = keep the original string").
  */
 export function parseToUtcMs(value: string): number | null {
   const match = DATE_TIME_PATTERN.exec(value)
@@ -43,8 +43,8 @@ function pad(n: number): string {
 }
 
 /**
- * JST の 'YYYY-MM-DD HH:mm'（withTime: false なら 'YYYY-MM-DD'）に直す。
- * 解釈できない文字列はそのまま返す。
+ * Converts to JST 'YYYY-MM-DD HH:mm' ('YYYY-MM-DD' when withTime is false).
+ * Unparseable strings are returned as is.
  */
 export function formatJst(value: string, opts?: { withTime?: boolean }): string {
   const utcMs = parseToUtcMs(value)
@@ -56,7 +56,7 @@ export function formatJst(value: string, opts?: { withTime?: boolean }): string 
   return `${datePart} ${pad(jst.getUTCHours())}:${pad(jst.getUTCMinutes())}`
 }
 
-/** JST の 'YYYY-MM-DD' キー。アプリ内の呼び出し元は今は無い。lib の公開 API として維持 */
+/** JST 'YYYY-MM-DD' key. No callers in the app right now. Kept as part of the lib's public API */
 export function toJstDateKey(value: string): string {
   return formatJst(value, { withTime: false })
 }

@@ -67,10 +67,10 @@ function Page() {
   const forecast =
     year === thisYear ? forecastYear(rows, year, todayYm, joined, officerMonthly) : null
   const inYear = rows.filter((r) => yearOf(r.yearMonth) === year)
-  // 単価の推移は年をまたいで見るので、選んだ年に関係なく全行から
+  // The rate history is viewed across years, so use all rows regardless of the selected year
   const history = useMemo(() => rateHistory(rows), [rows])
   const changes = useMemo(() => rateChanges(history), [history])
-  // 新規の既定は直近の行に合わせる（同じ源泉・同じ額が続くことが多い）
+  // New-entry defaults match the most recent row (the same source and amount often repeat)
   const latest = rows[0]
   const defaults = latest
     ? { yearMonth: todayYm, kind: latest.kind, party: latest.party ?? '', amount: latest.amount }

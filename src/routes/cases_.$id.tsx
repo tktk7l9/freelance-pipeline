@@ -78,7 +78,7 @@ function Page() {
         </Group>
       }
     >
-      {/* いちばん多い操作（連絡が来た → 状態と次の一手を更新）を先頭に置く。条件は取込後ほぼ変わらない */}
+      {/* The most common action (got a message → update the status and next step) goes first. Conditions barely change after import */}
       <Card withBorder padding="md">
         <Stack gap="md">
           <NextActionEditor
@@ -197,7 +197,7 @@ function Page() {
       <CaseLogList caseId={item.id} log={log} today={today} />
       <RawTextPanel text={item.rawText} />
 
-      {/* 削除は不可逆なのでここだけ確認を残す。編集の隣に置かない（押し間違い） */}
+      {/* Deletion is irreversible, so only this keeps a confirm. Not placed next to edit (mis-taps) */}
       <Group justify="center">
         <Button
           variant="subtle"

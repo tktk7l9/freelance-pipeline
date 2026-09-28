@@ -24,7 +24,7 @@ describe('parseDateInput', () => {
   it('日本語表記を読む', () => {
     expect(parseDateInput('2026年7月30日')).toBe('2026-07-30')
     expect(parseDateInput('2026年07月30日')).toBe('2026-07-30')
-    // 末尾の「日」が無い書きかけも受ける
+    // Also accept half-typed input without the trailing "日"
     expect(parseDateInput('2026年7月30')).toBe('2026-07-30')
   })
 
@@ -43,7 +43,7 @@ describe('parseDateInput', () => {
   it('うるう年は年ごとに判定する', () => {
     expect(parseDateInput('2024-02-29')).toBe('2024-02-29')
     expect(parseDateInput('2026-02-29')).toBeNull()
-    // 100 で割り切れるが 400 で割り切れない年は平年
+    // Years divisible by 100 but not by 400 are common years
     expect(parseDateInput('2100-02-29')).toBeNull()
     expect(parseDateInput('2000-02-29')).toBe('2000-02-29')
   })

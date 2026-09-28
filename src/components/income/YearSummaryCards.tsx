@@ -4,8 +4,8 @@ import { formatMan } from '../../lib/rate'
 import { yoyPercent, type YearSummary } from '../../lib/ledger'
 
 /**
- * 年の「情報」。数値そのものより意味（売上・収入・引かれるもの・手取り・前年比）を先に出す（SHIG 28）。
- * 今年は税がまだ確定していないので、手取りは暫定と明示する（55）。
+ * The year's "information". Put meaning (revenue, income, deductions, take-home, year over year) before raw numbers (SHIG 28).
+ * This year's tax is not final yet, so take-home is explicitly marked provisional (55).
  */
 export function YearSummaryCards({
   summary,

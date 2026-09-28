@@ -4,7 +4,7 @@ import { caseInputSchema } from '../lib/caseInput'
 import { CASE_STATUSES } from '../lib/status'
 import { dateField, idField, nullableText } from './zod'
 
-/** createServerFn のラッパーから切り離した zod（素の workers テストから直テストするため） */
+/** zod split out from the createServerFn wrapper (so plain workers tests can test it directly) */
 export const caseSaveInput = z.object({ id: idField.nullable(), values: caseInputSchema })
 export const statusChangeInput = z.object({ id: idField, to: z.enum(CASE_STATUSES) })
 export const nextActionInput = z.object({

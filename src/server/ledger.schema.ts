@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { LEDGER_KINDS } from '../lib/enums'
 import { idField, nullableText } from './zod'
 
-/** createServerFn のラッパーから切り離した zod（素の workers テストから直テストするため） */
+/** zod split out from the createServerFn wrapper (so plain workers tests can test it directly) */
 export const ledgerInput = z.object({
   id: idField.optional(),
   yearMonth: z.string().regex(/^\d{4}-\d{2}$/, '年月は YYYY-MM'),

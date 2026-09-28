@@ -15,13 +15,13 @@ export { ledgerInput }
 export type { LedgerInput } from './ledger.schema'
 
 /**
- * 収入タブ用。台帳の全行と、着地見込みに使う「参画中案件の月額」、案件の選択肢、今日。
- * 集計は lib/ledger.ts（純粋関数）で画面側が行う。
+ * For the income tab. All ledger rows, the "monthly amounts of active cases" used for the projected total, the case options, and today.
+ * Aggregation is done on the screen side by lib/ledger.ts (pure functions).
  */
 export const ledgerData = createServerFn().handler(async () => {
   const db = getDb()
   const [rows, cases] = await Promise.all([listRows(db), listCases(db)])
-  // 見込みの材料。期間を持たせ、終了した案件や開始前の案件を月ごとに外す（日割りは lib）
+  // Input for the forecast. Carries the period so ended or not-yet-started cases drop out per month (prorating is in lib)
   const joined = cases
     .filter((c) => c.status === 'joined')
     .map((c) => ({

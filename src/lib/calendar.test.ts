@@ -55,9 +55,9 @@ describe('visibleRange', () => {
     expect(visibleRange('2026-09-16', 'day')).toEqual({ from: '2026-09-16', to: '2026-09-16' })
   })
   it('週表示は月曜始まりで 7 日', () => {
-    // 2026-09-16 は水曜
+    // 2026-09-16 is a Wednesday
     expect(visibleRange('2026-09-16', 'week')).toEqual({ from: '2026-09-14', to: '2026-09-20' })
-    // 日曜は前の月曜から
+    // Sunday starts from the previous Monday
     expect(visibleRange('2026-09-20', 'week')).toEqual({ from: '2026-09-14', to: '2026-09-20' })
   })
   it('月表示は前後 7 日を含める', () => {

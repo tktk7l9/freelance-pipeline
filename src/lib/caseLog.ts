@@ -22,7 +22,7 @@ export function describeLog(entry: LogLike): string {
   return entry.body
 }
 
-/** メモは日付だけを見せる（時刻は正午に固定しているので意味が無い） */
+/** Memos show only the date (the time is fixed at noon, so it means nothing) */
 export function formatLogAt(entry: LogLike): string {
   return formatDateSlash(formatJst(entry.at, { withTime: entry.kind !== 'memo' }))
 }
@@ -32,10 +32,10 @@ export function sortLogNewestFirst<T extends LogLike>(entries: T[]): T[] {
 }
 
 /**
- * 日付だけのメモを JST の正午に置く（UTC に直しても日付が変わらない）。
- * status/import 行の at は `new Date().toISOString()`（'…Z' 表記）なので、
- * sortLogNewestFirst の文字列比較が正しく並ぶよう同じ '…Z' 表記で返す
- * （JST 正午 = UTC 03:00、同じ時刻を 1 つの書式で表す）。
+ * Places a date-only memo at noon JST (the date does not change when converted to UTC).
+ * The `at` of status/import rows is `new Date().toISOString()` (the '…Z' form), so return the
+ * same '…Z' form so that the string comparison in sortLogNewestFirst orders them correctly
+ * (noon JST = 03:00 UTC; one instant expressed in one format).
  */
 export function memoAt(date: string): string {
   return `${date}T03:00:00.000Z`

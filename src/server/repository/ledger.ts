@@ -4,7 +4,7 @@ import type { Db } from '../../db/client'
 import { ledger, type LedgerRow } from '../../db/schema'
 import type { LedgerValues } from '../ledger.schema'
 
-/** 全件。年月の新しい順、同月は作成順。件数は年 × 数十行なので絞らない */
+/** All rows. Newest year-month first, creation order within a month. Only years × dozens of rows, so no filtering */
 export async function listLedger(db: Db): Promise<LedgerRow[]> {
   return db.select().from(ledger).orderBy(desc(ledger.yearMonth), asc(ledger.createdAt))
 }

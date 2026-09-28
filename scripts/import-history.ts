@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * 過去案件（history.local.json・gitignore）を D1 へ冪等に取り込む。
+ * Idempotently imports past cases (history.local.json, gitignored) into D1.
  *   npm run import:history -- --remote|--local [--dry-run]
  *
- * slug から決定的な id を作り INSERT OR REPLACE で入れるので、何度流しても行は増えない。
- * 企業名・原文は標準出力に出さない（件数と文数だけ）。
+ * Builds a deterministic id from the slug and uses INSERT OR REPLACE, so rows never grow however often it runs.
+ * Never prints company names or raw text to stdout (only counts and statement counts).
  */
 import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'

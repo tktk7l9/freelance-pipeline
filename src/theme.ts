@@ -1,24 +1,24 @@
 import { createTheme, type CSSVariablesResolver } from '@mantine/core'
 
 /**
- * 案件の台帳。読む時間が長いので、地は寒色のスレート、アクセントは藍 1 色。
- * 住まいログ（暖色）と並べても取り違えない配色にする。
+ * A ledger of cases. It is read for long stretches, so the base is a cool slate with a single indigo accent.
+ * Colors are chosen so it is never confused with sumai-log (warm colors) side by side.
  *
- * 色は「状態」を表すためだけに使う。飾りには使わない。
- *   - 藍（indigo）… 今どこにいるか・何を押せるか（ナビの現在地・主ボタン・リンク・焦点リング）
- *   - スレート（gray/dark）… それ以外すべて
- *   - 赤/橙/黄・ステータス色は lib/deadlines・lib/status のデータ表現であって、
- *     2 本目のアクセントではない
+ * Color is used only to express "state". Never for decoration.
+ *   - indigo … where you are and what you can press (nav current location, primary button, links, focus ring)
+ *   - slate (gray/dark) … everything else
+ *   - red/orange/yellow and status colors are data representations from lib/deadlines and lib/status,
+ *     not a second accent
  *
- * 数値は実測してから載せた（本文 4.5:1・UI 3:1 をライト/ダーク両方で満たす）。
- * 主な組：
- *   ライト  本文#000/地gray0 19.4  dimmed gray6/地 5.11  罫線gray5/白 3.27
- *           filled indigo6/地 5.37  白文字/indigo6 5.82
- *   ダーク  本文dark0/地dark7 11.53  dimmed dark2/カードdark6 5.82  罫線dark4/カード 3.20
- *           filled indigo5/カード 3.03  白文字/indigo5 4.77
+ * Values were measured before being written down (body 4.5:1 and UI 3:1 in both light and dark).
+ * Main pairs:
+ *   light  body #000/base gray0 19.4  dimmed gray6/base 5.11  border gray5/white 3.27
+ *          filled indigo6/base 5.37  white text/indigo6 5.82
+ *   dark   body dark0/base dark7 11.53  dimmed dark2/card dark6 5.82  border dark4/card 3.20
+ *          filled indigo5/card 3.03  white text/indigo5 4.77
  */
 
-/** 寒色のスレート。地・面・罫線・控えめな文字はすべてこの 1 本から採る */
+/** Cool slate. Base, surfaces, borders, and subdued text all come from this one scale */
 const slate = [
   '#f4f6f9',
   '#e9edf3',
@@ -32,7 +32,7 @@ const slate = [
   '#222b38',
 ] as const
 
-/** 唯一のアクセント。万年筆のブルーブラック寄りの藍 */
+/** The only accent. An indigo leaning toward fountain-pen blue-black */
 const ink = [
   '#eef1fd',
   '#dbe1fa',
@@ -46,7 +46,7 @@ const ink = [
   '#1f3095',
 ] as const
 
-/** 夜の面。6=カード / 7=地 / 8=沈めた面（.sunken） */
+/** Night surfaces. 6 = card / 7 = base / 8 = sunken surface (.sunken) */
 const night = [
   '#cdd6e2',
   '#b3bdcd',
@@ -62,7 +62,7 @@ const night = [
 
 export const theme = createTheme({
   primaryColor: 'indigo',
-  // 既定の dark:8 は地との差が 1.7:1 しか出ず、ボタンの輪郭が夜に消える。5 なら 3.55:1
+  // The default dark:8 is only 1.7:1 against the base, so button outlines vanish at night. 5 gives 3.55:1
   primaryShade: 5,
   defaultRadius: 'md',
   respectReducedMotion: true,
@@ -90,14 +90,14 @@ export const theme = createTheme({
     Select: { defaultProps: { size: 'md' } },
     TagsInput: { defaultProps: { size: 'md' } },
     Button: { defaultProps: { size: 'md' } },
-    // チップの中身はステータス名と日付だけで短い。Mantine 既定は max-width:100% と
-    // overflow:hidden で、表の狭い列だと「商談」が「商..」に削られる（overflow:hidden の
-    // グリッドは最小幅が 0 になるので、列そのものが中身より狭く配られてしまう）。
-    // 削らず、列の方を中身に合わせる
+    // Chip content is just a status name or a date, so it is short. Mantine's default is max-width:100% and
+    // overflow:hidden, so in a narrow table column "商談" gets cut to "商.." (a grid with overflow:hidden
+    // has a min width of 0, so the column itself is allotted less than its content).
+    // Do not truncate; size the column to its content instead
     Badge: {
       defaultProps: { radius: 'sm' },
-      // Mantine 既定の大文字化はスキル名を「TYPESCRIPT」に潰してしまう。
-      // ここに出るのは固有名詞そのもので、表記は原文どおりが正しい
+      // Mantine's default uppercasing squashes skill names into "TYPESCRIPT".
+      // What appears here are proper nouns, and the original spelling is correct
       styles: { root: { maxWidth: 'none', minWidth: 'max-content', textTransform: 'none' } },
     },
     Table: { defaultProps: { verticalSpacing: 'xs', horizontalSpacing: 'sm' } },
@@ -105,16 +105,16 @@ export const theme = createTheme({
 })
 
 /**
- * Mantine が組み立てる色変数のうち、実測して足りなかったものだけ差し替える。
- * MantineProvider が書き出す <style> は head のリンクより後に来るので、
- * styles.css からでは上書きできない。こちらが正しい入口。
+ * Of the color variables Mantine builds, override only those that measured short.
+ * The <style> MantineProvider writes comes after the links in head, so styles.css
+ * cannot override them. This is the right entry point.
  */
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
   variables: {},
-  // 配色はダークのみ（forceColorScheme）。light は使われないが型の都合で空を置く
+  // The color scheme is dark only (forceColorScheme). light is unused but left empty for the types
   light: {},
   dark: {
-    // 既定のリンク色（indigo-4）はカードの上で 4.04:1。indigo-3 なら 5.71:1
+    // The default link color (indigo-4) is 4.04:1 on cards. indigo-3 gives 5.71:1
     '--mantine-color-anchor': ink[3],
   },
 })

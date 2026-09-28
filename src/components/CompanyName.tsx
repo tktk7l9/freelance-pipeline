@@ -2,13 +2,13 @@ import { Anchor, Text } from '@mantine/core'
 import { ExternalLink } from 'lucide-react'
 
 /**
- * 会社名。公式サイトの URL（companies 表）があれば新しいタブで開く外部リンクにし、
- * 無ければ文字だけ。
+ * Company name. If there is an official-site URL (companies table), render an external link
+ * that opens in a new tab; otherwise plain text.
  *
- * `nested` はカード全体が <Link>（<a>）になっている場所用。<a> の中に <a> は置けない
- * （HTML として不正で、SSR の HTML を読む段階で外側の <a> が閉じられてしまう）ので、
- * そこでは <span role="link"> にして window.open で開く。クリックは親のリンクに
- * 伝播させない。
+ * `nested` is for places where the whole card is a <Link> (<a>). An <a> cannot contain an <a>
+ * (invalid HTML, and the outer <a> gets closed while the SSR HTML is parsed), so there it
+ * becomes <span role="link"> and opens with window.open. Clicks do not propagate to the
+ * parent link.
  */
 export function CompanyName({
   name,

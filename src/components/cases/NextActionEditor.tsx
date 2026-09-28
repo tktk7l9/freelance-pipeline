@@ -21,7 +21,7 @@ export function NextActionEditor({
   const router = useRouter()
   const save = useServerFn(saveNextAction)
   const [saving, setSaving] = useState(false)
-  // Mantine 9.6 の DateInput は値を 'YYYY-MM-DD' 文字列で扱う
+  // Mantine 9.6's DateInput handles values as 'YYYY-MM-DD' strings
   const form = useForm({
     initialValues: { nextAction: nextAction ?? '', nextActionDue: nextActionDue ?? '' },
   })

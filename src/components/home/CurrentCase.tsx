@@ -11,7 +11,7 @@ import { RateLines } from '../cases/RateLines'
 import { CompanyName } from '../CompanyName'
 import { PlaceLink } from '../PlaceLink'
 
-/** ホームの先頭。参画中（status = joined）の案件を出す。無ければ何も出さない */
+/** Top of home. Shows the active case (status = joined). Renders nothing if there is none */
 export function CurrentCase({
   items,
   sites,
@@ -68,7 +68,7 @@ export function CurrentCase({
                   {c.paymentSiteDays !== null ? `${c.paymentSiteDays} 日` : '—'}
                 </Item>
               </SimpleGrid>
-              {/* 判断メモは単価の推移など「いま見たいこと」が書かれるので、切らずに全部出す */}
+              {/* The decision memo holds "what I want to see now", such as the rate history, so show it in full without truncating */}
               {c.note ? (
                 <Text size="sm" style={{ whiteSpace: 'pre-wrap' }} className="breakable">
                   {c.note}

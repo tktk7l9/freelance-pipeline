@@ -49,7 +49,7 @@ export const saveAxes = createServerFn({ method: 'POST' })
     return { ok: true as const }
   })
 
-/** ホームに出す「改善したいこと」。1 項目 300 字・50 項目まで */
+/** "Things to improve" shown on home. Up to 300 chars per item and 50 items */
 export const saveImprovements = createServerFn({ method: 'POST' })
   .validator(z.object({ items: z.array(z.string().trim().min(1).max(300)).max(50) }))
   .handler(async ({ data }) => {

@@ -71,15 +71,15 @@ export async function changeStatus(
 }
 
 /**
- * 直前のステータス変更を取り消す（通知の「取り消す」用）。case_log の最新の status 行を
- * 元に戻して消す。status 行が無ければ何もしない。
+ * Undoes the latest status change (for "Undo" in the notification). Reverts using the latest status row in case_log
+ * and deletes it. Does nothing if there is no status row.
  */
 export async function revertLastStatusChange(db: Db, id: string): Promise<'ok' | 'nothing'> {
   const [last] = await db
     .select()
     .from(caseLog)
     .where(and(eq(caseLog.caseId, id), eq(caseLog.kind, 'status')))
-    // 「直前」は挿入順（createdAt）で決める。at は手入力の日付が混ざりうる
+    // "Latest" is decided by insertion order (createdAt). `at` may contain hand-entered dates
     .orderBy(desc(caseLog.createdAt), desc(caseLog.at))
     .limit(1)
   if (!last || !last.fromStatus) return 'nothing'
@@ -105,7 +105,7 @@ export async function addMemo(db: Db, caseId: string, body: string, at: string):
   return id
 }
 
-/** 自動記録（status / import）は経緯なので消さない。メモだけ消せる */
+/** Automatic records (status / import) are history, so they are not deleted. Only memos can be deleted */
 export async function deleteLogEntry(db: Db, id: string): Promise<void> {
   await db.delete(caseLog).where(and(eq(caseLog.id, id), eq(caseLog.kind, 'memo')))
 }

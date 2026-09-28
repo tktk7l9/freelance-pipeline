@@ -2,8 +2,8 @@ import { Button, Group, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 
 /**
- * 「実行してから取り消せる」通知。確認ダイアログの代わりに使う（SHIG 57 黙って実行する／
- * 54 フールプルーフよりフェールセーフ）。不可逆な削除（案件ごと消す）だけは confirm を残す。
+ * "Act now, undo later" notification. Used instead of confirm dialogs (SHIG 57: act silently /
+ * 54: fail-safe over foolproof). Only irreversible deletion (deleting a whole case) keeps a confirm.
  */
 export function showUndo({ message, onUndo }: { message: string; onUndo: () => Promise<void> }) {
   const id = `undo-${Date.now()}`

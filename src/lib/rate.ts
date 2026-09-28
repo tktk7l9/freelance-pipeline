@@ -1,9 +1,9 @@
 import { ROUTES, type Route, type TaxBasis } from './enums.ts'
 
-/** 消費税率。税込が正本で、税抜表示の案件票だけここを通して税込にする */
+/** Consumption tax (消費税) rate. Tax-included is canonical; only case sheets shown tax-excluded go through here to become tax-included */
 export const TAX_RATE = 1.1
 
-/** 精算幅が無いときの基準時間（経路ごと）。時給換算の分母 */
+/** Base hours per route when there is no settlement range. Denominator for the hourly conversion */
 export const DEFAULT_BASE_HOURS: Record<Route, number> = {
   findy: 160,
   levtech: 168,
@@ -38,7 +38,7 @@ export function baseHours({
   return { hours: DEFAULT_BASE_HOURS[route], source: 'route' }
 }
 
-/** 時給（税抜）。monthlyIncl は税込 */
+/** Hourly rate (tax excluded). monthlyIncl is tax included */
 export function hourlyExcl(monthlyIncl: number, hours: number): number {
   return Math.round(toExcl(monthlyIncl) / hours)
 }
@@ -49,7 +49,7 @@ export function formatMan(yen: number | null | undefined): string {
   return `${man.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}万`
 }
 
-/** 単価の 2 行表示。上段=税込（min があれば min〜max）、下段=(税抜 …) */
+/** Two-line rate display. Top = tax included (min〜max if min exists), bottom = (tax excluded …) */
 export function formatRateLines(
   maxIncl: number,
   minIncl: number | null,
@@ -63,7 +63,7 @@ export function formatRateLines(
   }
 }
 
-/** 時給の 2 行表示。上段=円/h（税抜）、下段=(÷基準時間h) */
+/** Two-line hourly display. Top = yen/h (tax excluded), bottom = (÷ base hours h) */
 export function formatHourlyLines(
   monthlyIncl: number,
   hours: number,
@@ -83,7 +83,7 @@ export function median(values: number[]): number | null {
 
 export type RouteStat = { route: Route; activeCount: number; medianIncl: number | null }
 
-/** 進行中案件を経路ごとに集計。件数 0 の経路は含めない。並びは ROUTES の順 */
+/** Aggregates in-progress cases by route. Routes with 0 cases are omitted. Ordered as in ROUTES */
 export function statsByRoute(cases: { route: Route; monthlyMaxIncl: number }[]): RouteStat[] {
   return ROUTES.flatMap((route) => {
     const inRoute = cases.filter((c) => c.route === route)

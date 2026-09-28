@@ -1,13 +1,13 @@
-# ローカル開発用。`.dev.vars` にコピーして使う（gitignore 済み）。
-# Keyway を使う場合: keyway pull -e development -f .dev.vars -y
+# For local development. Copy to `.dev.vars` (already gitignored).
+# With Keyway: keyway pull -e development -f .dev.vars -y
 #
-# ローカルには Cloudflare Access が無いため、ENVIRONMENT=development のときだけ
-# DEV_IDENTITY_EMAIL を認証済み利用者として扱う。本番では必ず無効。
+# There is no Cloudflare Access locally, so only when ENVIRONMENT=development is
+# DEV_IDENTITY_EMAIL treated as the authenticated user. Always disabled in production.
 
 ENVIRONMENT=development
 DEV_IDENTITY_EMAIL=owner@example.com
 ACCESS_ALLOWED_EMAILS=owner@example.com
 
-# 本番でのみ使う値（ローカルでは空でよい）
+# Values used only in production (may be empty locally)
 ACCESS_TEAM_DOMAIN=
 ACCESS_POLICY_AUD=

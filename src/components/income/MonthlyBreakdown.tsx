@@ -4,8 +4,8 @@ import { formatMan } from '../../lib/rate'
 import type { MonthRow } from '../../lib/ledger'
 
 /**
- * 月別の内訳。棒（CSS）と数字を並べ、色だけで読ませない（SHIG 96）。
- * 棒の幅は年内の最大月を 100% にした割合。
+ * Monthly breakdown. Show bars (CSS) alongside numbers, never relying on color alone (SHIG 96).
+ * Bar width is the ratio to the year's largest month as 100%.
  */
 export function MonthlyBreakdown({ months }: { months: MonthRow[] }) {
   const max = Math.max(
@@ -83,7 +83,7 @@ export function MonthlyBreakdown({ months }: { months: MonthRow[] }) {
   )
 }
 
-/** その月の見込み（売上＋役員報酬）。実績のある種別は 0 になっている */
+/** Forecast for the month (revenue + officer compensation). Kinds with actuals are 0 */
 function forecastOf(m: MonthRow): number {
   return m.forecastFreelance + m.forecastOfficer
 }

@@ -1,8 +1,8 @@
 /**
- * 日本の祝日。カレンダーの日付を赤くするためだけに使う。
+ * Japanese public holidays. Used only to color calendar dates red.
  *
- * 対象は **2023年以降**（現行の祝日法のみ）。過去の特例（五輪の移動など）は再現しない。
- * kousan-admin → sumai-log と受け継いだ実装から、祝日名の判定に要る分だけ移植。
+ * Covers **2023 onward** (current Public Holiday Act only). Past exceptions (e.g. the Olympics shifts) are not reproduced.
+ * Ported from the implementation inherited kousan-admin → sumai-log, only as much as needed to resolve holiday names.
  */
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/
@@ -28,21 +28,21 @@ function toIsoDate(year: number, month: number, day: number): string {
   return `${year}-${pad(month)}-${pad(day)}`
 }
 
-/** 曜日。0=日曜。書式が違えば null。 */
+/** Day of week. 0 = Sunday. null if the format is wrong. */
 export function dayOfWeek(iso: string): number | null {
   const parsed = parseIsoDate(iso)
   if (!parsed) return null
   return new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day)).getUTCDay()
 }
 
-/** その月の n 番目の月曜日（ハッピーマンデー用）。 */
+/** The n-th Monday of the month (for Happy Monday holidays). */
 export function nthMondayOf(year: number, month: number, nth: number): number {
   const firstDay = new Date(Date.UTC(year, month - 1, 1)).getUTCDay()
   const firstMonday = 1 + ((8 - firstDay) % 7)
   return firstMonday + (nth - 1) * 7
 }
 
-/** 春分の日・秋分の日。国立天文台の官報公表値に一致する近似式（1980〜2099 で有効）。 */
+/** Vernal and autumnal equinox days. Approximation that matches the values published by the National Astronomical Observatory in the official gazette (valid 1980–2099). */
 export function equinoxDay(year: number, season: 'spring' | 'autumn'): number {
   const base = season === 'spring' ? 20.8431 : 23.2488
   return Math.floor(base + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4))
@@ -79,9 +79,9 @@ function shiftDate(iso: string, days: number): string {
 }
 
 /**
- * 振替休日と国民の休日を足した、その年の祝日一覧。
- * 振替休日: 祝日が日曜なら、その後の最初の平日が休日になる。
- * 国民の休日: 祝日に挟まれた平日は休日になる（敬老の日と秋分の日の間など）。
+ * The year's holiday list including substitute holidays and national holidays (国民の休日).
+ * Substitute holiday: if a holiday falls on Sunday, the first weekday after it becomes a holiday.
+ * National holiday: a weekday sandwiched between holidays becomes a holiday (e.g. between Respect for the Aged Day and the autumnal equinox).
  */
 export function holidaysOfYear(year: number): Map<string, string> {
   const holidays = new Map(statutoryHolidays(year))
@@ -96,8 +96,8 @@ export function holidaysOfYear(year: number): Map<string, string> {
     const between = shiftDate(iso, 1)
     if (!holidays.has(dayAfterNext)) continue
     if (holidays.has(between)) continue
-    // 挟まれた日が日曜なら国民の休日にはならない。現行の祝日では 2023〜2099 に発生しないが
-    // 法改正で祝日が増えたときに誤って作らないよう残す
+    // A sandwiched Sunday does not become a national holiday. Never happens for 2023–2099 under the current holidays,
+    // but kept so a future law change adding holidays does not create one by mistake
     /* v8 ignore next */
     if (dayOfWeek(between) === 0) continue
     holidays.set(between, '国民の休日')
@@ -105,7 +105,7 @@ export function holidaysOfYear(year: number): Map<string, string> {
   return holidays
 }
 
-/** その日が祝日なら名称、そうでなければ null。 */
+/** The holiday name if the date is a holiday, otherwise null. */
 export function holidayName(iso: string): string | null {
   const parsed = parseIsoDate(iso)
   if (!parsed) return null

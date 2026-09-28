@@ -1,8 +1,8 @@
 import { Stack, Text } from '@mantine/core'
 
 /**
- * 単価・時給の 2 行表示。上段=太字、下段=dimmed の小さい字。表・カード・詳細・比較で共用。
- * size="xl" はホームの見出し数値と並べる用（上段 fz=28・下段 sm）。既定は変えない。
+ * Two-line display of rate and hourly rate. Top line bold, bottom line small and dimmed. Shared by table, card, detail, and compare.
+ * size="xl" is for sitting next to the home heading numbers (top fz=28, bottom sm). The default is unchanged.
  */
 export function RateLines({
   main,

@@ -75,13 +75,13 @@ export const saveCase = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const db = getDb()
     const row = toCaseRow(data.values)
-    // 会社の公式サイトはフォームの値で置く（空なら消す）。案件の列ではなく companies 表
+    // Set the company's official site from the form value (clear it if empty). It lives in the companies table, not a case column
     await setCompanySite(db, row.company, data.values.companyUrl)
     if (data.id) {
       const existing = await getCase(db, data.id)
       if (!existing) throw new Response('Not Found', { status: 404 })
-      // 税基準は取込時の記録。編集フォームは税込で入れるので上書きしない。
-      // ステータスは StatusChanger だけが変える（ログを残すため）
+      // The tax basis records how it was imported. The edit form takes tax-included values, so do not overwrite it.
+      // Only StatusChanger changes the status (so a log entry is kept)
       await updateCase(db, data.id, {
         ...row,
         status: existing.status,
@@ -100,7 +100,7 @@ export const changeCaseStatus = createServerFn({ method: 'POST' })
     return result === 'ok' ? { ok: true as const } : { ok: false as const, reason: result }
   })
 
-/** 通知の「取り消す」。直前のステータス変更を戻す */
+/** "Undo" in the notification. Reverts the latest status change */
 export const undoStatusChange = createServerFn({ method: 'POST' })
   .validator(idInput)
   .handler(async ({ data }) => ({ result: await revertLastStatusChange(getDb(), data.id) }))
@@ -152,7 +152,7 @@ export const importCase = createServerFn({ method: 'POST' })
         ok: false as const,
         duplicate: { id: dup.id, company: dup.company, title: dup.title },
       }
-    // JSON に companyUrl があるときだけ置く（無いときに既存のリンクを消さない）
+    // Set it only when the JSON has companyUrl (do not erase an existing link when absent)
     if (parsed.input.companyUrl) await setCompanySite(db, row.company, parsed.input.companyUrl)
     const id = await insertCase(db, row, {
       importNote: '取込フォーム',

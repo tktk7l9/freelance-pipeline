@@ -1,8 +1,8 @@
 import { Card, Stack, Text } from '@mantine/core'
 
 /**
- * 何も無いときの枠。絵文字ひとつ・一文・（あれば）次の一手のボタン、だけを置く。
- * 絵文字は飾りなので読み上げからは外す。
+ * Frame shown when there is nothing. Holds only one emoji, one sentence, and (if any) a next-step button.
+ * The emoji is decoration, so it is hidden from screen readers.
  */
 export function EmptyState({
   emoji = '🏠',
@@ -22,8 +22,8 @@ export function EmptyState({
           {emoji}
         </Text>
         <Text fw={600}>{title}</Text>
-        {/* 沈めた面（.sunken）の上でも dimmed は 4.71:1（ライト）/ 7.23:1（ダーク）出る。
-            主従は色に加えて大きさ（14 と 16）と太さで付ける */}
+        {/* Even on the sunken surface (.sunken), dimmed reaches 4.71:1 (light) / 7.23:1 (dark).
+            Hierarchy comes from size (14 vs 16) and weight in addition to color */}
         {description ? (
           <Text size="sm" c="dimmed">
             {description}

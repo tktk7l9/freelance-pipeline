@@ -4,7 +4,7 @@ import type { LedgerRow } from '../../db/schema'
 import { LEDGER_DIRECTION, LEDGER_KIND_LABEL } from '../../lib/enums'
 import { formatDateSlash } from '../../lib/format'
 
-/** 年内の明細。行をタップで編集（名詞→動詞：対象を選んでから操作） */
+/** Entries within the year. Tap a row to edit (noun → verb: pick the target, then act) */
 export function EntryList({
   rows,
   onSelect,

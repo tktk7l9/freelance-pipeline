@@ -3,7 +3,7 @@ import { eq, sql } from 'drizzle-orm'
 import type { Db } from '../../db/client'
 import { companies } from '../../db/schema'
 
-/** 会社名 → 公式サイト URL。表示側で会社名にリンクを付けるための辞書 */
+/** Company name → official-site URL. Dictionary used by the UI to link company names */
 export type CompanySites = Record<string, string>
 
 export async function listCompanySites(db: Db): Promise<CompanySites> {
@@ -11,7 +11,7 @@ export async function listCompanySites(db: Db): Promise<CompanySites> {
   return Object.fromEntries(rows.map((r) => [r.name, r.url]))
 }
 
-/** URL を置く。空なら行ごと消す（「リンク無し」に戻す） */
+/** Sets the URL. If empty, deletes the row (back to "no link") */
 export async function setCompanySite(db: Db, name: string, url: string | null): Promise<void> {
   if (!url) {
     await db.delete(companies).where(eq(companies.name, name))

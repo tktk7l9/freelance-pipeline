@@ -1,7 +1,7 @@
 import { LEDGER_DIRECTION, type LedgerKind } from './enums'
 import { toExcl } from './rate'
 
-/** 台帳の 1 行（集計に要る列だけ） */
+/** One ledger row (only the columns needed for aggregation) */
 export type LedgerLike = {
   id: string
   yearMonth: string
@@ -19,7 +19,7 @@ export function yearOf(yearMonth: string): number {
   return Number(yearMonth.slice(0, 4))
 }
 
-/** データのある年＋今年を降順で。年チップに使う */
+/** Years with data plus this year, descending. Used for the year chips */
 export function yearsOf(rows: readonly LedgerLike[], thisYear: number): number[] {
   const set = new Set<number>([thisYear])
   for (const r of rows) set.add(yearOf(r.yearMonth))
@@ -28,9 +28,9 @@ export function yearsOf(rows: readonly LedgerLike[], thisYear: number): number[]
 
 export type YearSummary = {
   year: number
-  /** フリーランス売上（税込） */
+  /** Freelance revenue (tax included) */
   salesIncl: number
-  /** フリーランス売上（税抜） */
+  /** Freelance revenue (tax excluded) */
   salesExcl: number
   officer: number
   otherIncome: number
@@ -40,9 +40,9 @@ export type YearSummary = {
   expense: number
   otherOutgo: number
   outgoTotal: number
-  /** 手取り＝収入合計 − 税・社保・経費・その他支出 */
+  /** Take-home = total income − tax, social insurance, expenses, other expenses */
   net: number
-  /** 収入がある月の数（月平均の分母） */
+  /** Number of months with income (denominator of the monthly average) */
   monthsWithIncome: number
 }
 
@@ -94,12 +94,12 @@ export type MonthRow = {
   otherIncome: number
   income: number
   outgo: number
-  /** 見込み（forecastMonths）。実績のある種別は 0 */
+  /** Forecast (forecastMonths). Kinds with actuals are 0 */
   forecastFreelance: number
   forecastOfficer: number
 }
 
-/** 12 か月ぶんの内訳。データの無い月も 0 で並べる（表と棒グラフの行を揃える）。forecast を渡すと見込み列が埋まる */
+/** Breakdown for 12 months. Months without data are listed as 0 too (keeps table and bar-chart rows aligned). Passing forecast fills the forecast column */
 export function monthlyBreakdown(
   rows: readonly LedgerLike[],
   year: number,
@@ -126,13 +126,13 @@ export function monthlyBreakdown(
   })
 }
 
-/** 前年比（%）。前年が 0 なら null */
+/** Year over year (%). null if the previous year is 0 */
 export function yoyPercent(current: number, previous: number): number | null {
   if (previous === 0) return null
   return Math.round(((current - previous) / previous) * 1000) / 10
 }
 
-/** 参画中の案件（見込みの材料）。startDate/endDate は 'YYYY-MM-DD' か 'YYYY-MM' */
+/** An active case (input for the forecast). startDate/endDate are 'YYYY-MM-DD' or 'YYYY-MM' */
 export type JoinedCase = { monthly: number; startDate: string; endDate: string | null }
 
 function daysIn(yearMonth: string): number {
@@ -140,14 +140,14 @@ function daysIn(yearMonth: string): number {
   return new Date(Date.UTC(y, m, 0)).getUTCDate()
 }
 
-/** 'YYYY-MM-DD' の日。'YYYY-MM' なら null（月初/月末として扱う） */
+/** Day of a 'YYYY-MM-DD'. null for 'YYYY-MM' (treated as start/end of month) */
 function dayOf(date: string): number | null {
   return date.length >= 10 ? Number(date.slice(8, 10)) : null
 }
 
 /**
- * その月に参画中の案件の月額合計。開始月・終了月は日割り（DMM の 10/16 開始なら 10 月は 16/31）。
- * 月の外（開始前・終了後）は 0。
+ * Total monthly amount of the cases active in that month. The start and end months are prorated (e.g. a DMM start on 10/16 makes October 16/31).
+ * Outside the period (before start, after end) is 0.
  */
 export function joinedMonthlyFor(cases: readonly JoinedCase[], yearMonth: string): number {
   let total = 0
@@ -174,10 +174,10 @@ export function joinedMonthlyFor(cases: readonly JoinedCase[], yearMonth: string
 export type MonthForecast = { freelance: number; officer: number }
 
 /**
- * 月ごとの見込み。todayYm 以降で、その種別の記録が無い月にだけ入れる
- * （過去の空白は見込みで埋めない＝記録漏れを隠さない）。
- * - freelance: 参画中案件の月額（期間内・開始/終了月は日割り）
- * - officer: 直近の役員報酬（officerMonthly）
+ * Monthly forecast. Filled only for months from todayYm onward that have no record of that kind
+ * (past gaps are not filled with forecasts = missing records are not hidden).
+ * - freelance: monthly amount of active cases (within the period; start/end months prorated)
+ * - officer: the most recent officer compensation (officerMonthly)
  */
 export function forecastMonths(
   rows: readonly LedgerLike[],
@@ -198,7 +198,7 @@ export function forecastMonths(
   return out
 }
 
-/** 今年の着地見込み＝実績＋forecastMonths の合計 */
+/** This year's projected total = actuals + the sum of forecastMonths */
 export function forecastYear(
   rows: readonly LedgerLike[],
   year: number,
@@ -222,7 +222,7 @@ export function forecastYear(
   }
 }
 
-/** 直近（年月が最大）の officer 行の額。無ければ 0 */
+/** Amount of the most recent officer row (latest year-month). 0 if none */
 export function latestOfficerMonthly(rows: readonly LedgerLike[]): number {
   let best: LedgerLike | null = null
   for (const r of rows) {
@@ -234,16 +234,16 @@ export function latestOfficerMonthly(rows: readonly LedgerLike[]): number {
 
 export type RatePoint = {
   yearMonth: string
-  /** その月のフリーランス売上の最大行＝主契約の月額（税込） */
+  /** The largest freelance revenue row of the month = the main contract's monthly amount (tax included) */
   rate: number
-  /** 前後の月より低い＝日割りなど一時的な月。改定の検出から外す */
+  /** Lower than both neighboring months = a temporary month such as prorating. Excluded from change detection */
   partial: boolean
 }
 
 /**
- * 単価の推移。月ごとにフリーランス売上の最大の行を「主契約の月額」とみなす
- * （単発の請求が同じ月にあっても主契約の額が残る）。
- * 前後の月より低い月は日割りとみなして partial にする（改定の誤検出を防ぐ）。
+ * Rate history. For each month, the largest freelance revenue row is taken as "the main contract's monthly amount"
+ * (so the main contract's amount survives even with one-off invoices in the same month).
+ * Months lower than both neighbors are treated as prorated and marked partial (prevents false change detection).
  */
 export function rateHistory(rows: readonly LedgerLike[]): RatePoint[] {
   const byMonth = new Map<string, number>()
@@ -267,7 +267,7 @@ export function rateHistory(rows: readonly LedgerLike[]): RatePoint[] {
 
 export type RateChange = { yearMonth: string; from: number; to: number }
 
-/** 単価の改定（日割りの月を除いて、前の月額と違う最初の月） */
+/** Rate changes (the first month whose amount differs from the previous month's, excluding prorated months) */
 export function rateChanges(history: readonly RatePoint[]): RateChange[] {
   const out: RateChange[] = []
   let last: number | null = null
