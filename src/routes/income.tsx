@@ -1,7 +1,8 @@
-import { Button, Chip, Group, Stack } from '@mantine/core'
+import { Button, Chip, Divider, Group, Stack } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
+import { Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
 
@@ -18,6 +19,7 @@ import { showUndo } from '../components/undoNotification'
 import type { LedgerRow } from '../db/schema'
 import {
   forecastMonths,
+  ledgerEntryName,
   forecastYear,
   latestOfficerMonthly,
   monthlyBreakdown,
@@ -147,7 +149,11 @@ function Page() {
           onSaved={() => setCreating(false)}
         />
       </FormDrawer>
-      <FormDrawer opened={editing !== null} onClose={() => setEditing(null)} title="編集">
+      <FormDrawer
+        opened={editing !== null}
+        onClose={() => setEditing(null)}
+        title={editing ? `${ledgerEntryName(editing)} を編集` : '編集'}
+      >
         {editing ? (
           <Stack gap="md">
             <LedgerForm
@@ -155,9 +161,19 @@ function Page() {
               caseOptions={caseOptions}
               onSaved={() => setEditing(null)}
             />
-            <Button color="red" variant="subtle" fullWidth onClick={() => handleDelete(editing)}>
-              この行を削除
-            </Button>
+            {/* Kept away from "Save" behind a divider (SHIG 16, 13); it can be undone (54) */}
+            <Divider mt="xl" />
+            <Group justify="center">
+              <Button
+                color="red"
+                variant="subtle"
+                size="xs"
+                leftSection={<Trash2 size={14} aria-hidden />}
+                onClick={() => handleDelete(editing)}
+              >
+                この行を削除
+              </Button>
+            </Group>
           </Stack>
         ) : null}
       </FormDrawer>

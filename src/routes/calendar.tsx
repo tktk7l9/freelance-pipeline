@@ -1,10 +1,11 @@
-import { Button, Group, Stack, Text } from '@mantine/core'
+import { Button, Divider, Group, Stack, Text } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { Schedule } from '@mantine/schedule'
 import type { ScheduleEventData, ScheduleViewLevel } from '@mantine/schedule'
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
+import { Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { z } from 'zod'
 
@@ -200,9 +201,19 @@ function Page() {
         {editing ? (
           <Stack gap="md">
             <EventForm event={editing} caseOptions={caseOptions} onSaved={() => setEditing(null)} />
-            <Button color="red" variant="light" fullWidth onClick={() => handleDelete(editing)}>
-              削除
-            </Button>
+            {/* Kept away from "Save" behind a divider, and quiet: it can be undone (SHIG 16, 13, 54) */}
+            <Divider mt="xl" />
+            <Group justify="center">
+              <Button
+                color="red"
+                variant="subtle"
+                size="xs"
+                leftSection={<Trash2 size={14} aria-hidden />}
+                onClick={() => handleDelete(editing)}
+              >
+                この予定を削除
+              </Button>
+            </Group>
           </Stack>
         ) : null}
       </FormDrawer>
