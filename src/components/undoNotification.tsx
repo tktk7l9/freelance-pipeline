@@ -14,9 +14,11 @@ export function showUndo({ message, onUndo }: { message: string; onUndo: () => P
     message: (
       <Group justify="space-between" wrap="nowrap" gap="sm">
         <Text size="sm">{message}</Text>
+        {/* 30px tall: a 7mm touch target (SHIG 78) */}
         <Button
-          size="compact-xs"
+          size="xs"
           variant="light"
+          style={{ flexShrink: 0 }}
           onClick={async () => {
             notifications.update({ id, message: '戻しています…', loading: true, autoClose: false })
             try {

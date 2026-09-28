@@ -40,6 +40,8 @@ function Page() {
   const navigate = useNavigate()
   const remove = useServerFn(deleteCaseFn)
   const [editing, setEditing] = useState(false)
+  // Bumped when the status changes so the next-step field takes focus (SHIG 41)
+  const [focusNext, setFocusNext] = useState(0)
   const rateLines = formatRateLines(item.monthlyMaxIncl, item.monthlyMinIncl)
 
   async function handleDelete() {
@@ -82,11 +84,19 @@ function Page() {
       <Card withBorder padding="md">
         <Stack gap="md">
           <NextActionEditor
+            key={`${item.nextAction ?? ''}|${item.nextActionDue ?? ''}`}
             id={item.id}
+            status={item.status}
             nextAction={item.nextAction}
             nextActionDue={item.nextActionDue}
+            today={today}
+            focusSignal={focusNext}
           />
-          <StatusChanger id={item.id} status={item.status} />
+          <StatusChanger
+            id={item.id}
+            status={item.status}
+            onChanged={() => setFocusNext((n) => n + 1)}
+          />
         </Stack>
       </Card>
 

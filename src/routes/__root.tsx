@@ -59,7 +59,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           cssVariablesResolver={cssVariablesResolver}
         >
           <DatesProvider settings={{ locale: 'ja', firstDayOfWeek: 0 }}>
-            <Notifications position="top-center" />
+            {/* Bottom, near the thumb and the button just pressed; lifted above the tab bar and FAB on phones (SHIG 66) */}
+            <Notifications position="bottom-center" className="fp-notifications" />
             <AppLayout>{children}</AppLayout>
           </DatesProvider>
         </MantineProvider>

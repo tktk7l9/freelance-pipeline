@@ -1,4 +1,4 @@
-import { Button, Menu, Stack, Text } from '@mantine/core'
+import { Button, Group, Menu, Stack, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
@@ -8,13 +8,24 @@ import { useState } from 'react'
 import { STATUS_LABEL, transitionOptions, type CaseStatus } from '../../lib/status'
 import { changeCaseStatus, undoStatusChange } from '../../server/cases'
 import { showUndo } from '../undoNotification'
+import { StatusBadge } from './StatusBadge'
 
 /**
  * Status change. The most common action, "advance to next", is one tap; the rest (skip ahead, on hold,
  * declined, passed) fold into a menu (do not list every option = Hick's law). No confirm dialog;
- * after changing, "Undo" in the notification reverts it.
+ * after changing, "Undo" in the notification reverts it. The current status is shown next to the
+ * label so the buttons can be read against it (SHIG 25, 12). `onChanged` lets the page move focus to
+ * the next step, which usually changes with the status (41).
  */
-export function StatusChanger({ id, status }: { id: string; status: CaseStatus }) {
+export function StatusChanger({
+  id,
+  status,
+  onChanged,
+}: {
+  id: string
+  status: CaseStatus
+  onChanged?: (to: CaseStatus) => void
+}) {
   const router = useRouter()
   const change = useServerFn(changeCaseStatus)
   const undo = useServerFn(undoStatusChange)
@@ -30,8 +41,9 @@ export function StatusChanger({ id, status }: { id: string; status: CaseStatus }
         return
       }
       await router.invalidate()
+      onChanged?.(to)
       showUndo({
-        message: `${STATUS_LABEL[to]} にしました`,
+        message: `${STATUS_LABEL[to]} にしました。次の一手と期日も見直してください`,
         onUndo: async () => {
           await undo({ data: { id } })
           await router.invalidate()
@@ -47,9 +59,15 @@ export function StatusChanger({ id, status }: { id: string; status: CaseStatus }
   if (!primary && others.length === 0) return null
   return (
     <Stack gap="xs">
-      <Text size="sm" fw={600}>
-        状態
-      </Text>
+      <Group gap="xs">
+        <Text size="sm" fw={600}>
+          状態
+        </Text>
+        <Text size="sm" c="dimmed">
+          いま:
+        </Text>
+        <StatusBadge status={status} />
+      </Group>
       {primary ? (
         <Button onClick={() => apply(primary)} loading={saving === primary} fullWidth>
           {STATUS_LABEL[primary]}へ進める
