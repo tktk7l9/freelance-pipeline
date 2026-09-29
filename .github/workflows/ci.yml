@@ -44,6 +44,8 @@ jobs:
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm run test:coverage
+      # UI layer (components/routes) on jsdom with Testing Library; server functions are mocked
+      - run: npm run test:ui:coverage
       # Server-layer tests against the real Workers runtime + D1
       - run: npm run test:server
       # Tests for scripts/lib (the pure part of importing case-sheet JSON into D1)
