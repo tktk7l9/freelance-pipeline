@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -349,6 +349,26 @@ describe('LedgerForm', () => {
     await user.type(screen.getByRole('textbox', { name: /金額/ }), '1000')
     await user.click(screen.getByRole('button', { name: '保存' }))
     expect(screen.getByText('年月を選んでください')).toBeInTheDocument()
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('asks for the amount instead of saving an empty one as 0 yen', async () => {
+    const { user } = await renderWithRouter(
+      <LedgerForm
+        entry={null}
+        defaults={{ yearMonth: '2030-11' }}
+        caseOptions={[]}
+        onSaved={vi.fn()}
+      />,
+    )
+    const saveButton = screen.getByRole('button', { name: '保存' })
+    // The browser's own required check stops the click first
+    await user.click(saveButton)
+    expect(screen.getByRole('textbox', { name: /金額/ })).toBeInvalid()
+    expect(save).not.toHaveBeenCalled()
+    // A submit that gets past it still stops at the form's validation
+    fireEvent.submit(saveButton.closest('form')!)
+    expect(await screen.findByText('金額を入れてください')).toBeInTheDocument()
     expect(save).not.toHaveBeenCalled()
   })
 
