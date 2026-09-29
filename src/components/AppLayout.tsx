@@ -32,7 +32,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar className="appbar" p="xs">
+      {/* On phones the navbar is only slid off-screen, so its links stayed in the Tab order and focus
+          vanished for six stops before reaching the page. Take it out below sm; the bottom tabs cover it (SHIG 94) */}
+      <AppShell.Navbar className="appbar" p="xs" visibleFrom="sm">
         {NAV_ITEMS.map(({ to, label, icon }) => {
           const Icon = ICONS[icon]
           const active = isNavItemActive(pathname, to)
@@ -66,7 +68,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 to={to}
                 aria-current={active ? 'page' : undefined}
                 h="100%"
-                c={active ? 'indigo' : 'dimmed'}
+                // indigo.3: the default indigo shade here is 4.04:1 on the tab bar; .3 gives 5.71:1 (SHIG 94)
+                c={active ? 'indigo.3' : 'dimmed'}
               >
                 <Stack align="center" justify="center" gap={3} h="100%">
                   <Icon size={20} aria-hidden strokeWidth={active ? 2.5 : 1.75} />

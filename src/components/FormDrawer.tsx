@@ -2,6 +2,8 @@ import { Alert, Button, Drawer, Group, Text } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 
+import { focusAfterSave } from '../lib/nextAction'
+
 /** Lets a form inside a FormDrawer say whether it holds unsaved input */
 const DirtyContext = createContext<((dirty: boolean) => void) | null>(null)
 
@@ -43,6 +45,9 @@ export function FormDrawer({
   const [asking, setAsking] = useState(false)
   const report = useCallback((d: boolean) => setDirty(d), [])
   const keepRef = useRef<HTMLButtonElement>(null)
+  // The field the owner was in when the question came up. "入力を続ける" removes the question (and the
+  // focused button with it), so focus goes back there instead of falling to <body> (SHIG 94)
+  const resumeRef = useRef<Element | null>(null)
 
   useEffect(() => {
     if (!opened) setAsking(false)
@@ -58,39 +63,78 @@ export function FormDrawer({
 
   function requestClose() {
     if (dirty && !asking) {
+      resumeRef.current = document.activeElement
       setAsking(true)
       return
     }
     onClose()
   }
 
+  function keepEditing() {
+    setAsking(false)
+    const resume = resumeRef.current
+    resumeRef.current = null
+    // After the question unmounts on the next frame
+    requestAnimationFrame(() => {
+      const target = focusAfterSave<Element>({
+        active: document.activeElement,
+        body: document.body,
+        before: resume,
+        beforeUsable: resume?.isConnected ?? false,
+        fallback: null,
+      })
+      if (target instanceof HTMLElement) target.focus({ preventScroll: true })
+    })
+  }
+
+  // Built from the compound parts instead of <Drawer title>, for two reasons:
+  // - the close button is icon-only, so it needs a spoken name (SHIG 11, WCAG 4.1.2)
+  // - Mantine renders the drawer header as <header>, which audits count as a second banner next to
+  //   the app header; a plain container keeps a single banner landmark on the page
   return (
-    <Drawer
+    <Drawer.Root
       opened={opened}
       onClose={requestClose}
-      title={title}
       position={isMobile ? 'bottom' : 'right'}
       size={isMobile ? '100%' : 480}
       padding="md"
       zIndex={zIndex}
-      styles={{ title: { fontWeight: 700, fontSize: 'var(--mantine-font-size-lg)' } }}
     >
-      {asking ? (
-        <Alert color="yellow" variant="light" mb="md" role="alertdialog" aria-live="assertive">
-          <Text size="sm" mb="xs">
-            保存していない入力があります。閉じると消えます。
-          </Text>
-          <Group gap="xs" justify="space-between">
-            <Button size="xs" variant="subtle" color="red" onClick={onClose}>
-              入力を捨てて閉じる
-            </Button>
-            <Button size="xs" ref={keepRef} onClick={() => setAsking(false)}>
-              入力を続ける
-            </Button>
-          </Group>
-        </Alert>
-      ) : null}
-      <DirtyContext.Provider value={report}>{children}</DirtyContext.Provider>
-    </Drawer>
+      <Drawer.Overlay />
+      <Drawer.Content>
+        <Drawer.Header role="none">
+          <Drawer.Title fw={700} fz="lg">
+            {title}
+          </Drawer.Title>
+          <Drawer.CloseButton aria-label="閉じる" />
+        </Drawer.Header>
+        <Drawer.Body>
+          {asking ? (
+            <Alert
+              color="yellow"
+              variant="light"
+              mb="md"
+              role="alertdialog"
+              aria-live="assertive"
+              // Mantine's Alert sets aria-labelledby to its (absent) title, so name it directly
+              aria-label="保存していない入力があります"
+            >
+              <Text size="sm" mb="xs">
+                保存していない入力があります。閉じると消えます。
+              </Text>
+              <Group gap="xs" justify="space-between">
+                <Button size="xs" variant="subtle" color="red" onClick={onClose}>
+                  入力を捨てて閉じる
+                </Button>
+                <Button size="xs" ref={keepRef} onClick={keepEditing}>
+                  入力を続ける
+                </Button>
+              </Group>
+            </Alert>
+          ) : null}
+          <DirtyContext.Provider value={report}>{children}</DirtyContext.Provider>
+        </Drawer.Body>
+      </Drawer.Content>
+    </Drawer.Root>
   )
 }

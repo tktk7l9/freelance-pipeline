@@ -74,7 +74,15 @@ export function StatusChanger({
         </Button>
       ) : null}
       {others.length > 0 ? (
-        <Menu position="bottom-end" withinPortal>
+        // No focus placeholder: Mantine puts a role="presentation" div inside role="menu", which is not an
+        // allowed child; without it, opening moves focus to the first item as the ARIA menu pattern expects.
+        // Portaled into <main> so the open menu stays inside a landmark
+        <Menu
+          position="bottom-end"
+          withinPortal
+          portalProps={{ target: 'main' }}
+          withInitialFocusPlaceholder={false}
+        >
           <Menu.Target>
             <Button
               variant={primary ? 'subtle' : 'default'}

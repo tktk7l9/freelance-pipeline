@@ -143,6 +143,7 @@ export function BusinessCard({
                 label="生年月日（市場データで自分の年齢帯を出すのに使う）"
                 valueFormat="YYYY/MM/DD"
                 clearable
+                clearButtonProps={{ 'aria-label': '生年月日を消す' }}
                 {...form.getInputProps('birthDate')}
                 value={form.values.birthDate || null}
                 onChange={(v) => form.setFieldValue('birthDate', v ?? '')}
@@ -152,6 +153,7 @@ export function BusinessCard({
                   label="開業日"
                   valueFormat="YYYY/MM/DD"
                   clearable
+                  clearButtonProps={{ 'aria-label': '開業日を消す' }}
                   {...form.getInputProps('openedOn')}
                   value={form.values.openedOn || null}
                   onChange={(v) => form.setFieldValue('openedOn', v ?? '')}
@@ -197,6 +199,7 @@ export function BusinessCard({
                   label="登録年月日"
                   valueFormat="YYYY/MM/DD"
                   clearable
+                  clearButtonProps={{ 'aria-label': '登録年月日を消す' }}
                   {...form.getInputProps('invoiceRegisteredOn')}
                   value={form.values.invoiceRegisteredOn || null}
                   onChange={(v) => form.setFieldValue('invoiceRegisteredOn', v ?? '')}

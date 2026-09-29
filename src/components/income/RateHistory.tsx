@@ -20,7 +20,10 @@ export function RateHistory({ history, changes }: { history: RatePoint[]; change
     <Card withBorder padding="md">
       <Stack gap="sm">
         <Group justify="space-between" align="baseline" wrap="wrap">
-          <Title order={3}>単価の推移（月額・税込）</Title>
+          {/* h2: a section of the page like 月別 and 明細 (no h3 without an h2 above it). Same look as before */}
+          <Title order={2} size="h3">
+            単価の推移（月額・税込）
+          </Title>
           {/* No revision: one plain sentence instead of "+0万・+0%・改定 0 回" (SHIG 1) */}
           {changes.length === 0 ? (
             <Text size="sm">
