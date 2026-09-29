@@ -38,9 +38,13 @@ a:focus-visible {
 }
 
 /* Small inline links (company name, map, "open") keep their layout but get a larger invisible hit
-   area around them, so the target reaches about 7mm (SHIG 78, 93) */
+   area around them, so the target reaches about 7mm (SHIG 78, 93).
+   The box itself is also padded to at least 24px tall (WCAG 2.5.8; the pseudo-element is invisible to
+   hit-size audits), and the negative margin gives the height back so the line does not move */
 .hotspot {
   position: relative;
+  padding-block: 3px;
+  margin-block: -3px;
 }
 .hotspot::after {
   content: '';
@@ -255,6 +259,27 @@ body {
     font-size: var(--mantine-font-size-xs);
     width: calc(1.375rem * var(--mantine-scale));
   }
+}
+
+/*
+ * Menu item under the pointer or keyboard focus. Mantine paints it with dark-4, which in this palette
+ * (#6b778d) leaves the item text at 3.07:1. dark-5 keeps 6.80:1 and still stands out from the dropdown
+ * (dark-6); keyboard focus also gets the focus ring (SHIG 94, WCAG 1.4.3).
+ */
+.mantine-Menu-item:where(:hover, :focus, [data-menu-active]):where(
+    :not(:disabled, [data-disabled])
+  ) {
+  background-color: var(--mantine-color-dark-5);
+}
+
+/*
+ * Days of the previous / next month in the month view. Mantine fades them to 40% of the base color,
+ * which is 2.96:1 on the dark base, yet they are still buttons (tapping one opens that day).
+ * Use the dimmed text color instead: 6.80:1, and still clearly lighter than this month's days (11.53:1)
+ * (SHIG 94, WCAG 1.4.3).
+ */
+.mantine-MonthView-monthViewDay[data-outside] {
+  color: var(--mantine-color-dimmed);
 }
 
 /*

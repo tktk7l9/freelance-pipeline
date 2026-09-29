@@ -120,6 +120,7 @@ export function EventForm({
         <Select
           label="案件"
           clearable
+          clearButtonProps={{ 'aria-label': '案件を外す' }}
           searchable
           data={caseOptions.map((c) => ({ value: c.id, label: c.label }))}
           {...form.getInputProps('caseId')}

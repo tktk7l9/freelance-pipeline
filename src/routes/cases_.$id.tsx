@@ -170,7 +170,10 @@ function Page() {
 
       <Card withBorder padding="md">
         <Stack gap="xs">
-          <Title order={3}>スキル</Title>
+          {/* h2 like 経緯: a section of the case page, not a subsection. Same look as before */}
+          <Title order={2} size="h3">
+            スキル
+          </Title>
           <Group gap={4}>
             {item.mustSkills.map((sk) => (
               <Badge key={`m-${sk}`} variant="filled">

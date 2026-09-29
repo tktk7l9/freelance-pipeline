@@ -101,6 +101,8 @@ export const theme = createTheme({
       styles: { root: { maxWidth: 'none', minWidth: 'max-content', textTransform: 'none' } },
     },
     Table: { defaultProps: { verticalSpacing: 'xs', horizontalSpacing: 'sm' } },
+    // Every toast (saved / failed / undo) has an icon-only × button; give it a spoken name (SHIG 11, WCAG 4.1.2)
+    Notification: { defaultProps: { closeButtonProps: { 'aria-label': '閉じる' } } },
   },
 })
 
