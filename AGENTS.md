@@ -27,6 +27,10 @@ A case (project) pipeline tracker used by one person. **The repository is public
 - `createdAt`/`updatedAt` are both `sql\`(datetime('now'))\``. Do not mix in ISO strings
 - Dates are ISO-8601 TEXT, amounts are integer yen, ids are text (`crypto.randomUUID()`)
 - Mobile first. Bottom tabs + FAB + full-screen Drawer. Left nav on desktop
+- UI tests live in `test/ui/` (jsdom + Testing Library, `vitest.ui.config.ts`), not next to the components:
+  a test file inside `src/routes/` would become a route. Server functions are replaced with `vi.fn()` in
+  `test/ui/setup.tsx`; fixtures in `test/ui/fixtures.ts` stay fictitious. Assert what the owner sees and does
+  (roles, labels, text, the resulting URL), not snapshots
 
 ## Income/expense ledger (/income)
 
@@ -63,7 +67,7 @@ npm run cf-typegen
 
 ## Definition of done
 
-`npm run format:check` `typecheck` `test:coverage` `test:server` `test:scripts` `build` `check:pii` are all green.
+`npm run format:check` `typecheck` `test:coverage` `test:ui:coverage` `test:server` `test:scripts` `build` `check:pii` are all green.
 If you touch authentication, confirm 403 on the deny paths (no JWT / invalid signature / not in allowlist / dev path in production).
 
 ## References

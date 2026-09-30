@@ -1,6 +1,7 @@
 dist
 .wrangler
 coverage
+coverage-ui
 drizzle/migrations
 src/routeTree.gen.ts
 worker-configuration.d.ts

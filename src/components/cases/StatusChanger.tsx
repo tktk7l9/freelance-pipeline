@@ -45,8 +45,11 @@ export function StatusChanger({
       showUndo({
         message: `${STATUS_LABEL[to]} にしました。次の一手と期日も見直してください`,
         onUndo: async () => {
-          await undo({ data: { id } })
+          // 'nothing' means no status change was left to revert; throwing makes the notification
+          // say it could not be undone instead of claiming success (SHIG 55)
+          const { result } = await undo({ data: { id } })
           await router.invalidate()
+          if (result !== 'ok') throw new Error('nothing to undo')
         },
       })
     } catch {
