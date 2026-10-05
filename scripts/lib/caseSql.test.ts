@@ -44,7 +44,7 @@ const row: CaseRowValues = {
 }
 
 describe('sqlLiteral', () => {
-  it('NULL・数値・文字列のエスケープ', () => {
+  it('escapes NULL, numbers and strings', () => {
     assert.equal(sqlLiteral(null), 'NULL')
     assert.equal(sqlLiteral(12), '12')
     assert.equal(sqlLiteral("O'Reilly"), "'O''Reilly'")
@@ -52,7 +52,7 @@ describe('sqlLiteral', () => {
 })
 
 describe('caseColumns', () => {
-  it('snake_case の列名になり、配列は JSON 文字列', () => {
+  it('uses snake_case column names and turns arrays into JSON strings', () => {
     const cols = caseColumns(row)
     assert.equal(cols.monthly_max_incl, 1_232_000)
     assert.equal(cols.source_tax_basis, 'excl')
@@ -63,7 +63,7 @@ describe('caseColumns', () => {
 })
 
 describe('insertCaseStatements', () => {
-  it('cases と case_log の 2 文。OR REPLACE は指定時だけ', () => {
+  it('2 statements for cases and case_log. OR REPLACE only when requested', () => {
     const [c, l] = insertCaseStatements({
       id: 'id-1',
       row,
@@ -87,13 +87,13 @@ describe('insertCaseStatements', () => {
 })
 
 describe('updateCaseStatement / duplicateQuery / slugToId', () => {
-  it('UPDATE は updated_at を datetime(now) にする', () => {
+  it('UPDATE sets updated_at to datetime(now)', () => {
     const s = updateCaseStatement('id-1', row)
     assert.match(s, /^UPDATE cases SET /)
     assert.match(s, /updated_at = \(datetime\('now'\)\)/)
     assert.match(s, /WHERE id = 'id-1';$/)
   })
-  it('UPDATE は案件票の列だけ。進行状態（status 等）は触らない', () => {
+  it('UPDATE touches only the case-sheet columns, never the progress state (status etc.)', () => {
     const s = updateCaseStatement('id-1', row)
     assert.doesNotMatch(s, /\bstatus = /)
     assert.doesNotMatch(s, /\bnext_action = /)
@@ -105,7 +105,7 @@ describe('updateCaseStatement / duplicateQuery / slugToId', () => {
     assert.match(s, /\braw_text = /)
     assert.match(s, /updated_at = \(datetime\('now'\)\)/)
   })
-  it('updateLogStatement は case_log に kind=import の行を作る', () => {
+  it('updateLogStatement creates a kind=import row in case_log', () => {
     const s = updateLogStatement({
       id: 'log-1',
       caseId: 'id-1',
@@ -118,21 +118,21 @@ describe('updateCaseStatement / duplicateQuery / slugToId', () => {
     assert.match(s, /'import'/)
     assert.match(s, /'add-case --update'/)
   })
-  it('重複照会は sourceUrl があれば OR、無ければ AND だけ', () => {
+  it('the duplicate lookup uses OR when sourceUrl is given, otherwise AND only', () => {
     assert.match(
       duplicateQuery({ sourceUrl: 'https://e.com', company: 'a', title: 'b' }),
       /source_url = 'https:\/\/e.com' OR/,
     )
     assert.doesNotMatch(duplicateQuery({ sourceUrl: null, company: 'a', title: 'b' }), /source_url/)
   })
-  it('slug から決定的な UUID 形', () => {
+  it('a deterministic UUID-shaped id from the slug', () => {
     assert.equal(slugToId('a'), slugToId('a'))
     assert.match(slugToId('a'), /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
   })
 })
 
 describe('upsertCompanyStatement', () => {
-  it('同名なら URL を上書きする 1 文', () => {
+  it('1 statement that overwrites the URL for the same name', () => {
     const sql = upsertCompanyStatement("甲社 O'Reilly", 'https://example.com')
     assert.equal(
       sql,

@@ -12,14 +12,14 @@ import {
 } from './deadlines'
 
 describe('deadlines', () => {
-  it('期限状態', () => {
+  it('due state', () => {
     expect(dueState('2030-01-01', '2030-01-02')).toBe('overdue')
     expect(dueState('2030-01-02', '2030-01-02')).toBe('today')
     expect(dueState('2030-01-05', '2030-01-02')).toBe('soon')
     expect(dueState('2030-01-06', '2030-01-02')).toBe('later')
   })
 
-  it('DUE_COLOR は全ての DueState を持つ', () => {
+  it('DUE_COLOR has every DueState', () => {
     const states: DueState[] = ['overdue', 'today', 'soon', 'later']
     for (const s of states) {
       expect(typeof DUE_COLOR[s]).toBe('string')
@@ -27,7 +27,7 @@ describe('deadlines', () => {
     }
   })
 
-  it('期日ありだけを昇順に', () => {
+  it('only cases with a deadline, ascending', () => {
     const items = [
       { id: 'a', nextActionDue: '2030-01-05' },
       { id: 'b', nextActionDue: null },
@@ -36,11 +36,11 @@ describe('deadlines', () => {
     expect(withDue(items).map((i) => i.id)).toEqual(['c', 'a'])
   })
 
-  it('groupByDue: 空配列は空配列', () => {
+  it('groupByDue: an empty array gives an empty array', () => {
     expect(groupByDue([])).toEqual([])
   })
 
-  it('groupByDue: 日付ごとにまとめ、日付昇順・グループ内は入力順を保つ', () => {
+  it('groupByDue: groups by date, dates ascending, input order kept within a group', () => {
     const a = { id: 'a', nextActionDue: '2030-01-05' }
     const b = { id: 'b', nextActionDue: '2030-01-01' }
     const c = { id: 'c', nextActionDue: '2030-01-05' }
@@ -52,7 +52,7 @@ describe('deadlines', () => {
 })
 
 describe('dueLabel', () => {
-  it('期限切れ・今日・あと N 日・それより先は null', () => {
+  it('overdue, today, N days left, and null beyond that', () => {
     expect(dueLabel('2030-01-04', '2030-01-05')).toBe('期限切れ')
     expect(dueLabel('2030-01-05', '2030-01-05')).toBe('今日')
     expect(dueLabel('2030-01-07', '2030-01-05')).toBe('あと2日')
@@ -62,7 +62,7 @@ describe('dueLabel', () => {
 })
 
 describe('postponeDue', () => {
-  it('期日が先ならその日から、期限切れなら今日から N 日後にずらす', () => {
+  it('shifts by N days from the deadline if it is ahead, from today if overdue', () => {
     expect(postponeDue('2030-01-10', '2030-01-05', 1)).toBe('2030-01-11')
     expect(postponeDue('2030-01-01', '2030-01-05', 1)).toBe('2030-01-06')
     expect(postponeDue('2030-01-05', '2030-01-05', 7)).toBe('2030-01-12')
@@ -71,7 +71,7 @@ describe('postponeDue', () => {
 })
 
 describe('quickDueOptions', () => {
-  it('明日・3日後・1週間後を today から計算して返す（値を入れさせず結果を選ばせる, SHIG 45）', () => {
+  it('returns tomorrow, in 3 days and in 1 week computed from today (choose a result instead of typing a value, SHIG 45)', () => {
     expect(quickDueOptions('2030-12-30')).toEqual([
       { label: '明日', date: '2030-12-31' },
       { label: '3日後', date: '2031-01-02' },

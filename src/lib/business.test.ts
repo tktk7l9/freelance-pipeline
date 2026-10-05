@@ -23,7 +23,7 @@ const full: BusinessInfo = {
 }
 
 describe('business', () => {
-  it('空の既定値は全項目 null', () => {
+  it('the empty default has every field null', () => {
     expect(EMPTY_BUSINESS).toEqual({
       birthDate: null,
       openedOn: null,
@@ -39,12 +39,12 @@ describe('business', () => {
     })
   })
 
-  it('申告区分の表示ラベル', () => {
+  it('display labels of the filing type', () => {
     expect(FILING_TYPE_LABEL.blue).toBe('青色申告')
     expect(FILING_TYPE_LABEL.white).toBe('白色申告')
   })
 
-  it('インボイス登録番号の形式は T + 13 桁', () => {
+  it('the invoice registration number (インボイス登録番号) is T + 13 digits', () => {
     expect(isInvoiceNumber('T1234567890123')).toBe(true)
     expect(isInvoiceNumber('T123456789012')).toBe(false)
     expect(isInvoiceNumber('1234567890123')).toBe(false)
@@ -52,18 +52,18 @@ describe('business', () => {
     expect(isInvoiceNumber('Tabcdefghijklm')).toBe(false)
   })
 
-  it('null / 壊れた JSON は既定値', () => {
+  it('null / broken JSON gives the default', () => {
     expect(parseBusiness(null)).toEqual(EMPTY_BUSINESS)
     expect(parseBusiness('{bad')).toEqual(EMPTY_BUSINESS)
     expect(parseBusiness(JSON.stringify('not-object'))).toEqual(EMPTY_BUSINESS)
     expect(parseBusiness(JSON.stringify(null))).toEqual(EMPTY_BUSINESS)
   })
 
-  it('往復できる（全項目埋まっている場合）', () => {
+  it('round-trips (when every field is filled)', () => {
     expect(parseBusiness(JSON.stringify(full))).toEqual(full)
   })
 
-  it('型違い・不正値の項目は null に落ちる', () => {
+  it('fields with a wrong type or invalid value fall back to null', () => {
     const raw = JSON.stringify({
       openedOn: 123,
       occupation: '',
@@ -79,7 +79,7 @@ describe('business', () => {
     expect(parseBusiness(raw)).toEqual(EMPTY_BUSINESS)
   })
 
-  it('filingType が white のときも読める', () => {
+  it('also reads filingType white', () => {
     expect(parseBusiness(JSON.stringify({ ...full, filingType: 'white' })).filingType).toBe('white')
   })
 })

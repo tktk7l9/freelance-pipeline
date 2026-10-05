@@ -20,7 +20,7 @@ const minimal = {
 }
 
 describe('caseInputSchema', () => {
-  it('最小の JSON を受け、省略項目は null / [] / saved になる', () => {
+  it('accepts minimal JSON, and omitted fields become null / [] / saved', () => {
     const input = caseInputSchema.parse(minimal)
     expect(input.monthlyMin).toBeNull()
     expect(input.mustSkills).toEqual([])
@@ -28,19 +28,19 @@ describe('caseInputSchema', () => {
     expect(input.fitScores).toBeNull()
   })
 
-  it('空文字の任意項目は null に寄せる', () => {
+  it('turns empty optional fields into null', () => {
     const input = caseInputSchema.parse({ ...minimal, agentName: '  ', note: '' })
     expect(input.agentName).toBeNull()
     expect(input.note).toBeNull()
   })
 
-  it('開始は YYYY-MM-DD か YYYY-MM。期日は YYYY-MM-DD', () => {
+  it('start is YYYY-MM-DD or YYYY-MM; the deadline is YYYY-MM-DD', () => {
     expect(caseInputSchema.safeParse({ ...minimal, startDate: '2030/01' }).success).toBe(false)
     expect(caseInputSchema.safeParse({ ...minimal, startDate: '2030-01-15' }).success).toBe(true)
     expect(caseInputSchema.safeParse({ ...minimal, nextActionDue: '2030-01' }).success).toBe(false)
   })
 
-  it('companyUrl は受けるが案件の行には入らない（companies 表へ）', () => {
+  it('accepts companyUrl but keeps it out of the case row (it goes to the companies table)', () => {
     const input = caseInputSchema.parse({ ...minimal, companyUrl: 'https://example.com' })
     expect(input.companyUrl).toBe('https://example.com')
     expect('companyUrl' in toCaseRow(input)).toBe(false)
@@ -48,7 +48,7 @@ describe('caseInputSchema', () => {
     expect(caseInputSchema.safeParse({ ...minimal, companyUrl: 'ftp://x' }).success).toBe(false)
   })
 
-  it('URL は http(s) のみ', () => {
+  it('URLs are http(s) only', () => {
     expect(
       caseInputSchema.safeParse({ ...minimal, sourceUrl: 'javascript:alert(1)' }).success,
     ).toBe(false)
@@ -60,7 +60,7 @@ describe('caseInputSchema', () => {
     expect(parsed.sourceUrl).toBeNull()
   })
 
-  it('下限 > 上限、精算幅の逆転を拒む', () => {
+  it('rejects min > max and an inverted settlement range', () => {
     expect(caseInputSchema.safeParse({ ...minimal, monthlyMin: 2_000_000 }).success).toBe(false)
     expect(
       caseInputSchema.safeParse({ ...minimal, settlementMinH: 180, settlementMaxH: 140 }).success,
@@ -69,14 +69,14 @@ describe('caseInputSchema', () => {
 })
 
 describe('toCaseRow', () => {
-  it('税抜表示は税込に直し、基準を残す', () => {
+  it('converts a tax-excluded rate to tax-included and keeps the basis', () => {
     const row = toCaseRow(caseInputSchema.parse({ ...minimal, monthlyMin: 1_000_000 }))
     expect(row.monthlyMaxIncl).toBe(1_232_000)
     expect(row.monthlyMinIncl).toBe(1_100_000)
     expect(row.sourceTaxBasis).toBe('excl')
   })
 
-  it('税込表示はそのまま', () => {
+  it('keeps a tax-included rate as is', () => {
     const row = toCaseRow(caseInputSchema.parse({ ...minimal, taxBasis: 'incl' }))
     expect(row.monthlyMaxIncl).toBe(1_120_000)
     expect(row.sourceTaxBasis).toBe('incl')
@@ -84,19 +84,19 @@ describe('toCaseRow', () => {
 })
 
 describe('parseCaseJson', () => {
-  it('壊れた JSON は issues で返す', () => {
+  it('returns broken JSON as issues', () => {
     const r = parseCaseJson('{not json')
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.issues[0].path).toBe('')
   })
 
-  it('検証エラーは項目名つき', () => {
+  it('validation errors carry the field name', () => {
     const r = parseCaseJson(JSON.stringify({ ...minimal, company: '' }))
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.issues.map((i) => i.path)).toContain('company')
   })
 
-  it('検証エラーは日本語の項目名と直し方で返す（zod の英語を出さない, SHIG 55, 11）', () => {
+  it('validation errors use the Japanese field name and how to fix it (never zod English, SHIG 55, 11)', () => {
     const messages = (o: Record<string, unknown>) => {
       const r = parseCaseJson(JSON.stringify(o))
       return r.ok ? [] : r.issues.map((i) => `${i.label}|${i.message}`)
@@ -138,7 +138,7 @@ describe('parseCaseJson', () => {
     expect(messages({ ...minimal, fitScores: [5] })).toContain('軸の点数|軸の点数は 2 以下')
   })
 
-  it('知らない項目・想定外のコードでも文にする', () => {
+  it('turns unknown fields and unexpected codes into a sentence too', () => {
     expect(describeCaseIssue({ code: 'custom', path: ['zzz'], message: 'bad' })).toEqual({
       path: 'zzz',
       label: 'zzz',
@@ -179,7 +179,7 @@ describe('parseCaseJson', () => {
     ).toEqual({ path: 'note', label: '判断メモ', message: '判断メモの形が違います' })
   })
 
-  it('例の JSON はそのまま通る', () => {
+  it('the example JSON passes as is', () => {
     expect(parseCaseJson(CASE_JSON_EXAMPLE).ok).toBe(true)
   })
 })

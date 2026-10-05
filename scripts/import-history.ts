@@ -22,7 +22,7 @@ const target = process.argv.includes('--remote')
     : null
 const dryRun = process.argv.includes('--dry-run')
 if (!target) {
-  console.error('使い方: npm run import:history -- --remote|--local [--dry-run]')
+  console.error('Usage: npm run import:history -- --remote|--local [--dry-run]')
   process.exit(2)
 }
 
@@ -30,12 +30,12 @@ const parsed = historyFileSchema.safeParse(
   JSON.parse(readFileSync(resolve(root, 'history.local.json'), 'utf8')),
 )
 if (!parsed.success) {
-  console.error('history.local.json の検証エラー:')
+  console.error('Validation errors in history.local.json:')
   for (const i of parsed.error.issues) console.error(`  ${i.path.join('.')}: ${i.message}`)
   process.exit(1)
 }
 const statements = buildHistoryStatements(parsed.data, new Date().toISOString())
-console.log(`${parsed.data.cases.length} 件・${statements.length} 文`)
+console.log(`${parsed.data.cases.length} cases, ${statements.length} statements`)
 if (dryRun) process.exit(0)
 
 const dir = mkdtempSync(join(tmpdir(), 'import-history-'))
@@ -50,4 +50,4 @@ try {
 } finally {
   rmSync(dir, { recursive: true, force: true })
 }
-console.log('取り込みました')
+console.log('Imported')

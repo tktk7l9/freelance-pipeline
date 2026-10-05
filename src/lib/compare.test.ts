@@ -45,7 +45,7 @@ const b: CompareCase = {
 }
 
 describe('compare', () => {
-  it('閾値と軸の parse（壊れた値は既定）', () => {
+  it('parses thresholds and axes (broken values give the default)', () => {
     expect(parseThresholds(null)).toEqual(DEFAULT_THRESHOLDS)
     expect(parseThresholds('{bad')).toEqual(DEFAULT_THRESHOLDS)
     expect(
@@ -71,7 +71,7 @@ describe('compare', () => {
     )
   })
 
-  it('出社回数', () => {
+  it('on-site days', () => {
     expect(onsitePerMonth('full', null)).toBe(0)
     expect(onsitePerMonth('partial', '月4回出社')).toBe(4)
     expect(onsitePerMonth('partial', '初日のみ')).toBeNull()
@@ -85,7 +85,7 @@ describe('compare', () => {
     expect(fitMark(null)).toBe('—')
   })
 
-  it('行列化と閾値ハイライト', () => {
+  it('builds the matrix and highlights by threshold', () => {
     const rows = buildCompareRows(
       [a, b],
       {
@@ -125,12 +125,12 @@ describe('compare', () => {
     ])
   })
 
-  it('閾値が無ければ何も赤くしない', () => {
+  it('highlights nothing in red without thresholds', () => {
     const rows = buildCompareRows([b], DEFAULT_THRESHOLDS, [])
     expect(rows.every((r) => r.cells.every((c) => !c.bad))).toBe(true)
   })
 
-  it('月次最小値・支払サイト・最低要件の表示', () => {
+  it('shows the monthly minimum, payment terms and minimum requirements', () => {
     const c: CompareCase = {
       ...a,
       monthlyMinIncl: 1_200_000,
@@ -146,7 +146,7 @@ describe('compare', () => {
     expect(row('nice').cells[0].text).toBe('React')
   })
 
-  it('onsiteNote なしで remoteType partial', () => {
+  it('remoteType partial without onsiteNote', () => {
     const c: CompareCase = {
       ...b,
       onsiteNote: null,
@@ -157,7 +157,7 @@ describe('compare', () => {
     expect(row('days').cells[0].text).toBe(c.daysPerWeek ?? '')
   })
 
-  it('空の項目は空のセル（— を並べない, SHIG 1）', () => {
+  it('an empty field is an empty cell (no row of —, SHIG 1)', () => {
     const c: CompareCase = {
       ...a,
       settlementMinH: null,

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { SECURITY_HEADERS, applySecurityHeaders, securityHeadersInit } from './securityHeaders'
 
 describe('applySecurityHeaders', () => {
-  it('クリックジャッキングと MIME スニッフィングを止めるヘッダを載せる', () => {
+  it('sets the headers that stop clickjacking and MIME sniffing', () => {
     const headers = applySecurityHeaders(new Headers())
     expect(headers.get('x-frame-options')).toBe('DENY')
     expect(headers.get('x-content-type-options')).toBe('nosniff')
@@ -13,18 +13,18 @@ describe('applySecurityHeaders', () => {
     expect(headers.get('cross-origin-opener-policy')).toBe('same-origin')
   })
 
-  it('img-src は self と data: だけ許可する（外部 img は許可しない）', () => {
+  it('img-src allows only self and data: (no external images)', () => {
     const headers = applySecurityHeaders(new Headers())
     const csp = headers.get('content-security-policy')
     expect(csp).toContain("img-src 'self' data:")
   })
 
-  it('geolocation は閉じる', () => {
+  it('geolocation is closed', () => {
     const headers = applySecurityHeaders(new Headers())
     expect(headers.get('permissions-policy')).toContain('geolocation=()')
   })
 
-  it('同じ名前があれば上書きする', () => {
+  it('overwrites a header with the same name', () => {
     const headers = new Headers({ 'x-frame-options': 'SAMEORIGIN' })
     applySecurityHeaders(headers)
     expect(headers.get('x-frame-options')).toBe(SECURITY_HEADERS['x-frame-options'])
@@ -32,7 +32,7 @@ describe('applySecurityHeaders', () => {
 })
 
 describe('securityHeadersInit', () => {
-  it('content-type など既存の値は残す', () => {
+  it('keeps existing values such as content-type', () => {
     const headers = securityHeadersInit({ 'content-type': 'text/plain; charset=utf-8' })
     expect(headers.get('content-type')).toBe('text/plain; charset=utf-8')
     expect(headers.get('x-content-type-options')).toBe('nosniff')

@@ -23,7 +23,7 @@ const file = historyFileSchema.parse({
 })
 
 describe('history', () => {
-  it('slug から決定的 id で INSERT OR REPLACE を作る（冪等）', () => {
+  it('builds INSERT OR REPLACE with a deterministic id from the slug (idempotent)', () => {
     const a = buildHistoryStatements(file, '2030-01-01T00:00:00Z')
     const b = buildHistoryStatements(file, '2030-01-01T00:00:00Z')
     assert.deepEqual(a, b)

@@ -69,7 +69,7 @@ function query(sql: string): Array<Record<string, unknown>> {
 
 const parsed = parseCaseJson(readFileSync(file, 'utf8'))
 if (!parsed.ok) {
-  console.error('検証エラー:')
+  console.error('Validation errors:')
   for (const i of parsed.issues) console.error(`  ${i.path || '(root)'}: ${i.message}`)
   process.exit(1)
 }
@@ -82,7 +82,7 @@ if (!updateId) {
   )
   if (dup.length > 0) {
     console.error(
-      `同じ案件が既にあります（${dup.length} 件）。上書きするなら --update=<id> を付けてください:`,
+      `The same case already exists (${dup.length}). To overwrite it, pass --update=<id>:`,
     )
     for (const d of dup) console.error(`  id=${d.id} status=${d.status}`)
     process.exit(1)
@@ -90,7 +90,7 @@ if (!updateId) {
 } else {
   const existing = query(`SELECT id FROM cases WHERE id = ${sqlLiteral(updateId)} LIMIT 1;`)
   if (existing.length === 0) {
-    console.error('id が見つかりません')
+    console.error('id not found')
     process.exit(1)
   }
 }
@@ -114,7 +114,7 @@ if (parsed.input.companyUrl) {
 
 if (dryRun) {
   console.log(
-    `dry-run: ${statements.length} 文（${updateId ? 'UPDATE' : 'INSERT'}）。税込上限=${row.monthlyMaxIncl}`,
+    `dry-run: ${statements.length} statements (${updateId ? 'UPDATE' : 'INSERT'}). monthlyMaxIncl=${row.monthlyMaxIncl}`,
   )
   process.exit(0)
 }
@@ -137,5 +137,5 @@ const ledger: Array<{ company: string; title: string; agentName: string | null }
 ledger.push({ company: row.company, title: row.title, agentName: row.agentName })
 writeFileSync(LOCAL_LEDGER, JSON.stringify(ledger, null, 2))
 
-console.log(`${updateId ? '更新' : '登録'}しました: id=${id}`)
+console.log(`${updateId ? 'Updated' : 'Added'}: id=${id}`)
 console.log(`  /cases/${id}`)

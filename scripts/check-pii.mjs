@@ -204,17 +204,19 @@ for (const file of files) {
 }
 
 if (hits.length === 0) {
-  const scope = staged ? 'コミット対象' : '追跡ファイル'
+  const scope = staged ? 'staged' : 'tracked'
   const termCount = secretList.length + boundarySecrets.size
-  console.log(`実データの混入なし（${termCount} 語を ${scope} ${files.length} 件と照合）。`)
+  console.log(
+    `No real data found (${termCount} terms checked against ${files.length} ${scope} files).`,
+  )
   process.exit(0)
 }
 
-console.error('コミット対象に実データが混ざっています（AGENTS.md 1）:')
+console.error('Real data found in the files to commit (AGENTS.md rule 1):')
 for (const hit of hits) {
   // Never print the matched word itself. If the output stays in logs, that is a leak too
   const masked = `${hit.secret.slice(0, 1)}…（${hit.secret.length}文字）`
   console.error(`  ${hit.file}:${hit.line}  ${masked}`)
 }
-console.error('\n架空の値に置き換えてください。実データは .dev.vars 経由でのみ入れます。')
+console.error('\nReplace them with fictional values. Real data goes in only through .dev.vars.')
 process.exit(1)
