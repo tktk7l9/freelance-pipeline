@@ -55,33 +55,33 @@ async function mintToken(options: TokenOptions = {}): Promise<string> {
 }
 
 describe('normalizeEmail', () => {
-  it('前後の空白を落とし小文字にする', () => {
+  it('trims surrounding whitespace and lowercases', () => {
     expect(normalizeEmail('  Owner@Example.COM ')).toBe('owner@example.com')
   })
 })
 
 describe('parseAllowlist', () => {
-  it('未設定なら空配列', () => {
+  it('empty array when unset', () => {
     expect(parseAllowlist(undefined)).toEqual([])
     expect(parseAllowlist(null)).toEqual([])
     expect(parseAllowlist('')).toEqual([])
   })
 
-  it('カンマ・改行の混在を分割し、正規化して重複を除く', () => {
+  it('splits mixed commas and newlines, normalizes and removes duplicates', () => {
     expect(parseAllowlist('A@x.com, b@x.com\n a@x.com \n\n')).toEqual(['a@x.com', 'b@x.com'])
   })
 })
 
 describe('isEmailAllowed', () => {
-  it('allowlist が空なら誰も許可しない', () => {
+  it('allows nobody when the allowlist is empty', () => {
     expect(isEmailAllowed('owner@example.com', [])).toBe(false)
   })
 
-  it('大文字小文字の違いは無視する', () => {
+  it('ignores case differences', () => {
     expect(isEmailAllowed('OWNER@example.com', ALLOWLIST)).toBe(true)
   })
 
-  it('一覧に無いメールは拒否する', () => {
+  it('rejects an email not in the list', () => {
     expect(isEmailAllowed('someone@example.com', ALLOWLIST)).toBe(false)
   })
 })
@@ -96,22 +96,22 @@ describe('devIdentityAllowed', () => {
     expect(devIdentityAllowed(environment)).toBe(expected)
   })
 
-  it('未設定は本番扱いで拒否する', () => {
+  it('treats unset as production and rejects', () => {
     expect(devIdentityAllowed(undefined)).toBe(false)
     expect(devIdentityAllowed(null)).toBe(false)
   })
 })
 
 describe('extractAccessToken', () => {
-  it('ヘッダが無ければ null', () => {
+  it('null when the header is missing', () => {
     expect(extractAccessToken(new Headers())).toBeNull()
   })
 
-  it('空文字は null 扱い', () => {
+  it('treats an empty string as null', () => {
     expect(extractAccessToken(new Headers({ [ACCESS_JWT_HEADER]: '   ' }))).toBeNull()
   })
 
-  it('値があればそのまま返す', () => {
+  it('returns the value as is when present', () => {
     expect(extractAccessToken(new Headers({ [ACCESS_JWT_HEADER]: 'abc' }))).toBe('abc')
   })
 })
@@ -124,34 +124,34 @@ describe('authenticateAccessJwt', () => {
     allowlist: ALLOWLIST,
   }
 
-  it('issuer 未設定なら misconfigured', async () => {
+  it('misconfigured when issuer is unset', async () => {
     const result = await authenticateAccessJwt({ ...base, keySet, issuer: '', token: 'x' })
     expect(result).toEqual({ ok: false, reason: 'misconfigured' })
   })
 
-  it('audience 未設定なら misconfigured', async () => {
+  it('misconfigured when audience is unset', async () => {
     const result = await authenticateAccessJwt({ ...base, keySet, audience: '', token: 'x' })
     expect(result).toEqual({ ok: false, reason: 'misconfigured' })
   })
 
-  it('JWT が無ければ missing_token', async () => {
+  it('missing_token when there is no JWT', async () => {
     const result = await authenticateAccessJwt({ ...base, keySet, token: null })
     expect(result).toEqual({ ok: false, reason: 'missing_token' })
   })
 
-  it('署名が正規の鍵でなければ invalid_token', async () => {
+  it('invalid_token when not signed by the genuine key', async () => {
     const token = await mintToken({ email: 'owner@example.com', key: foreignKey })
     const result = await authenticateAccessJwt({ ...base, keySet, token })
     expect(result).toEqual({ ok: false, reason: 'invalid_token' })
   })
 
-  it('audience が違えば invalid_token', async () => {
+  it('invalid_token when the audience differs', async () => {
     const token = await mintToken({ email: 'owner@example.com', audience: 'other-aud' })
     const result = await authenticateAccessJwt({ ...base, keySet, token })
     expect(result).toEqual({ ok: false, reason: 'invalid_token' })
   })
 
-  it('issuer が違えば invalid_token', async () => {
+  it('invalid_token when the issuer differs', async () => {
     const token = await mintToken({
       email: 'owner@example.com',
       issuer: 'https://evil.example.com',
@@ -160,37 +160,37 @@ describe('authenticateAccessJwt', () => {
     expect(result).toEqual({ ok: false, reason: 'invalid_token' })
   })
 
-  it('期限切れは invalid_token', async () => {
+  it('invalid_token when expired', async () => {
     const token = await mintToken({ email: 'owner@example.com', expiresIn: '-1h' })
     const result = await authenticateAccessJwt({ ...base, keySet, token })
     expect(result).toEqual({ ok: false, reason: 'invalid_token' })
   })
 
-  it('email が無ければ missing_email', async () => {
+  it('missing_email when there is no email', async () => {
     const token = await mintToken({})
     const result = await authenticateAccessJwt({ ...base, keySet, token })
     expect(result).toEqual({ ok: false, reason: 'missing_email' })
   })
 
-  it('email が文字列でなければ missing_email', async () => {
+  it('missing_email when email is not a string', async () => {
     const token = await mintToken({ email: 12345 })
     const result = await authenticateAccessJwt({ ...base, keySet, token })
     expect(result).toEqual({ ok: false, reason: 'missing_email' })
   })
 
-  it('email が空文字なら missing_email', async () => {
+  it('missing_email when email is an empty string', async () => {
     const token = await mintToken({ email: '   ' })
     const result = await authenticateAccessJwt({ ...base, keySet, token })
     expect(result).toEqual({ ok: false, reason: 'missing_email' })
   })
 
-  it('署名は正しくても allowlist 外なら not_allowed', async () => {
+  it('not_allowed when the signature is valid but the email is outside the allowlist', async () => {
     const token = await mintToken({ email: 'stranger@example.com' })
     const result = await authenticateAccessJwt({ ...base, keySet, token })
     expect(result).toEqual({ ok: false, reason: 'not_allowed' })
   })
 
-  it('正規の JWT かつ allowlist 内なら認証成功', async () => {
+  it('authenticates a genuine JWT whose email is in the allowlist', async () => {
     const token = await mintToken({ email: 'Owner@Example.com' })
     const result = await authenticateAccessJwt({ ...base, keySet, token })
     expect(result).toEqual({ ok: true, identity: { email: 'owner@example.com', source: 'access' } })
@@ -198,7 +198,7 @@ describe('authenticateAccessJwt', () => {
 })
 
 describe('resolveDevIdentity', () => {
-  it('本番では代替 ID を絶対に使わせない', () => {
+  it('never allows the fallback identity in production', () => {
     const result = resolveDevIdentity({
       environment: 'production',
       devEmail: 'owner@example.com',
@@ -207,7 +207,7 @@ describe('resolveDevIdentity', () => {
     expect(result).toEqual({ ok: false, reason: 'missing_token' })
   })
 
-  it('代替メール未設定なら missing_email', () => {
+  it('missing_email when the fallback email is unset', () => {
     expect(
       resolveDevIdentity({ environment: 'development', devEmail: undefined, allowlist: ALLOWLIST }),
     ).toEqual({ ok: false, reason: 'missing_email' })
@@ -216,7 +216,7 @@ describe('resolveDevIdentity', () => {
     ).toEqual({ ok: false, reason: 'missing_email' })
   })
 
-  it('代替メールが allowlist 外なら not_allowed', () => {
+  it('not_allowed when the fallback email is outside the allowlist', () => {
     expect(
       resolveDevIdentity({
         environment: 'development',
@@ -226,7 +226,7 @@ describe('resolveDevIdentity', () => {
     ).toEqual({ ok: false, reason: 'not_allowed' })
   })
 
-  it('開発環境かつ allowlist 内なら dev として認証成功', () => {
+  it('authenticates as dev in development when the email is in the allowlist', () => {
     expect(
       resolveDevIdentity({
         environment: 'development',
@@ -238,7 +238,7 @@ describe('resolveDevIdentity', () => {
 })
 
 describe('describeFailure', () => {
-  it('内部事情を漏らさない文言を返す', () => {
+  it('returns wording that does not leak internals', () => {
     expect(describeFailure('not_allowed')).toBe('このアカウントには利用権限がありません。')
     expect(describeFailure('misconfigured')).toBe(
       'アクセス制御が未設定です。管理者に連絡してください。',

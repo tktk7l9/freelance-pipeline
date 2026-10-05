@@ -13,7 +13,7 @@ import {
 } from './calendar'
 
 describe('dateKey / composeStartsAt / splitStartsAt', () => {
-  it('終日は日付だけ、時刻ありは +09:00 付きで往復する', () => {
+  it('all-day round-trips as a date only, timed as +09:00', () => {
     expect(composeStartsAt('2030-01-05', null)).toBe('2030-01-05')
     expect(composeStartsAt('2030-01-05', '13:00')).toBe('2030-01-05T13:00:00+09:00')
     expect(dateKey('2030-01-05T13:00:00+09:00')).toBe('2030-01-05')
@@ -27,17 +27,17 @@ describe('dateKey / composeStartsAt / splitStartsAt', () => {
 })
 
 describe('formatDateWithWeekday', () => {
-  it('スラッシュ区切り＋曜日', () => {
+  it('slash separated with the weekday', () => {
     expect(formatDateWithWeekday('2026-09-20')).toBe('2026/09/20（日）')
     expect(formatDateWithWeekday('2026-09-16')).toBe('2026/09/16（水）')
   })
-  it('読めない文字列はそのまま返す', () => {
+  it('returns an unreadable string as is', () => {
     expect(formatDateWithWeekday('invalid')).toBe('invalid')
   })
 })
 
 describe('addDays', () => {
-  it('月・年・うるう年をまたぐ', () => {
+  it('crosses months, years and leap years', () => {
     expect(addDays('2026-09-16', 27)).toBe('2026-10-13')
     expect(addDays('2026-12-20', 27)).toBe('2027-01-16')
     expect(addDays('2026-09-16', -1)).toBe('2026-09-15')
@@ -46,31 +46,31 @@ describe('addDays', () => {
 })
 
 describe('toJstIso', () => {
-  it('UTC の瞬間を +09:00 表記に直す', () => {
+  it('converts a UTC instant to +09:00 notation', () => {
     expect(toJstIso(new Date('2030-01-05T23:30:00Z'))).toBe('2030-01-06T08:30:00+09:00')
   })
 })
 
 describe('visibleRange', () => {
-  it('日表示はその日だけ', () => {
+  it('the day view is that day only', () => {
     expect(visibleRange('2026-09-16', 'day')).toEqual({ from: '2026-09-16', to: '2026-09-16' })
   })
-  it('週表示は月曜始まりで 7 日', () => {
+  it('the week view is 7 days starting on Monday', () => {
     // 2026-09-16 is a Wednesday
     expect(visibleRange('2026-09-16', 'week')).toEqual({ from: '2026-09-14', to: '2026-09-20' })
     // Sunday starts from the previous Monday
     expect(visibleRange('2026-09-20', 'week')).toEqual({ from: '2026-09-14', to: '2026-09-20' })
   })
-  it('月表示は前後 7 日を含める', () => {
+  it('the month view includes 7 days before and after', () => {
     expect(visibleRange('2026-02-10', 'month')).toEqual({ from: '2026-01-25', to: '2026-03-07' })
   })
-  it('週表示で読めない日付は月曜始まりの計算を諦めずに返す', () => {
+  it('the week view still returns a range for an unreadable date instead of giving up', () => {
     expect(visibleRange('invalid', 'week').from).toEqual(expect.any(String))
   })
 })
 
 describe('formatEventTime', () => {
-  it('終日／開始–終了／開始のみ／時刻なし', () => {
+  it('all day / start-end / start only / no time', () => {
     expect(formatEventTime({ startsAt: '2030-01-05', endsAt: null, allDay: true })).toBe('終日')
     expect(
       formatEventTime({
@@ -87,7 +87,7 @@ describe('formatEventTime', () => {
 })
 
 describe('formatDateJa', () => {
-  it('読み上げ用に「2026年9月1日」（Mantine 既定の英語順を置き換える, SHIG 94）', () => {
+  it('reads aloud as 「2026年9月1日」 (replaces the English order of the Mantine default, SHIG 94)', () => {
     expect(formatDateJa('2026-09-01')).toBe('2026年9月1日')
     expect(formatDateJa('2026-12-31 00:00:00')).toBe('2026年12月31日')
     expect(formatDateJa('bad')).toBe('bad')

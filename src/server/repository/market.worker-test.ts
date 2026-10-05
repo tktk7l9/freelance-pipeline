@@ -6,7 +6,7 @@ import { db, reset } from './test-helpers'
 beforeEach(reset)
 
 describe('market repository', () => {
-  it('同じ日・同じスキルは上書き、別の日は別行。スキルごとに最新を選ぶ', async () => {
+  it('the same day and skill overwrites, a different day is a new row; picks the latest per skill', async () => {
     await upsertMarketSnapshot(db, { takenOn: '2030-01-01', skill: 'A', data: '{"v":1}' })
     await upsertMarketSnapshot(db, { takenOn: '2030-01-01', skill: 'A', data: '{"v":2}' })
     await upsertMarketSnapshot(db, { takenOn: '2030-02-01', skill: 'A', data: '{"v":3}' })

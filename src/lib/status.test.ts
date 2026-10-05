@@ -13,11 +13,11 @@ import {
 } from './status'
 
 describe('status', () => {
-  it('全ステータスにラベルがある', () => {
+  it('every status has a label', () => {
     for (const s of CASE_STATUSES) expect(STATUS_LABEL[s]).toBeTruthy()
   })
 
-  it('進行は後ろにだけ進める（飛ばしは可）', () => {
+  it('progress moves only forward (skipping is allowed)', () => {
     expect(canTransition('saved', 'applied')).toBe(true)
     expect(canTransition('saved', 'meeting')).toBe(true)
     expect(canTransition('meeting', 'applied')).toBe(false)
@@ -26,7 +26,7 @@ describe('status', () => {
     expect(progressRank('declined')).toBe(-1)
   })
 
-  it('別枠へはどこからでも行ける', () => {
+  it('the side states are reachable from anywhere', () => {
     for (const s of PROGRESS_STATUSES) {
       expect(canTransition(s, 'declined')).toBe(true)
       expect(canTransition(s, 'rejected')).toBe(true)
@@ -34,13 +34,13 @@ describe('status', () => {
     }
   })
 
-  it('onhold からは進行のどこへでも戻れる', () => {
+  it('onhold can go back to any progress state', () => {
     expect(canTransition('onhold', 'saved')).toBe(true)
     expect(canTransition('onhold', 'joined')).toBe(true)
     expect(canTransition('onhold', 'declined')).toBe(true)
   })
 
-  it('declined / rejected は終端', () => {
+  it('declined / rejected are terminal', () => {
     expect(isTerminal('declined')).toBe(true)
     expect(isTerminal('rejected')).toBe(true)
     expect(isTerminal('onhold')).toBe(false)
@@ -48,7 +48,7 @@ describe('status', () => {
     expect(canTransition('rejected', 'onhold')).toBe(false)
   })
 
-  it('グループ分け', () => {
+  it('grouping', () => {
     expect(statusGroup('saved')).toBe('active')
     expect(statusGroup('offer')).toBe('active')
     expect(statusGroup('joined')).toBe('history')
@@ -58,7 +58,7 @@ describe('status', () => {
     expect(statusGroup('rejected')).toBe('closed')
   })
 
-  it('次に進む状態と、ボタンの構成', () => {
+  it('the next state and the button layout', () => {
     expect(nextProgress('saved')).toBe('applied')
     expect(nextProgress('offer')).toBe('joined')
     expect(nextProgress('ended')).toBeNull()

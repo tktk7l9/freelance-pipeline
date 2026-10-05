@@ -5,7 +5,7 @@ import { describeLog, formatLogAt, memoAt, sortLogNewestFirst } from './caseLog'
 const base = { id: 'x', body: '', fromStatus: null, toStatus: null }
 
 describe('caseLog', () => {
-  it('ステータス変更は「A → B」', () => {
+  it('a status change reads 「A → B」', () => {
     expect(
       describeLog({
         ...base,
@@ -16,7 +16,7 @@ describe('caseLog', () => {
       }),
     ).toBe('応募 → 商談')
   })
-  it('取込は実装の語（add-case など）を出さず、何が起きたかを 1 文で言う（SHIG 1, 11）', () => {
+  it('an import says what happened in 1 sentence without implementation words such as add-case (SHIG 1, 11)', () => {
     const imp = (body: string) =>
       describeLog({ ...base, at: '2030-01-01T00:00:00Z', kind: 'import', body })
     expect(imp('add-case')).toBe('案件票を取り込んだ')
@@ -28,12 +28,12 @@ describe('caseLog', () => {
     expect(imp('import-history')).toBe('過去の記録から取り込んだ')
     expect(imp('手入力の補足')).toBe('案件票を取り込んだ（手入力の補足）')
   })
-  it('メモは本文', () => {
+  it('a memo shows its body', () => {
     expect(
       describeLog({ ...base, at: '2030-01-01T00:00:00Z', kind: 'memo', body: '面談日程' }),
     ).toBe('面談日程')
   })
-  it('メモは日付だけ、それ以外は日時', () => {
+  it('a memo shows the date only, everything else the date and time', () => {
     expect(formatLogAt({ ...base, at: '2030-01-01T12:00:00+09:00', kind: 'memo' })).toBe(
       '2030/01/01',
     )
@@ -41,7 +41,7 @@ describe('caseLog', () => {
       '2030/01/01 12:00',
     )
   })
-  it('新しい順（同時刻は id で安定）', () => {
+  it('newest first (stable by id at the same time)', () => {
     const rows = [
       { ...base, id: 'a', at: '2030-01-01T00:00:00Z', kind: 'memo' as const },
       { ...base, id: 'b', at: '2030-01-02T00:00:00Z', kind: 'memo' as const },
@@ -49,10 +49,10 @@ describe('caseLog', () => {
     ]
     expect(sortLogNewestFirst(rows).map((r) => r.id)).toEqual(['b', 'c', 'a'])
   })
-  it('メモの at は JST 正午を UTC 表記（status/import の …Z と同じ書式）で返す', () => {
+  it('the at of a memo is JST noon in UTC notation (the same …Z format as status/import)', () => {
     expect(memoAt('2030-01-01')).toBe('2030-01-01T03:00:00.000Z')
   })
-  it('memoAt と status/import の at が同じ書式なので日付順に正しく並ぶ', () => {
+  it('memoAt and the at of status/import share a format, so they sort correctly by date', () => {
     const day = '2030-01-01'
     const nextDay = '2030-01-02'
     const rows = [
@@ -66,10 +66,10 @@ describe('caseLog', () => {
       'memo-day',
     ])
   })
-  it('formatLogAt はメモの at（…Z 表記）でも JST の日付をそのまま表示する', () => {
+  it('formatLogAt shows the JST date as is for the at of a memo (…Z notation) too', () => {
     expect(formatLogAt({ ...base, at: memoAt('2030-01-05'), kind: 'memo' })).toBe('2030/01/05')
   })
-  it('不正なステータスは「—」に表示', () => {
+  it('shows an invalid status as 「—」', () => {
     expect(
       describeLog({
         ...base,

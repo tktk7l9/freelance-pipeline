@@ -54,7 +54,7 @@ const values: CaseRowValues = {
 const AT = '2030-01-01T00:00:00+09:00'
 
 describe('cases repository', () => {
-  it('insert は case_log に import 行を作る。一覧は税込降順', async () => {
+  it('insert creates an import row in case_log; the list is sorted by tax-included rate descending', async () => {
     const id = await insertCase(db, values, { importNote: 'add-case', at: AT })
     await insertCase(
       db,
@@ -69,7 +69,7 @@ describe('cases repository', () => {
     expect(rows[1].mustSkills).toEqual(['TypeScript'])
   })
 
-  it('ステータス変更はルールを守り、ログを自動で残す', async () => {
+  it('a status change follows the rules and logs automatically', async () => {
     const id = await insertCase(db, values, { importNote: 't', at: AT })
     expect(await changeStatus(db, id, 'meeting', AT)).toBe('ok')
     expect(await changeStatus(db, id, 'applied', AT)).toBe('invalid_transition')
@@ -82,7 +82,7 @@ describe('cases repository', () => {
     expect(status?.toStatus).toBe('meeting')
   })
 
-  it('updatedAt は datetime(now) の書式のまま', async () => {
+  it('updatedAt keeps the datetime(now) format', async () => {
     const id = await insertCase(db, values, { importNote: 't', at: AT })
     await updateCase(db, id, { note: 'メモ' })
     await setNextAction(db, id, { nextAction: '返信', nextActionDue: '2030-01-05' })
@@ -92,7 +92,7 @@ describe('cases repository', () => {
     expect(c?.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)
   })
 
-  it('メモの追加・削除。status 行は消せない', async () => {
+  it('adds and deletes memos; status rows cannot be deleted', async () => {
     const id = await insertCase(db, values, { importNote: 't', at: AT })
     const memoId = await addMemo(db, id, '面談日程を待つ', AT)
     await changeStatus(db, id, 'applied', AT)
@@ -103,7 +103,7 @@ describe('cases repository', () => {
     expect(kinds).toEqual(['import', 'status'])
   })
 
-  it('重複照会は sourceUrl か company+title', async () => {
+  it('the duplicate lookup is by sourceUrl or company+title', async () => {
     await insertCase(db, values, { importNote: 't', at: AT })
     expect(
       await findDuplicate(db, {
@@ -118,7 +118,7 @@ describe('cases repository', () => {
     expect(await findDuplicate(db, { sourceUrl: null, company: '甲社', title: '別' })).toBeNull()
   })
 
-  it('削除で case_log も消える。recentLog は企業名つき', async () => {
+  it('deleting removes case_log too; recentLog includes the company name', async () => {
     const id = await insertCase(db, values, { importNote: 't', at: AT })
     const recent = await recentLog(db, 10)
     expect(recent[0].company).toBe('甲社')
@@ -127,7 +127,7 @@ describe('cases repository', () => {
     expect(await db.select().from(caseLog)).toHaveLength(0)
   })
 
-  it('source_url は重複を拒むが NULL は複数入る', async () => {
+  it('source_url rejects duplicates but allows several NULLs', async () => {
     await db.insert(cases).values(fakeCase({ sourceUrl: null }))
     await db.insert(cases).values(fakeCase({ sourceUrl: null }))
     await db.insert(cases).values(fakeCase({ sourceUrl: 'https://example.com/a' }))
@@ -136,7 +136,7 @@ describe('cases repository', () => {
     ).rejects.toThrow()
   })
 
-  it('直前のステータス変更を取り消すと状態が戻り、ログも消える', async () => {
+  it('undoing the last status change restores the state and removes the log row', async () => {
     const id = await insertCase(db, values, { importNote: 'x', at: '2030-01-01T00:00:00.000Z' })
     expect(await changeStatus(db, id, 'applied', '2030-01-02T00:00:00.000Z')).toBe('ok')
     expect(await changeStatus(db, id, 'rejected', '2030-01-03T00:00:00.000Z')).toBe('ok')

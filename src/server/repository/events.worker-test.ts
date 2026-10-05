@@ -18,7 +18,7 @@ const values = {
 }
 
 describe('events repository', () => {
-  it('挿入・更新・削除', async () => {
+  it('insert, update, delete', async () => {
     const id = await upsertEvent(db, values)
     expect((await getEvent(db, id))?.title).toBe('商談')
     await upsertEvent(db, { ...values, id, title: '面談', kind: 'interview' })
@@ -29,7 +29,7 @@ describe('events repository', () => {
     expect(await getEvent(db, id)).toBeNull()
   })
 
-  it('範囲は日付キーで切り、開始順に並ぶ。終日（日付だけ）も同じ範囲に入る', async () => {
+  it('cuts the range by date key, sorted by start; all-day (date only) falls in the same range', async () => {
     await upsertEvent(db, { ...values, startsAt: '2030-01-20T15:00:00+09:00', endsAt: null })
     await upsertEvent(db, { ...values, startsAt: '2030-01-20', endsAt: null, allDay: true })
     await upsertEvent(db, { ...values, startsAt: '2030-02-01', endsAt: null, allDay: true })
@@ -37,7 +37,7 @@ describe('events repository', () => {
     expect(rows.map((r) => r.startsAt)).toEqual(['2030-01-20', '2030-01-20T15:00:00+09:00'])
   })
 
-  it('案件を消しても予定は残り、紐づけだけ外れる', async () => {
+  it('deleting a case keeps its events and only unlinks them', async () => {
     const { id: caseId, ...caseValues } = fakeCase()
     await db.insert(cases).values({ ...caseValues, id: caseId })
     const id = await upsertEvent(db, { ...values, caseId })

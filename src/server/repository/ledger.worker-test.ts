@@ -17,7 +17,7 @@ const values = {
 }
 
 describe('ledger repository', () => {
-  it('挿入・更新・削除と、年月の新しい順', async () => {
+  it('insert, update, delete, newest year-month first', async () => {
     const a = await upsertLedgerEntry(db, values)
     const b = await upsertLedgerEntry(db, { ...values, yearMonth: '2030-03', kind: 'officer' })
     expect((await listLedger(db)).map((r) => r.id)).toEqual([b, a])
@@ -27,7 +27,7 @@ describe('ledger repository', () => {
     expect(await getLedgerEntry(db, a)).toBeNull()
   })
 
-  it('案件を消しても行は残り、紐づけだけ外れる', async () => {
+  it('deleting a case keeps the rows and only unlinks them', async () => {
     const { id: caseId, ...caseValues } = fakeCase()
     await db.insert(cases).values({ ...caseValues, id: caseId })
     const id = await upsertLedgerEntry(db, { ...values, caseId })

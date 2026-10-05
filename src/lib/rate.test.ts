@@ -13,18 +13,18 @@ import {
 } from './rate'
 
 describe('rate', () => {
-  it('税抜表示は ×1.1 して丸める。税込表示はそのまま', () => {
+  it('tax-excluded rates are multiplied by 1.1 and rounded; tax-included stay as is', () => {
     expect(toIncl(1_120_000, 'excl')).toBe(1_232_000)
     expect(toIncl(1_050_000, 'incl')).toBe(1_050_000)
     expect(toIncl(954_545, 'excl')).toBe(1_050_000)
   })
 
-  it('税抜は ÷1.1 して丸める', () => {
+  it('tax-excluded is divided by 1.1 and rounded', () => {
     expect(toExcl(1_320_000)).toBe(1_200_000)
     expect(toExcl(1_050_000)).toBe(954_545)
   })
 
-  it('基準時間は精算幅の中点 → 片方 → 経路既定 の順', () => {
+  it('base hours: midpoint of the settlement range, then either bound, then the route default', () => {
     expect(baseHours({ route: 'findy', settlementMinH: 140, settlementMaxH: 180 })).toEqual({
       hours: 160,
       source: 'range',
@@ -49,25 +49,25 @@ describe('rate', () => {
     )
   })
 
-  it('時給（税抜）= 税抜 ÷ 基準時間', () => {
+  it('hourly rate (tax excluded) = tax-excluded rate / base hours', () => {
     expect(hourlyExcl(924_000, 160)).toBe(5_250)
     expect(hourlyExcl(792_000, 168)).toBe(4_286)
   })
 
-  it('万円表示は小数 1 桁まで', () => {
+  it('the 万円 display has at most 1 decimal place', () => {
     expect(formatMan(1_320_000)).toBe('132万')
     expect(formatMan(1_232_000)).toBe('123.2万')
     expect(formatMan(954_545)).toBe('95.5万')
     expect(formatMan(null)).toBe('—')
   })
 
-  it('中央値', () => {
+  it('median', () => {
     expect(median([])).toBeNull()
     expect(median([3, 1, 2])).toBe(2)
     expect(median([4, 1, 2, 3])).toBe(2.5)
   })
 
-  it('単価の 2 行表示: min が無ければ上限のみ、あれば min〜max', () => {
+  it('2-line rate display: the upper bound only without min, otherwise min〜max', () => {
     expect(formatRateLines(1_320_000, null)).toEqual({
       main: '132万',
       sub: '(税抜 120万)',
@@ -78,18 +78,18 @@ describe('rate', () => {
     })
   })
 
-  it('時給の 2 行表示: 上段=円/h、下段=基準時間', () => {
+  it('2-line hourly display: yen/h on top, base hours below', () => {
     expect(formatHourlyLines(1_320_000, 160)).toEqual({
       main: '7,500円/h',
       sub: '(÷160h)',
     })
   })
 
-  it('経路別集計: 件数 0 の経路は含めない', () => {
+  it('per-route summary: routes with 0 cases are left out', () => {
     expect(statsByRoute([])).toEqual([])
   })
 
-  it('経路別集計: 件数・中央値を計算し、ROUTES の順で返す（入力順に依らない）', () => {
+  it('per-route summary: computes count and median and returns them in ROUTES order (independent of input order)', () => {
     const cases = [
       { route: 'other' as const, monthlyMaxIncl: 500_000 },
       { route: 'levtech' as const, monthlyMaxIncl: 1_000_000 },

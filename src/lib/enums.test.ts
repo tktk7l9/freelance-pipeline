@@ -16,38 +16,38 @@ import {
 } from './enums'
 
 describe('enums', () => {
-  it('LEDGER_KINDS の各値にラベルと向きがある', () => {
+  it('every LEDGER_KINDS value has a label and a direction', () => {
     for (const kind of LEDGER_KINDS) {
       expect(LEDGER_KIND_LABEL[kind]).toEqual(expect.any(String))
       expect(['income', 'outgo']).toContain(LEDGER_DIRECTION[kind])
     }
   })
 
-  it('EVENT_KINDS の各値にラベルがある', () => {
+  it('every EVENT_KINDS value has a label', () => {
     for (const kind of EVENT_KINDS) {
       expect(EVENT_KIND_LABEL[kind]).toEqual(expect.any(String))
     }
   })
 
-  it('ROUTES の各値にラベルがある', () => {
+  it('every ROUTES value has a label', () => {
     for (const route of ROUTES) {
       expect(ROUTE_LABEL[route]).toEqual(expect.any(String))
     }
   })
 
-  it('TAX_BASES の各値にラベルがある', () => {
+  it('every TAX_BASES value has a label', () => {
     for (const basis of TAX_BASES) {
       expect(TAX_BASIS_LABEL[basis]).toEqual(expect.any(String))
     }
   })
 
-  it('REMOTE_TYPES の各値にラベルがある', () => {
+  it('every REMOTE_TYPES value has a label', () => {
     for (const type of REMOTE_TYPES) {
       expect(REMOTE_LABEL[type]).toEqual(expect.any(String))
     }
   })
 
-  it('LOG_KINDS は status / memo / import の 3 種', () => {
+  it('LOG_KINDS has the 3 kinds status / memo / import', () => {
     expect(LOG_KINDS).toEqual(['status', 'memo', 'import'])
   })
 })

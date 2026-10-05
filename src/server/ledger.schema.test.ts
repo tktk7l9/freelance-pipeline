@@ -12,12 +12,12 @@ const base = {
 }
 
 describe('ledger.schema', () => {
-  it('前後の空白を落とし、空メモは null', () => {
+  it('trims surrounding whitespace, and an empty memo becomes null', () => {
     const r = ledgerInput.parse(base)
     expect(r.party).toBe('レバテック')
     expect(r.note).toBeNull()
   })
-  it('年月の形・種別・金額の範囲を検証する', () => {
+  it('validates the year-month shape, the kind and the amount range', () => {
     expect(ledgerInput.safeParse({ ...base, yearMonth: '2030/01' }).success).toBe(false)
     expect(ledgerInput.safeParse({ ...base, kind: 'nope' }).success).toBe(false)
     expect(ledgerInput.safeParse({ ...base, amount: -1 }).success).toBe(false)
