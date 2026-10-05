@@ -50,7 +50,7 @@ On "register this case sheet" + a paste, do the following.
    company, and links every place the company name is displayed)
 2. Put the case sheet's raw text in `rawText` as is (do not summarize)
 3. `npm run add-case -- --file=<json> --remote --dry-run` → once validation passes, run again without `--dry-run`
-4. If it says "同じ案件が既にあります" (the same case already exists), check the id shown; to overwrite, use `--update=<id>`.
+4. If it says "The same case already exists", check the id shown; to overwrite, use `--update=<id>`.
    `--update` rewrites only the case-sheet columns (status, next step, due date, axes, and memo are kept, and an
    import row is added to the history)
 5. Share the resulting URL. Do not paste the JSON or raw text back into the conversation
