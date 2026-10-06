@@ -5,6 +5,11 @@
  * CSP stays within what does not break Vite / Mantine inline code
  * (only `frame-ancestors`, `object-src`, and `base-uri`). There are no maps or YouTube,
  * so external images are not allowed. `geolocation` is closed too.
+ *
+ * Every response the Worker produces (SSR HTML, server-function JSON) carries case sheets,
+ * rates, and the income ledger, so `cache-control: no-store` keeps them out of the browser's
+ * disk cache and any shared cache. Static assets are served by the assets binding before the
+ * Worker runs, so they keep their own long-lived caching.
  */
 
 export const SECURITY_HEADERS = {
@@ -13,8 +18,10 @@ export const SECURITY_HEADERS = {
   'referrer-policy': 'no-referrer',
   'permissions-policy': 'camera=(), microphone=(), geolocation=(), payment=()',
   'cross-origin-opener-policy': 'same-origin',
+  'strict-transport-security': 'max-age=31536000; includeSubDomains',
+  'cache-control': 'no-store',
   'content-security-policy':
-    "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; img-src 'self' data:; connect-src 'self'",
+    "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; img-src 'self' data:; connect-src 'self'",
 } as const
 
 /** Sets them on existing Headers, overwriting. */

@@ -124,4 +124,19 @@ describe('binLabel / binColor / schema', () => {
     expect(ok.success).toBe(true)
     expect(marketDataSchema.safeParse({ jobs: {}, talent: {} }).success).toBe(false)
   })
+  it('sourceUrl becomes an href, so only http(s) is accepted', () => {
+    const base = {
+      jobs: { open: 1, newWeek: 0, ratio: 0.5, growthPct: 10, maxRate: 1, byDays: [], remote: [] },
+      talent: { annualRaiseAvg: 1, bins: [500_000], ageRate: [], ageShare: [], renewal: [] },
+    }
+    expect(
+      marketDataSchema.safeParse({ ...base, sourceUrl: 'https://example.com/x' }).success,
+    ).toBe(true)
+    expect(marketDataSchema.safeParse({ ...base, sourceUrl: 'javascript:alert(1)' }).success).toBe(
+      false,
+    )
+    expect(marketDataSchema.safeParse({ ...base, sourceUrl: 'data:text/html,hi' }).success).toBe(
+      false,
+    )
+  })
 })

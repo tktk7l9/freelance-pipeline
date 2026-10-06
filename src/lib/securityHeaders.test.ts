@@ -24,6 +24,21 @@ describe('applySecurityHeaders', () => {
     expect(headers.get('permissions-policy')).toContain('geolocation=()')
   })
 
+  it('responses with personal data are never stored by browser or shared caches', () => {
+    const headers = applySecurityHeaders(new Headers({ 'cache-control': 'public, max-age=3600' }))
+    expect(headers.get('cache-control')).toBe('no-store')
+  })
+
+  it('forces HTTPS for a year including subdomains', () => {
+    const headers = applySecurityHeaders(new Headers())
+    expect(headers.get('strict-transport-security')).toBe('max-age=31536000; includeSubDomains')
+  })
+
+  it('forms may only submit to this origin', () => {
+    const headers = applySecurityHeaders(new Headers())
+    expect(headers.get('content-security-policy')).toContain("form-action 'self'")
+  })
+
   it('overwrites a header with the same name', () => {
     const headers = new Headers({ 'x-frame-options': 'SAMEORIGIN' })
     applySecurityHeaders(headers)
