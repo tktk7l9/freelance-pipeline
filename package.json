@@ -45,7 +45,7 @@
     "dayjs": "^1.11.21",
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.12",
-    "lucide-react": "^1.50.0",
+    "lucide-react": "^1.51.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "zod": "^4.4.3"
