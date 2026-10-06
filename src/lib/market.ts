@@ -9,7 +9,8 @@ const pctItem = z.object({ label: z.string().min(1).max(40), pct: z.number().min
 const countItem = z.object({ label: z.string().min(1).max(40), count: z.number().int().min(0) })
 
 export const marketDataSchema = z.object({
-  sourceUrl: z.string().url().optional(),
+  /** Rendered as an external link, so only http(s) (never javascript: or data:) */
+  sourceUrl: z.url({ protocol: /^https?$/ }).optional(),
   jobs: z.object({
     open: z.number().int().min(0),
     newWeek: z.number().int().min(0),

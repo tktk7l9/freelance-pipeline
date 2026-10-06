@@ -86,6 +86,7 @@
   "allowScripts": {
     "workerd@1.20260815.1": true,
     "workerd@1.20260915.1": true,
+    "workerd@1.20260926.1": true,
     "esbuild@0.25.12": true,
     "esbuild@0.28.1": true,
     "fsevents@2.3.3": true
