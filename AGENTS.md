@@ -24,6 +24,9 @@ A case (project) pipeline tracker used by one person. **The repository is public
 - D1 access goes in `src/server/repository/<domain>.ts`. Server-function zod schemas are split out into
   `src/server/cases.schema.ts` (the `createServerFn` wrapper cannot be imported from plain workers tests)
 - Tax-included rates are canonical (`monthlyMaxIncl`). Only `toIncl` in `src/lib/rate.ts` converts tax-excluded → tax-included
+- The case row holds what the case sheet offered; what was signed goes in `contracts` (one row per contract period,
+  a renewal is a new row). Anything that shows or sums "my rate" reads `effectiveRate` in `src/lib/contract.ts`,
+  never `monthlyMaxIncl` directly. `actualMonthlyIncl` is legacy and only a fallback
 - `createdAt`/`updatedAt` are both `sql\`(datetime('now'))\``. Do not mix in ISO strings
 - Dates are ISO-8601 TEXT, amounts are integer yen, ids are text (`crypto.randomUUID()`)
 - Mobile first. Bottom tabs + FAB + full-screen Drawer. Left nav on desktop

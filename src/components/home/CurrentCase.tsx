@@ -6,7 +6,8 @@ import { useState } from 'react'
 import { DUE_COLOR, dueLabel, dueState } from '../../lib/deadlines'
 import { ROUTE_LABEL } from '../../lib/enums'
 import { formatDateSlash, remoteSummary } from '../../lib/format'
-import { formatHourlyLines, formatMan, formatRateLines } from '../../lib/rate'
+import { formatEffectiveRateLines } from '../../lib/contract'
+import { formatHourlyLines, formatRateLines } from '../../lib/rate'
 import type { CaseListItem } from '../../server/cases'
 import type { CompanySites } from '../../server/repository'
 import { RateLines } from '../cases/RateLines'
@@ -104,10 +105,14 @@ function CurrentCaseCard({
               {c.agentName ? `（${c.agentName}）` : ''}
             </Text>
             <Group gap="lg">
-              <RateLines {...formatRateLines(c.monthlyMaxIncl, c.monthlyMinIncl)} />
-              <RateLines {...formatHourlyLines(c.monthlyMaxIncl, c.hours)} />
-              {c.actualMonthlyIncl ? (
-                <RateLines main={formatMan(c.actualMonthlyIncl)} sub="実単価・税込" />
+              {/* The signed rate first; the case sheet's cap only as a reference once they differ */}
+              <RateLines {...formatEffectiveRateLines(c.rate)} />
+              <RateLines {...formatHourlyLines(c.rate.monthlyIncl, c.rate.hours)} />
+              {c.rate.source !== 'sheet' ? (
+                <RateLines
+                  main={formatRateLines(c.monthlyMaxIncl, c.monthlyMinIncl).main}
+                  sub="案件票"
+                />
               ) : null}
             </Group>
             <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="xs" verticalSpacing={4}>

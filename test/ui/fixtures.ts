@@ -2,10 +2,12 @@
  * Fictional records for UI tests. Never put real companies, cases, rates, or people here
  * (see AGENTS.md: the repository is public).
  */
-import type { CaseLogRow, EventRow, LedgerRow } from '../../src/db/schema'
+import type { CaseLogRow, ContractRow, EventRow, LedgerRow } from '../../src/db/schema'
 import { EMPTY_BUSINESS, type BusinessInfo } from '../../src/lib/business'
 import type { Thresholds } from '../../src/lib/compare'
+import { effectiveRate } from '../../src/lib/contract'
 import type { MarketData } from '../../src/lib/market'
+import { hourlyExcl, toExcl } from '../../src/lib/rate'
 import { statusGroup } from '../../src/lib/status'
 import type { CaseListItem } from '../../src/server/cases'
 import type { MarketSkill } from '../../src/server/market'
@@ -51,13 +53,38 @@ export function makeCase(overrides: Partial<CaseListItem> = {}): CaseListItem {
     note: null,
     createdAt: '2030-11-01 00:00:00',
     updatedAt: '2030-11-01 00:00:00',
-    monthlyExcl: 800_000,
-    hourly: 5_000,
-    hours: 160,
     group: 'active' as const,
   }
   const merged = { ...base, ...overrides }
-  return { ...merged, group: overrides.group ?? statusGroup(merged.status) }
+  // The rate fields are derived the way the server does it (case sheet unless a rate is given)
+  const rate = overrides.rate ?? effectiveRate(merged, [])
+  return {
+    ...merged,
+    rate,
+    monthlyExcl: toExcl(rate.monthlyIncl),
+    hourly: hourlyExcl(rate.monthlyIncl, rate.hours),
+    hours: rate.hours,
+    group: overrides.group ?? statusGroup(merged.status),
+  }
+}
+
+export function makeContract(overrides: Partial<ContractRow> = {}): ContractRow {
+  return {
+    id: uuid(),
+    caseId: 'c1',
+    startDate: '2030-12-01',
+    endDate: '2031-03-31',
+    monthlyIncl: 825_000,
+    settlementMinH: 140,
+    settlementMaxH: 180,
+    overtimeRate: null,
+    deductionRate: null,
+    orderNo: null,
+    note: null,
+    createdAt: '2030-11-20 00:00:00',
+    updatedAt: '2030-11-20 00:00:00',
+    ...overrides,
+  }
 }
 
 export function makeLog(overrides: Partial<CaseLogRow> = {}): CaseLogRow {

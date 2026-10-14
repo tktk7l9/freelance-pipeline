@@ -8,11 +8,21 @@ import {
   listCasesFn,
   saveCase,
 } from '../../../src/server/cases'
+import { deleteContract, saveContract } from '../../../src/server/contracts'
 import { homeData } from '../../../src/server/home'
 import { marketData } from '../../../src/server/market'
 import { getSettingsData } from '../../../src/server/settings'
 import { CASE_JSON_EXAMPLE } from '../../../src/lib/caseInput'
-import { NO_THRESHOLDS, TODAY, makeBusiness, makeCase, makeLog, makeSkill } from '../fixtures'
+import type { ContractRow } from '../../../src/db/schema'
+import {
+  NO_THRESHOLDS,
+  TODAY,
+  makeBusiness,
+  makeCase,
+  makeContract,
+  makeLog,
+  makeSkill,
+} from '../fixtures'
 import { findNotification, renderApp } from '../render'
 
 const settings = (o: Partial<Awaited<ReturnType<typeof getSettingsData>>> = {}) => ({
@@ -139,6 +149,7 @@ describe('import', () => {
     const item = makeCase({ id: 'new-case', title: '取り込んだ案件' })
     vi.mocked(getCaseDetail).mockResolvedValue({
       item,
+      contracts: [],
       log: [],
       companyUrl: null,
       today: TODAY,
@@ -178,9 +189,10 @@ describe('case detail', () => {
     sourceTaxBasis: 'excl',
   })
 
-  function mockDetail(item = full, axes: string[] = ['技術', '人']) {
+  function mockDetail(item = full, axes: string[] = ['技術', '人'], contracts: ContractRow[] = []) {
     vi.mocked(getCaseDetail).mockResolvedValue({
       item,
+      contracts,
       log: [makeLog({ caseId: item.id, body: '経緯のメモ' })],
       companyUrl: 'https://example.com',
       today: TODAY,
@@ -264,6 +276,89 @@ describe('case detail', () => {
     await waitFor(() =>
       expect(screen.getByLabelText('次の一手', { selector: 'input' })).toHaveFocus(),
     )
+  })
+
+  it('keeps the contracts card off a case in progress, and shows it for a joined case', async () => {
+    mockDetail()
+    await renderApp('/cases/c1')
+    await screen.findByRole('heading', { level: 1, name: '詳細の案件' })
+    expect(screen.queryByRole('heading', { name: '契約' })).not.toBeInTheDocument()
+    expect(screen.getByText('単価')).toBeInTheDocument()
+    expect(screen.getByText('実単価')).toBeInTheDocument()
+  })
+
+  it('shows the contracts of a joined case, names the case-sheet rows, and adds a renewal prefilled from the latest contract', async () => {
+    const contract = makeContract({
+      caseId: 'c1',
+      startDate: '2030-12-01',
+      endDate: '2031-03-31',
+      monthlyIncl: 825_000,
+      orderNo: 'ORD-9',
+    })
+    const joined = makeCase({
+      ...full,
+      status: 'joined',
+      rate: { monthlyIncl: 825_000, monthlyMinIncl: null, hours: 160, source: 'contract' },
+    })
+    mockDetail(joined, ['技術', '人'], [contract])
+    vi.mocked(saveContract).mockResolvedValue({ id: 'k2' } as never)
+    const { user } = await renderApp('/cases/c1')
+    await screen.findByRole('heading', { level: 1, name: '詳細の案件' })
+    expect(screen.getByRole('heading', { name: '契約' })).toBeInTheDocument()
+    expect(screen.getByText('案件票の単価')).toBeInTheDocument()
+    expect(screen.getByText('案件票の時給')).toBeInTheDocument()
+    // The legacy single rate gives way to the contract rows
+    expect(screen.queryByText('実単価')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: '2030/12/01 〜 2031/03/31 の契約を編集' }),
+    ).toHaveTextContent('注文番号 ORD-9')
+    await user.click(screen.getByRole('button', { name: '契約を追加' }))
+    const drawer = screen.getByRole('dialog', { name: '契約を追加' })
+    // A renewal starts the day after the latest contract ends and repeats its monthly fee
+    expect(within(drawer).getByRole('textbox', { name: /開始/ })).toHaveValue('2031-04-01')
+    expect(within(drawer).getByRole('textbox', { name: /終了/ })).toHaveValue('')
+    expect(within(drawer).getByRole('textbox', { name: /月額/ })).toHaveValue('825,000')
+    await user.click(within(drawer).getByRole('button', { name: '保存' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(saveContract).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        caseId: 'c1',
+        startDate: '2031-04-01',
+        monthlyIncl: 825_000,
+      }),
+    })
+    await findNotification('契約を追加しました')
+  })
+
+  it('edits a contract from its row and can delete it with undo', async () => {
+    const contract = makeContract({ caseId: 'c1', note: '初月は日割り' })
+    mockDetail(makeCase({ ...full, status: 'ended' }), [], [contract])
+    vi.mocked(saveContract).mockResolvedValue({ id: contract.id } as never)
+    vi.mocked(deleteContract).mockResolvedValue({ ok: true } as never)
+    const { user } = await renderApp('/cases/c1')
+    await user.click(await screen.findByRole('button', { name: /の契約を編集$/ }))
+    const drawer = screen.getByRole('dialog', { name: '2030/12/01 〜 2031/03/31 の契約を編集' })
+    expect(within(drawer).getByRole('textbox', { name: /メモ/ })).toHaveValue('初月は日割り')
+    await user.click(within(drawer).getByRole('button', { name: 'この契約を削除' }))
+    expect(deleteContract).toHaveBeenCalledWith({ data: { id: contract.id } })
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await findNotification('契約を削除しました')
+    await user.click(screen.getByRole('button', { name: '取り消す' }))
+    await waitFor(() =>
+      expect(saveContract).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          caseId: 'c1',
+          startDate: '2030-12-01',
+          monthlyIncl: 825_000,
+          note: '初月は日割り',
+        }),
+      }),
+    )
+    // A failed delete is reported and the drawer stays
+    vi.mocked(deleteContract).mockRejectedValueOnce(new Error('network'))
+    await user.click(screen.getByRole('button', { name: /の契約を編集$/ }))
+    await user.click(screen.getByRole('button', { name: 'この契約を削除' }))
+    await findNotification('削除できませんでした')
   })
 
   it('deletes only after confirming, then returns to the list', async () => {

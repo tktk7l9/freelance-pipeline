@@ -1,6 +1,6 @@
-import { Anchor, Badge, Button, Card, Group, Stack, Text, Title } from '@mantine/core'
+import { Anchor, Badge, Button, Card, Divider, Group, Stack, Text, Title } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 import { ExternalLink, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
@@ -12,16 +12,22 @@ import { CaseForm } from '../components/cases/CaseForm'
 import { CompanyName } from '../components/CompanyName'
 import { PlaceLink } from '../components/PlaceLink'
 import { CaseLogList } from '../components/cases/CaseLogList'
+import { ContractForm } from '../components/cases/ContractForm'
+import { ContractList } from '../components/cases/ContractList'
 import { NextActionEditor } from '../components/cases/NextActionEditor'
 import { RateLines } from '../components/cases/RateLines'
 import { RawTextPanel } from '../components/cases/RawTextPanel'
 import { StatusBadge } from '../components/cases/StatusBadge'
 import { StatusChanger } from '../components/cases/StatusChanger'
+import { showUndo } from '../components/undoNotification'
+import type { ContractRow } from '../db/schema'
+import { contractPeriod, nextContractDefaults } from '../lib/contract'
 import { ROUTE_LABEL, TAX_BASIS_LABEL } from '../lib/enums'
 import { fitMark } from '../lib/compare'
 import { formatDateSlash, remoteSummary } from '../lib/format'
-import { formatHourlyLines, formatRateLines } from '../lib/rate'
+import { baseHours, formatHourlyLines, formatRateLines } from '../lib/rate'
 import { deleteCaseFn, getCaseDetail } from '../server/cases'
+import { deleteContract, saveContract } from '../server/contracts'
 import { getSettingsData } from '../server/settings'
 
 export const Route = createFileRoute('/cases_/$id')({
@@ -36,13 +42,23 @@ export const Route = createFileRoute('/cases_/$id')({
 })
 
 function Page() {
-  const { item, log, companyUrl, today, axes } = Route.useLoaderData()
+  const { item, contracts, log, companyUrl, today, axes } = Route.useLoaderData()
   const navigate = useNavigate()
+  const router = useRouter()
   const remove = useServerFn(deleteCaseFn)
+  const removeContract = useServerFn(deleteContract)
+  const restoreContract = useServerFn(saveContract)
   const [editing, setEditing] = useState(false)
+  const [addingContract, setAddingContract] = useState(false)
+  const [editingContract, setEditingContract] = useState<ContractRow | null>(null)
+  // Contracts matter once a case is joined; before that the card would be an empty box (SHIG 1)
+  const showContracts = item.group === 'history' || contracts.length > 0
+  const hasContracts = contracts.length > 0
   // Bumped when the status changes so the next-step field takes focus (SHIG 41)
   const [focusNext, setFocusNext] = useState(0)
   const rateLines = formatRateLines(item.monthlyMaxIncl, item.monthlyMinIncl)
+  // The case sheet's own hourly rate (its settlement range), whatever the contract says
+  const sheetHours = baseHours(item).hours
 
   async function handleDelete() {
     if (!window.confirm('この案件と経緯をすべて削除します。')) return
@@ -50,6 +66,37 @@ function Page() {
       await remove({ data: { id: item.id } })
       notifications.show({ message: '削除しました' })
       navigate({ to: '/cases', search: { group: 'active' } })
+    } catch {
+      notifications.show({ message: '削除できませんでした', color: 'red' })
+    }
+  }
+
+  /** No confirm dialog; delete first, then "Undo" re-adds the same terms (as a new row) */
+  async function handleDeleteContract(c: ContractRow) {
+    try {
+      await removeContract({ data: { id: c.id } })
+      await router.invalidate()
+      setEditingContract(null)
+      showUndo({
+        message: '契約を削除しました',
+        onUndo: async () => {
+          await restoreContract({
+            data: {
+              caseId: c.caseId,
+              startDate: c.startDate,
+              endDate: c.endDate,
+              monthlyIncl: c.monthlyIncl,
+              settlementMinH: c.settlementMinH,
+              settlementMaxH: c.settlementMaxH,
+              overtimeRate: c.overtimeRate,
+              deductionRate: c.deductionRate,
+              orderNo: c.orderNo ?? '',
+              note: c.note ?? '',
+            },
+          })
+          await router.invalidate()
+        },
+      })
     } catch {
       notifications.show({ message: '削除できませんでした', color: 'red' })
     }
@@ -101,8 +148,9 @@ function Page() {
 
       <Card withBorder padding="md">
         <Stack gap="xs">
+          {/* Once a contract exists, say that these two rows are the case sheet's numbers, not the signed ones */}
           <Row
-            label="単価"
+            label={hasContracts ? '案件票の単価' : '単価'}
             value={
               <RateLines
                 main={rateLines.main}
@@ -112,9 +160,9 @@ function Page() {
             }
           />
           <Row
-            label="時給"
+            label={hasContracts ? '案件票の時給' : '時給'}
             value={
-              <RateLines {...formatHourlyLines(item.monthlyMaxIncl, item.hours)} align="right" />
+              <RateLines {...formatHourlyLines(item.monthlyMaxIncl, sheetHours)} align="right" />
             }
           />
           <Row
@@ -144,7 +192,8 @@ function Page() {
             label="支払サイト"
             value={item.paymentSiteDays === null ? null : `${item.paymentSiteDays}日`}
           />
-          {item.actualMonthlyIncl ? (
+          {/* A legacy single actual rate (before contracts existed); a contract replaces it */}
+          {item.actualMonthlyIncl && !hasContracts ? (
             <Row
               label="実単価"
               value={<RateLines {...formatRateLines(item.actualMonthlyIncl, null)} align="right" />}
@@ -167,6 +216,15 @@ function Page() {
           ) : null}
         </Stack>
       </Card>
+
+      {showContracts ? (
+        <ContractList
+          contracts={contracts}
+          route={item.route}
+          onAdd={() => setAddingContract(true)}
+          onSelect={setEditingContract}
+        />
+      ) : null}
 
       <Card withBorder padding="md">
         <Stack gap="xs">
@@ -237,6 +295,47 @@ function Page() {
           axes={axes}
           onSaved={() => setEditing(false)}
         />
+      </FormDrawer>
+      <FormDrawer
+        opened={addingContract}
+        onClose={() => setAddingContract(false)}
+        title="契約を追加"
+      >
+        <ContractForm
+          caseId={item.id}
+          contract={null}
+          defaults={nextContractDefaults(item, contracts)}
+          onSaved={() => setAddingContract(false)}
+        />
+      </FormDrawer>
+      <FormDrawer
+        opened={editingContract !== null}
+        onClose={() => setEditingContract(null)}
+        title={editingContract ? `${contractPeriod(editingContract)} の契約を編集` : '契約を編集'}
+      >
+        {editingContract ? (
+          <Stack gap="md">
+            <ContractForm
+              caseId={item.id}
+              contract={editingContract}
+              defaults={nextContractDefaults(item, contracts)}
+              onSaved={() => setEditingContract(null)}
+            />
+            {/* Kept away from "Save" behind a divider (SHIG 16, 13); it can be undone (54) */}
+            <Divider mt="xl" />
+            <Group justify="center">
+              <Button
+                color="red"
+                variant="subtle"
+                size="xs"
+                leftSection={<Trash2 size={14} aria-hidden />}
+                onClick={() => handleDeleteContract(editingContract)}
+              >
+                この契約を削除
+              </Button>
+            </Group>
+          </Stack>
+        ) : null}
       </FormDrawer>
     </PageShell>
   )

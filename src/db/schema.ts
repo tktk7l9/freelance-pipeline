@@ -90,6 +90,37 @@ export const cases = sqliteTable(
   ],
 )
 
+/**
+ * Contracts of a case. The case row keeps what the case sheet said (the rate cap); a contract row is
+ * what was actually signed: the monthly fee, the period, the settlement range and the overtime /
+ * deduction unit rates. A renewal adds another row, so the rate history of one case stays readable.
+ * Amounts are tax included (same rule as cases.monthlyMaxIncl).
+ */
+export const contracts = sqliteTable(
+  'contracts',
+  {
+    id: id(),
+    caseId: text('case_id')
+      .notNull()
+      .references(() => cases.id, { onDelete: 'cascade' }),
+    /** 'YYYY-MM-DD' or 'YYYY-MM' */
+    startDate: text('start_date').notNull(),
+    endDate: text('end_date'),
+    /** Monthly fee, tax included (yen) */
+    monthlyIncl: integer('monthly_incl').notNull(),
+    settlementMinH: integer('settlement_min_h'),
+    settlementMaxH: integer('settlement_max_h'),
+    /** Yen per hour above the settlement cap / below the floor */
+    overtimeRate: integer('overtime_rate'),
+    deductionRate: integer('deduction_rate'),
+    /** The agent's order number, for finding the paperwork again */
+    orderNo: text('order_no'),
+    note: text('note'),
+    ...timestamps,
+  },
+  (t) => [index('contracts_case_idx').on(t.caseId, t.startDate)],
+)
+
 /** History. Status changes add a row automatically; memos are added by hand with a date */
 export const caseLog = sqliteTable(
   'case_log',
@@ -172,6 +203,8 @@ export const marketSnapshots = sqliteTable(
 
 export type Case = typeof cases.$inferSelect
 export type NewCase = typeof cases.$inferInsert
+export type ContractRow = typeof contracts.$inferSelect
+export type NewContract = typeof contracts.$inferInsert
 export type CaseLogRow = typeof caseLog.$inferSelect
 export type NewCaseLog = typeof caseLog.$inferInsert
 export type Setting = typeof settings.$inferSelect
