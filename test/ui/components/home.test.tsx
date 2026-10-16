@@ -111,7 +111,8 @@ describe('CurrentCase', () => {
       nextAction: '更新の意思を伝える',
       nextActionDue: '2030-11-11',
       agentName: '担当A',
-      actualMonthlyIncl: 900_000,
+      // What was signed (a contract) is below the case sheet's cap
+      rate: { monthlyIncl: 825_000, monthlyMinIncl: null, hours: 160, source: 'contract' },
       daysPerWeek: '週5',
       workLocation: '東京都千代田区',
       paymentSiteDays: 30,
@@ -134,7 +135,12 @@ describe('CurrentCase', () => {
     expect(screen.getByText('一部出社（月2回）')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /東京都千代田区/ })).toBeInTheDocument()
     expect(screen.getByText('30 日')).toBeInTheDocument()
-    expect(screen.getByText('実単価・税込')).toBeInTheDocument()
+    // The signed rate leads; the case sheet's cap stays visible as a reference
+    expect(screen.getByText('82.5万')).toBeInTheDocument()
+    expect(screen.getByText('(税抜 75万・契約)')).toBeInTheDocument()
+    expect(screen.getByText('4,688円/h')).toBeInTheDocument()
+    expect(screen.getByText('88万')).toBeInTheDocument()
+    expect(screen.getByText('案件票')).toBeInTheDocument()
     expect(screen.getByText('判断メモ本文')).toBeInTheDocument()
   })
 
@@ -143,6 +149,7 @@ describe('CurrentCase', () => {
     const { user } = await renderWithRouter(<CurrentCase items={[item]} sites={{}} today={TODAY} />)
     await user.click(screen.getByRole('button', { name: '詳しく' }))
     expect(screen.queryByText('精算幅')).not.toBeInTheDocument()
+    expect(screen.queryByText('案件票')).not.toBeInTheDocument()
     expect(screen.queryByText('作業場所')).not.toBeInTheDocument()
     expect(screen.queryByText('支払サイト')).not.toBeInTheDocument()
     expect(screen.getByText(/2030\/12\/01 〜$/)).toBeInTheDocument()

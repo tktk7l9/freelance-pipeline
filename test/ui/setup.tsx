@@ -20,6 +20,10 @@ vi.mock('../../src/server/cases', () => ({
   deleteCaseFn: vi.fn(),
   importCase: vi.fn(),
 }))
+vi.mock('../../src/server/contracts', () => ({
+  saveContract: vi.fn(),
+  deleteContract: vi.fn(),
+}))
 vi.mock('../../src/server/settings', () => ({
   getSettingsData: vi.fn(),
   saveThresholds: vi.fn(),

@@ -60,11 +60,33 @@
 | nextAction | text? | 次の一手 |
 | nextActionDue | text? | 期日 `YYYY-MM-DD` |
 | fitScores | text JSON int[]? | 設定 `axes` に対応する 0〜2。比較ビューで ○△× |
-| actualMonthlyIncl | int? | 過去案件の実単価・税込（分かるものだけ） |
+| actualMonthlyIncl | int? | （旧）過去案件の実単価・税込。2026-10 以降は `contracts` が正。契約行が無い案件のフォールバックとしてだけ読む |
 | note | text? | 判断メモ |
 | createdAt / updatedAt | text | |
 
 index: `cases_status_idx(status)`・`cases_due_idx(next_action_due)`・`cases_source_url_unique(source_url)`（NULL は重複可）
+
+### `contracts`（契約。1 行 = 1 契約期間。2026-10-14 追加）
+
+案件票の単価（`cases.monthlyMaxIncl` = 上限）と、実際に締結した単価は別物として持つ。更新契約は行を増やす（上書きしない）ので、
+1 案件の単価の推移が読める。金額は税込。
+
+| 列 | 型 | 備考 |
+|---|---|---|
+| id | text PK | |
+| caseId | text FK → cases.id ON DELETE CASCADE | |
+| startDate / endDate | text NOT NULL / text? | `YYYY-MM-DD` か `YYYY-MM`。終了が空 = 期限未定 |
+| **monthlyIncl** | int NOT NULL | 契約の月額・税込 |
+| settlementMinH / settlementMaxH | int? / int? | 契約の精算幅 |
+| overtimeRate / deductionRate | int? / int? | 超過・控除の単価（円/時） |
+| orderNo | text? | 注文番号（書類を探す鍵） |
+| note | text? | 初月の日割りなど |
+
+index: `contracts_case_idx(case_id, start_date)`
+
+派生（`src/lib/contract.ts` 純粋関数）: **有効単価** = 最新の契約 → 無ければ旧 `actualMonthlyIncl` → 無ければ案件票の上限。
+一覧・ホームの現在の案件・収入の予測・市場比較の「自分の単価」はすべてこれを読む（案件票の上限が締結額の代わりに立つことを防ぐ）。
+収入の予測は参画中の案件の契約 1 行ごとに（金額・期間つきで）積む。migration 0006 が旧 `actualMonthlyIncl` を参画・終了案件の契約行へ写す。
 
 ### `case_log`（経緯。「応募済み（日付）」「商談（日時）」の置き場）
 
@@ -154,7 +176,7 @@ index: `case_log_case_idx(case_id, at)`
 | 比較 | `/compare` | 列＝案件（既定は進行中すべて・チェックで絞る）、行＝条件項目（税込/税抜/時給/精算/リモート/出社/開始/週/商流/支払サイト/必須/歓迎/軸）。先頭列固定・横スクロール。`thresholds` を下回るセルを赤、`fitScores` を ○△× |
 | 設定 | `/settings` | `thresholds` 4 つ・`axes` ラベル |
 
-詳細 `/cases/$id`: 見出し（企業・案件名・経路・状態バッジ）→ 条件ブロック（税込/税抜/時給/精算/リモート/開始/週）→ スキル → 商流・支払 → **次の一手＋期日（その場で編集）** → **ステータス変更**（Select・終端は確認）→ ログ（時系列＋日付つきメモ追加）→ 原文（折りたたみ）→ 編集（全項目の Drawer フォーム）・削除（確認）。
+詳細 `/cases/$id`: 見出し（企業・案件名・経路・状態バッジ）→ 条件ブロック（税込/税抜/時給/精算/リモート/開始/週）→ **契約**（参画・終了の案件、または契約がある案件にだけ出す。追加・行タップで編集・削除は取り消し可。新規は最新契約の翌日から同条件で前埋め）→ スキル → 商流・支払 → **次の一手＋期日（その場で編集）** → **ステータス変更**（Select・終端は確認）→ ログ（時系列＋日付つきメモ追加）→ 原文（折りたたみ）→ 編集（全項目の Drawer フォーム）・削除（確認）。
 
 取込 `/import`: JSON テキストエリア → 検証結果（zod のエラーを項目名で）→ プレビュー表 → 保存。
 

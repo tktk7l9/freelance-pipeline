@@ -47,7 +47,6 @@ type Values = {
   niceSkills: string[]
   rawText: string
   fitScores: Num[]
-  actualMonthlyIncl: Num
   note: string
 }
 
@@ -93,7 +92,6 @@ export function CaseForm({
       niceSkills: item?.niceSkills ?? [],
       rawText: item?.rawText ?? '',
       fitScores: axes.map((_, i) => item?.fitScores?.[i] ?? ''),
-      actualMonthlyIncl: item?.actualMonthlyIncl ?? '',
       note: item?.note ?? '',
     },
     validate: {
@@ -147,7 +145,8 @@ export function CaseForm({
             nextAction: item?.nextAction ?? null,
             nextActionDue: item?.nextActionDue ?? null,
             fitScores: scores.every((x) => x === null) ? null : scores.map((x) => x ?? 0),
-            actualMonthlyIncl: n(v.actualMonthlyIncl),
+            // The signed rate lives in the contracts of the case (ContractForm); keep any legacy value as is
+            actualMonthlyIncl: item?.actualMonthlyIncl ?? null,
             note: s(v.note),
           },
         },
@@ -269,12 +268,6 @@ export function CaseForm({
             </Group>
           </>
         ) : null}
-        <NumberInput
-          label="実単価（税込・参画した案件）"
-          min={1}
-          thousandSeparator=","
-          {...form.getInputProps('actualMonthlyIncl')}
-        />
         <Textarea label="判断メモ" autosize minRows={2} {...form.getInputProps('note')} />
         <Textarea
           label="原文"

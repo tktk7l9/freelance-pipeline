@@ -1,11 +1,12 @@
 import { createServerFn } from '@tanstack/react-start'
 
 import { getDb } from '../db/client'
-import type { Case } from '../db/schema'
+import type { Case, ContractRow } from '../db/schema'
 import { parseCaseJson, toCaseRow } from '../lib/caseInput'
 import { memoAt } from '../lib/caseLog'
+import { effectiveRate, groupByCase, type ContractLike, type EffectiveRate } from '../lib/contract'
 import { formatJst } from '../lib/jst'
-import { baseHours, hourlyExcl, toExcl } from '../lib/rate'
+import { hourlyExcl, toExcl } from '../lib/rate'
 import { statusGroup, type StatusGroup } from '../lib/status'
 import {
   addMemo,
@@ -17,6 +18,8 @@ import {
   insertCase,
   listCases,
   listCompanySites,
+  listContracts,
+  listContractsByCase,
   listLog,
   revertLastStatusChange,
   setCompanySite,
@@ -33,6 +36,9 @@ import {
 import { idInput } from './zod'
 
 export type CaseListItem = Case & {
+  /** The rate the case is judged by: latest contract, else legacy actual rate, else the case sheet */
+  rate: EffectiveRate
+  /** Derived from `rate` (tax excluded monthly, hourly, base hours) */
   monthlyExcl: number
   hourly: number
   hours: number
@@ -43,21 +49,32 @@ function todayJst(): string {
   return formatJst(new Date().toISOString(), { withTime: false })
 }
 
-export function decorate(c: Case): CaseListItem {
-  const { hours } = baseHours(c)
+export function decorate(c: Case, contracts: readonly ContractLike[] = []): CaseListItem {
+  const rate = effectiveRate(c, contracts)
   return {
     ...c,
-    monthlyExcl: toExcl(c.monthlyMaxIncl),
-    hourly: hourlyExcl(c.monthlyMaxIncl, hours),
-    hours,
+    rate,
+    monthlyExcl: toExcl(rate.monthlyIncl),
+    hourly: hourlyExcl(rate.monthlyIncl, rate.hours),
+    hours: rate.hours,
     group: statusGroup(c.status),
   }
 }
 
+/** Decorates every case with its own contracts (one query for all contracts, grouped in memory) */
+export function decorateAll(rows: Case[], contracts: ContractRow[]): CaseListItem[] {
+  const byCase = groupByCase(contracts)
+  return rows.map((c) => decorate(c, byCase.get(c.id) ?? []))
+}
+
 export const listCasesFn = createServerFn().handler(async () => {
   const db = getDb()
-  const [rows, sites] = await Promise.all([listCases(db), listCompanySites(db)])
-  return { cases: rows.map(decorate), sites, today: todayJst() }
+  const [rows, contracts, sites] = await Promise.all([
+    listCases(db),
+    listContracts(db),
+    listCompanySites(db),
+  ])
+  return { cases: decorateAll(rows, contracts), sites, today: todayJst() }
 })
 
 export const getCaseDetail = createServerFn()
@@ -66,8 +83,18 @@ export const getCaseDetail = createServerFn()
     const db = getDb()
     const c = await getCase(db, data.id)
     if (!c) throw new Response('Not Found', { status: 404 })
-    const [log, sites] = await Promise.all([listLog(db, data.id), listCompanySites(db)])
-    return { item: decorate(c), log, companyUrl: sites[c.company] ?? null, today: todayJst() }
+    const [log, contracts, sites] = await Promise.all([
+      listLog(db, data.id),
+      listContractsByCase(db, data.id),
+      listCompanySites(db),
+    ])
+    return {
+      item: decorate(c, contracts),
+      contracts,
+      log,
+      companyUrl: sites[c.company] ?? null,
+      today: todayJst(),
+    }
   })
 
 export const saveCase = createServerFn({ method: 'POST' })

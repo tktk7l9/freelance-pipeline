@@ -11,6 +11,7 @@ export async function reset() {
     'market_snapshots',
     'ledger',
     'events',
+    'contracts',
     'case_log',
     'cases',
     'companies',

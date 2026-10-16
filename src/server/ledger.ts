@@ -1,11 +1,13 @@
 import { createServerFn } from '@tanstack/react-start'
 
 import { getDb } from '../db/client'
+import { forecastCases, groupByCase } from '../lib/contract'
 import { formatJst } from '../lib/jst'
 import { ledgerInput } from './ledger.schema'
 import {
   deleteLedgerEntry as deleteRow,
   listCases,
+  listContracts,
   listLedger as listRows,
   upsertLedgerEntry,
 } from './repository'
@@ -20,15 +22,15 @@ export type { LedgerInput } from './ledger.schema'
  */
 export const ledgerData = createServerFn().handler(async () => {
   const db = getDb()
-  const [rows, cases] = await Promise.all([listRows(db), listCases(db)])
-  // Input for the forecast. Carries the period so ended or not-yet-started cases drop out per month (prorating is in lib)
-  const joined = cases
-    .filter((c) => c.status === 'joined')
-    .map((c) => ({
-      monthly: c.actualMonthlyIncl ?? c.monthlyMaxIncl,
-      startDate: c.startDate,
-      endDate: c.endDate,
-    }))
+  const [rows, cases, contracts] = await Promise.all([
+    listRows(db),
+    listCases(db),
+    listContracts(db),
+  ])
+  // Input for the forecast: the signed contracts of joined cases (each with its own amount and period,
+  // so a renewal at a new rate changes the months after it); a case without contracts falls back to its row.
+  // Prorating of the start and end months is in lib
+  const joined = forecastCases(cases, groupByCase(contracts))
   return {
     rows,
     joined,

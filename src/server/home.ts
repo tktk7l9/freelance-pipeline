@@ -5,23 +5,32 @@ import { withDue } from '../lib/deadlines'
 import { formatJst } from '../lib/jst'
 import { median, statsByRoute } from '../lib/rate'
 import { statusGroup } from '../lib/status'
-import { decorate } from './cases'
-import { listCases, listCompanySites, readImprovements, recentLog } from './repository'
+import { decorateAll } from './cases'
+import {
+  listCases,
+  listCompanySites,
+  listContracts,
+  readImprovements,
+  recentLog,
+} from './repository'
 
 export const homeData = createServerFn().handler(async () => {
   const db = getDb()
-  const [rows, recent, sites, improvements] = await Promise.all([
+  const [rows, contracts, recent, sites, improvements] = await Promise.all([
     listCases(db),
+    listContracts(db),
     recentLog(db, 10),
     listCompanySites(db),
     readImprovements(db),
   ])
   const active = rows.filter((c) => statusGroup(c.status) === 'active')
-  // Joined = the current case. If several, newest start date first
-  const current = rows
-    .filter((c) => c.status === 'joined')
-    .sort((a, b) => b.startDate.localeCompare(a.startDate))
-    .map(decorate)
+  // Joined = the current case. If several, newest start date first. Carries the contract rate, not the case-sheet cap
+  const current = decorateAll(
+    rows
+      .filter((c) => c.status === 'joined')
+      .sort((a, b) => b.startDate.localeCompare(a.startDate)),
+    contracts,
+  )
   return {
     current,
     sites,
