@@ -5,7 +5,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "freelance-pipeline",
-  // Upper bound supported by @cloudflare/vitest-pool-workers@0.22 (measured in sumai-log)
+  // Upper bound supported by the Workers test runner when this was set
+  // (@cloudflare/vitest-pool-workers@0.22, measured in sumai-log; now @cloudflare/vitest-plugin)
   "compatibility_date": "2026-08-22",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
