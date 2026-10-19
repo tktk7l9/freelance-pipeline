@@ -22,6 +22,9 @@ export const Route = createRootRoute({
       { name: 'robots', content: 'noindex, nofollow, noarchive' },
       // theme-color is written directly in RootDocument's <head> (dark only)
       // (the meta array of head() merges tags with the same name into one)
+      // The standard name first (Chrome warns on the apple- one alone); the apple- one is still
+      // what iOS before 17.4 reads
+      { name: 'mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
       { title: '案件管理' },
