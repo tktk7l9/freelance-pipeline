@@ -12,15 +12,6 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 10
-    ignore:
-      # Major updates of the vitest family are held back so that vitest and
-      # @cloudflare/vitest-plugin (peer vitest@^4.1.0 || ^5.0.0 as of 1.4.5) move
-      # together in one deliberate PR instead of a Dependabot bump (TypeScript 7 is fine).
-      # Remove this ignore when taking vitest 5.
-      - dependency-name: 'vitest'
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@vitest/coverage-v8'
-        update-types: ['version-update:semver-major']
     groups:
       npm-minor-patch:
         update-types:
