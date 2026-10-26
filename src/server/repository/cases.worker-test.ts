@@ -136,6 +136,20 @@ describe('cases repository', () => {
     ).rejects.toThrow()
   })
 
+  it('a D1 batch is one transaction: the paired writes of insertCase / changeStatus land together or not at all', async () => {
+    const id = crypto.randomUUID()
+    await expect(
+      db.batch([
+        db.insert(cases).values(fakeCase({ id })),
+        // References a case that does not exist, so the second statement fails on the foreign key
+        db
+          .insert(caseLog)
+          .values({ id: crypto.randomUUID(), caseId: 'missing', at: AT, kind: 'import' }),
+      ]),
+    ).rejects.toThrow()
+    expect(await getCase(db, id)).toBeNull()
+  })
+
   it('undoing the last status change restores the state and removes the log row', async () => {
     const id = await insertCase(db, values, { importNote: 'x', at: '2030-01-01T00:00:00.000Z' })
     expect(await changeStatus(db, id, 'applied', '2030-01-02T00:00:00.000Z')).toBe('ok')
