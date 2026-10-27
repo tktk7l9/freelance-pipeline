@@ -7,6 +7,7 @@ import { useState } from 'react'
 
 import { extractErrorMessage } from '../../lib/formError'
 import { saveAxes } from '../../server/settings'
+import { useEditFocus } from './useEditFocus'
 
 export function AxesCard({
   value,
@@ -23,6 +24,7 @@ export function AxesCard({
   const save = useServerFn(saveAxes)
   const [axisValues, setAxisValues] = useState<string[]>(value)
   const [saving, setSaving] = useState(false)
+  const { editButtonRef, formRef } = useEditFocus<HTMLDivElement>(editing)
 
   function startEdit() {
     setAxisValues(value)
@@ -58,6 +60,7 @@ export function AxesCard({
               variant="default"
               size="xs"
               leftSection={<Pencil size={14} />}
+              ref={editButtonRef}
               onClick={startEdit}
             >
               編集
@@ -82,7 +85,7 @@ export function AxesCard({
             )}
           </Group>
         ) : (
-          <Stack gap="sm">
+          <Stack ref={formRef} gap="sm">
             <TagsInput
               label="軸"
               value={axisValues}

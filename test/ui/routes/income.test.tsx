@@ -45,14 +45,14 @@ describe('income', () => {
     expect(screen.getByRole('heading', { name: '単価の推移（月額・税込）' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '月別' })).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: '2030/10 フリーランス売上 880,000円 を編集' }),
+      screen.getByRole('button', { name: /^2030\/10 フリーランス売上 .*880,000円を編集$/ }),
     ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /2029\/12/ })).not.toBeInTheDocument()
     await user.click(screen.getByRole('radio', { name: '2029年' }))
     await waitFor(() => expect(router.state.location.search).toEqual({ y: 2029 }))
     expect(await screen.findByText('手取り')).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: '2029/12 フリーランス売上 800,000円 を編集' }),
+      screen.getByRole('button', { name: /^2029\/12 フリーランス売上 .*800,000円を編集$/ }),
     ).toBeInTheDocument()
   })
 
@@ -87,15 +87,17 @@ describe('income', () => {
     vi.mocked(saveLedgerEntry).mockResolvedValue({ id: 'r2' } as never)
     vi.mocked(deleteLedgerEntry).mockResolvedValue({ ok: true } as never)
     const { user } = await renderApp('/income')
-    await user.click(await screen.findByRole('button', { name: '2030/09 住民税 50,000円 を編集' }))
+    await user.click(
+      await screen.findByRole('button', { name: /^2030\/09 住民税 .*50,000円を編集$/ }),
+    )
     let drawer = screen.getByRole('dialog', { name: '2030/09 住民税 を編集' })
     await user.click(within(drawer).getByRole('button', { name: '閉じる' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: '2030/09 住民税 50,000円 を編集' }))
+    await user.click(screen.getByRole('button', { name: /^2030\/09 住民税 .*50,000円を編集$/ }))
     drawer = screen.getByRole('dialog', { name: '2030/09 住民税 を編集' })
     await user.click(within(drawer).getByRole('button', { name: '保存' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    await user.click(screen.getByRole('button', { name: '2030/09 住民税 50,000円 を編集' }))
+    await user.click(screen.getByRole('button', { name: /^2030\/09 住民税 .*50,000円を編集$/ }))
     drawer = screen.getByRole('dialog', { name: '2030/09 住民税 を編集' })
     await user.click(within(drawer).getByRole('button', { name: 'この行を削除' }))
     expect(deleteLedgerEntry).toHaveBeenCalledWith({ data: { id: 'r2' } })
@@ -128,7 +130,7 @@ describe('income', () => {
     const { user } = await renderApp('/income')
     const open = async () =>
       user.click(
-        await screen.findByRole('button', { name: '2030/08 フリーランス売上 1,000円 を編集' }),
+        await screen.findByRole('button', { name: /^2030\/08 フリーランス売上 .*1,000円を編集$/ }),
       )
     await open()
     await user.click(screen.getByRole('button', { name: 'この行を削除' }))

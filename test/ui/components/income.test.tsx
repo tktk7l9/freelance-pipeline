@@ -44,7 +44,7 @@ describe('EntryList', () => {
     expect(container.querySelector('h2')).toBeNull()
   })
 
-  it('names each row for screen readers, signs outgoings, and selects on tap', async () => {
+  it('names each row by what it shows (payer and sign included), and selects on tap', async () => {
     const income = makeLedger({ yearMonth: '2030-10', amount: 880_000 })
     const tax = makeLedger({
       yearMonth: '2030-06',
@@ -54,11 +54,14 @@ describe('EntryList', () => {
     })
     const onSelect = vi.fn()
     const { user } = await renderWithRouter(<EntryList rows={[income, tax]} onSelect={onSelect} />)
+    // The accessible name contains the visible text (WCAG 2.5.3 label in name), then the verb
     expect(
-      screen.getByRole('button', { name: '2030/10 フリーランス売上 880,000円 を編集' }),
-    ).toHaveTextContent('880,000円')
-    const taxRow = screen.getByRole('button', { name: '2030/06 住民税 50,000円 を編集' })
-    expect(taxRow).toHaveTextContent('−50,000円')
+      screen.getByRole('button', {
+        name: '2030/10 フリーランス売上 乙エージェント 880,000円を編集',
+      }),
+    ).not.toHaveAttribute('aria-label')
+    const taxRow = screen.getByRole('button', { name: '2030/06 住民税 −50,000円を編集' })
+    expect(taxRow).not.toHaveAttribute('aria-label')
     await user.click(taxRow)
     expect(onSelect).toHaveBeenCalledWith(tax)
   })

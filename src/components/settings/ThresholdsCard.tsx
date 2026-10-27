@@ -15,6 +15,7 @@ import { formatDateSlash } from '../../lib/format'
 import { formatRateLines } from '../../lib/rate'
 import type { Thresholds } from '../../lib/compare'
 import { saveThresholds } from '../../server/settings'
+import { useEditFocus } from './useEditFocus'
 
 type Num = number | ''
 
@@ -46,6 +47,7 @@ export function ThresholdsCard({
   const router = useRouter()
   const save = useServerFn(saveThresholds)
   const [saving, setSaving] = useState(false)
+  const { editButtonRef, formRef } = useEditFocus<HTMLFormElement>(editing)
   const form = useForm<ThresholdsValues>({
     initialValues: toThresholdsValues(value),
     // Accept 2030/11, 2030-11, 2030年11月, full width, or a full date; say the shape when unreadable (SHIG 50, 55)
@@ -96,6 +98,7 @@ export function ThresholdsCard({
               variant="default"
               size="xs"
               leftSection={<Pencil size={14} />}
+              ref={editButtonRef}
               onClick={startEdit}
             >
               編集
@@ -134,7 +137,7 @@ export function ThresholdsCard({
             />
           </Stack>
         ) : (
-          <form onSubmit={form.onSubmit(submit)}>
+          <form ref={formRef} onSubmit={form.onSubmit(submit)}>
             <Stack gap="sm">
               <NumberInput
                 label="単価下限（税込・円）"

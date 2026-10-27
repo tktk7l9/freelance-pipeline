@@ -13,6 +13,7 @@ import { FILING_TYPE_LABEL, type BusinessInfo } from '../../lib/business'
 import { extractErrorMessage } from '../../lib/formError'
 import { formatDateSlash } from '../../lib/format'
 import { saveBusiness } from '../../server/settings'
+import { useEditFocus } from './useEditFocus'
 
 type BusinessValues = {
   birthDate: string
@@ -56,6 +57,7 @@ export function BusinessCard({
   const router = useRouter()
   const save = useServerFn(saveBusiness)
   const [saving, setSaving] = useState(false)
+  const { editButtonRef, formRef } = useEditFocus<HTMLFormElement>(editing)
   const form = useForm<BusinessValues>({ initialValues: toBusinessValues(value) })
 
   function startEdit() {
@@ -106,6 +108,7 @@ export function BusinessCard({
               variant="default"
               size="xs"
               leftSection={<Pencil size={14} />}
+              ref={editButtonRef}
               onClick={startEdit}
             >
               編集
@@ -137,7 +140,7 @@ export function BusinessCard({
             <Row label="事業者番号" value={value.businessNumber} />
           </Stack>
         ) : (
-          <form onSubmit={form.onSubmit(submit)}>
+          <form ref={formRef} onSubmit={form.onSubmit(submit)}>
             <Stack gap="sm">
               <DateInput
                 label="生年月日（市場データで自分の年齢帯を出すのに使う）"

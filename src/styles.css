@@ -85,8 +85,13 @@ a:focus-visible {
 .tabbar {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+/* Keep AppShell's footer offset (the 56px bottom tabs on phones): without it the last card's buttons
+   end up under the tab bar and cannot be scrolled into view (SHIG 94, WCAG 2.4.11) */
 .app-main {
-  padding-bottom: calc(var(--mantine-spacing-md) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(
+    var(--app-shell-footer-offset, 0rem) + var(--mantine-spacing-md) +
+      env(safe-area-inset-bottom, 0px)
+  );
 }
 /* Pages with a FAB get bottom padding so the last card is not hidden */
 .fab-clearance {
@@ -273,13 +278,27 @@ body {
 }
 
 /*
- * Days of the previous / next month in the month view. Mantine fades them to 40% of the base color,
+ * Days of the previous / next month in the month and year views. Mantine fades them to 40% of the base color,
  * which is 2.96:1 on the dark base, yet they are still buttons (tapping one opens that day).
  * Use the dimmed text color instead: 6.80:1, and still clearly lighter than this month's days (11.53:1)
  * (SHIG 94, WCAG 1.4.3).
  */
-.mantine-MonthView-monthViewDay[data-outside] {
+.mantine-MonthView-monthViewDay[data-outside],
+.mantine-YearView-yearViewDay[data-outside] {
   color: var(--mantine-color-dimmed);
+}
+
+/*
+ * The date picker that opens from a DateInput. Mantine draws the previous / next month's days in the
+ * dimmed color at 50% opacity (2.56:1 on the dropdown) and weekends in red-6 (4.40:1), though both are
+ * pressable days. Full opacity gives 5.82:1 and red-5 5.21:1; a selected day keeps its white text
+ * (SHIG 94, WCAG 1.4.3).
+ */
+.mantine-DateInput-day[data-outside] {
+  opacity: 1;
+}
+.mantine-DateInput-day[data-weekend]:not([data-selected], [data-outside]) {
+  color: var(--mantine-color-red-5);
 }
 
 /*

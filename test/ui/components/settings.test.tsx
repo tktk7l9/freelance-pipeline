@@ -260,3 +260,36 @@ describe('BusinessCard', () => {
     await findNotification('保存できませんでした')
   })
 })
+
+describe('settings cards keep keyboard focus when switching to and from the form (SHIG 94)', () => {
+  const cards: [string, () => React.ReactElement][] = [
+    ['BusinessCard', () => <Editable Card={BusinessCard} value={makeBusiness()} />],
+    ['ThresholdsCard', () => <Editable Card={ThresholdsCard} value={NO_THRESHOLDS} />],
+    ['AxesCard', () => <Editable Card={AxesCard} value={['技術']} />],
+    ['ImprovementsCard', () => <Editable Card={ImprovementsCard} value={[]} />],
+  ]
+
+  it.each(cards)(
+    '%s: 編集 focuses the first field, キャンセル goes back to 編集',
+    async (_, ui) => {
+      const { user } = await renderWithRouter(ui())
+      // Rendering the card does not take focus
+      expect(document.body).toHaveFocus()
+      await user.click(screen.getByRole('button', { name: '編集' }))
+      // The button that had focus is gone; focus is on the form's first field, not <body>
+      expect(document.activeElement).toBeInstanceOf(HTMLElement)
+      expect(document.activeElement?.matches('input, textarea')).toBe(true)
+      await user.click(screen.getByRole('button', { name: 'キャンセル' }))
+      expect(screen.getByRole('button', { name: '編集' })).toHaveFocus()
+    },
+  )
+
+  it('returns focus to 編集 after a save closes the form', async () => {
+    vi.mocked(saveImprovements).mockResolvedValue({ ok: true } as never)
+    const { user } = await renderWithRouter(<Editable Card={ImprovementsCard} value={[]} />)
+    await user.click(screen.getByRole('button', { name: '編集' }))
+    await user.type(screen.getByRole('textbox', { name: '改善したいこと' }), '用語を覚える')
+    await user.click(screen.getByRole('button', { name: '保存' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: '編集' })).toHaveFocus())
+  })
+})
