@@ -4,7 +4,7 @@ import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
 import { useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 
 import type { LedgerRow } from '../../db/schema'
 import { LEDGER_DIRECTION, LEDGER_KINDS, LEDGER_KIND_LABEL, type LedgerKind } from '../../lib/enums'
@@ -55,6 +55,9 @@ export function LedgerForm({
   const router = useRouter()
   const save = useServerFn(saveLedgerEntry)
   const [saving, setSaving] = useState(false)
+  // Mantine names the month picker's dialog after a target id that no element carries, so the
+  // dialog had no name. Giving the popover the field's own id points it at the "年月" field (WCAG 4.1.2)
+  const yearMonthId = useId()
   const form = useForm<Values>({
     initialValues: entry
       ? {
@@ -117,6 +120,8 @@ export function LedgerForm({
           {...form.getInputProps('kind')}
         />
         <MonthPickerInput
+          id={yearMonthId}
+          popoverProps={{ id: yearMonthId }}
           label="年月"
           required
           valueFormat="YYYY/MM"

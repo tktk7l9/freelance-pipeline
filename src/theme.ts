@@ -90,6 +90,9 @@ export const theme = createTheme({
     Select: { defaultProps: { size: 'md' } },
     TagsInput: { defaultProps: { size: 'md' } },
     Button: { defaultProps: { size: 'md' } },
+    // The date picker's month arrows are icon-only; name them like the calendar page does (SHIG 11, WCAG 4.1.2)
+    DateInput: { defaultProps: { previousLabel: '前へ', nextLabel: '次へ' } },
+    MonthPickerInput: { defaultProps: { previousLabel: '前へ', nextLabel: '次へ' } },
     // Chip content is just a status name or a date, so it is short. Mantine's default is max-width:100% and
     // overflow:hidden, so in a narrow table column "商談" gets cut to "商.." (a grid with overflow:hidden
     // has a min width of 0, so the column itself is allotted less than its content).
@@ -118,5 +121,8 @@ export const cssVariablesResolver: CSSVariablesResolver = () => ({
   dark: {
     // The default link color (indigo-4) is 4.04:1 on cards. indigo-3 gives 5.71:1
     '--mantine-color-anchor': ink[3],
+    // The default error color (red-8) is 3.20:1 on cards and inputs, so validation messages, the
+    // invalid field's text and weekend dates in the week view fell short. red-5 gives 5.21:1 (SHIG 94)
+    '--mantine-color-error': 'var(--mantine-color-red-5)',
   },
 })

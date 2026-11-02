@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { extractErrorMessage } from '../../lib/formError'
 import { linesToImprovements } from '../../lib/improvements'
 import { saveImprovements } from '../../server/settings'
+import { useEditFocus } from './useEditFocus'
 
 /** "Things to improve" shown on home. One item per line in a Textarea */
 export function ImprovementsCard({
@@ -25,6 +26,7 @@ export function ImprovementsCard({
   const save = useServerFn(saveImprovements)
   const [text, setText] = useState(value.join('\n'))
   const [saving, setSaving] = useState(false)
+  const { editButtonRef, formRef } = useEditFocus<HTMLDivElement>(editing)
 
   function startEdit() {
     setText(value.join('\n'))
@@ -55,6 +57,7 @@ export function ImprovementsCard({
               variant="default"
               size="xs"
               leftSection={<Pencil size={14} aria-hidden />}
+              ref={editButtonRef}
               onClick={startEdit}
             >
               編集
@@ -77,8 +80,10 @@ export function ImprovementsCard({
             </List>
           )
         ) : (
-          <Stack gap="sm">
+          <Stack ref={formRef} gap="sm">
             <Textarea
+              // Only a placeholder named this field, and it disappears once typing starts (WCAG 3.3.2)
+              aria-label="改善したいこと"
               autosize
               minRows={6}
               value={text}

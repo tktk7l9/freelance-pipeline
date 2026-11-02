@@ -352,6 +352,14 @@ describe('LedgerForm', () => {
     expect(save).not.toHaveBeenCalled()
   })
 
+  it('names the month picker dialog after the 年月 field', async () => {
+    const { user } = await renderWithRouter(
+      <LedgerForm entry={null} caseOptions={[]} onSaved={vi.fn()} />,
+    )
+    await user.click(screen.getByRole('button', { name: /年月/ }))
+    expect(await screen.findByRole('dialog', { name: /年月/ })).toBeInTheDocument()
+  })
+
   it('asks for the amount instead of saving an empty one as 0 yen', async () => {
     const { user } = await renderWithRouter(
       <LedgerForm
