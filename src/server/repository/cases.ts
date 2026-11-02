@@ -24,14 +24,17 @@ export async function insertCase(
   opts: { id?: string; importNote: string; at: string },
 ): Promise<string> {
   const id = opts.id ?? crypto.randomUUID()
-  await db.insert(cases).values({ ...values, id })
-  await db.insert(caseLog).values({
-    id: crypto.randomUUID(),
-    caseId: id,
-    at: opts.at,
-    kind: 'import',
-    body: opts.importNote,
-  })
+  // One D1 batch = one transaction: a case never exists without its import row
+  await db.batch([
+    db.insert(cases).values({ ...values, id }),
+    db.insert(caseLog).values({
+      id: crypto.randomUUID(),
+      caseId: id,
+      at: opts.at,
+      kind: 'import',
+      body: opts.importNote,
+    }),
+  ])
   return id
 }
 
@@ -55,18 +58,21 @@ export async function changeStatus(
   const current = await getCase(db, id)
   if (!current) return 'not_found'
   if (!canTransition(current.status, to)) return 'invalid_transition'
-  await db
-    .update(cases)
-    .set({ status: to, updatedAt: sql`(datetime('now'))` })
-    .where(eq(cases.id, id))
-  await db.insert(caseLog).values({
-    id: crypto.randomUUID(),
-    caseId: id,
-    at,
-    kind: 'status',
-    fromStatus: current.status,
-    toStatus: to,
-  })
+  // Atomic: the status row is what "Undo" reverts from, so it must not be lost when the second write fails
+  await db.batch([
+    db
+      .update(cases)
+      .set({ status: to, updatedAt: sql`(datetime('now'))` })
+      .where(eq(cases.id, id)),
+    db.insert(caseLog).values({
+      id: crypto.randomUUID(),
+      caseId: id,
+      at,
+      kind: 'status',
+      fromStatus: current.status,
+      toStatus: to,
+    }),
+  ])
   return 'ok'
 }
 
@@ -83,11 +89,14 @@ export async function revertLastStatusChange(db: Db, id: string): Promise<'ok' |
     .orderBy(desc(caseLog.createdAt), desc(caseLog.at))
     .limit(1)
   if (!last || !last.fromStatus) return 'nothing'
-  await db
-    .update(cases)
-    .set({ status: last.fromStatus as CaseStatus, updatedAt: sql`(datetime('now'))` })
-    .where(eq(cases.id, id))
-  await db.delete(caseLog).where(eq(caseLog.id, last.id))
+  // Atomic: reverting the status and dropping its log row go together, or a second undo would revert twice
+  await db.batch([
+    db
+      .update(cases)
+      .set({ status: last.fromStatus as CaseStatus, updatedAt: sql`(datetime('now'))` })
+      .where(eq(cases.id, id)),
+    db.delete(caseLog).where(eq(caseLog.id, last.id)),
+  ])
   return 'ok'
 }
 
